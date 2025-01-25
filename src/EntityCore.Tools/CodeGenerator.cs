@@ -38,6 +38,15 @@ namespace EntityCore.Tools
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Services"))
                 .AddMembers(classDeclaration);
 
+            CompilationUnitSyntax syntaxTree = GenerateUsings(namespaceDeclaration);
+
+            return syntaxTree
+                .NormalizeWhitespace()
+                .ToFullString();
+        }
+
+        private static CompilationUnitSyntax GenerateUsings(NamespaceDeclarationSyntax namespaceDeclaration)
+        {
             var syntaxTree = SyntaxFactory.CompilationUnit()
                 .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")))
                 .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic")))
@@ -49,10 +58,7 @@ namespace EntityCore.Tools
                 //.AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(entityType.Namespace!)))
                 //.AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(applicationDbContext!.Namespace!)))
                 .AddMembers(namespaceDeclaration);
-
-            return syntaxTree
-                .NormalizeWhitespace()
-                .ToFullString();
+            return syntaxTree;
         }
 
         private static ClassDeclarationSyntax GetClassDeclaration(string entityName, PropertyInfo primaryKey)
@@ -66,9 +72,9 @@ namespace EntityCore.Tools
                                     SyntaxFactory.ParseTypeName("ApplicationDbContext"))
                                 .AddVariables(SyntaxFactory.VariableDeclarator("_applicationDbContext")))
                                 .AddModifiers(
-                                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword), // private 
+                                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),   // private 
                                     SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)), // readonly
-                                                                                      //constructors
+                            //constructors
                             SyntaxFactory.ConstructorDeclaration($"{entityName}sService")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("applicationDbContext"))
