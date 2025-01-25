@@ -1,10 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+	<OutputType>Exe</OutputType>
+	<TargetFramework>net9.0</TargetFramework>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<Nullable>enable</Nullable>
+	<PackAsTool>true</PackAsTool>
+	<ToolCommandName>dotnet-crud</ToolCommandName>
+	<Authors>Sardor Sohinazarov</Authors>
+	<Company>Qiyqiriq</Company>
+	<PackageId>dotnet-crud</PackageId>
+	<Version>1.0.5</Version>
+	<Description>A .NET CLI tool for generating CRUD operations</Description>
+	<PackageTags>dotnet-cli,crud,tool</PackageTags>
+	<RepositoryUrl>https://github.com/SardorSohinazarov/EntityCore</RepositoryUrl>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
+	<PackageProjectUrl>https://github.com/SardorSohinazarov/EntityCore/tree/master/src/EntityCore.Tools</PackageProjectUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0" />
+	<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.12.0" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
+  </ItemGroup>
 
 </Project>
