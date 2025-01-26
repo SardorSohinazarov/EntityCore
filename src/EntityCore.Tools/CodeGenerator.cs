@@ -9,7 +9,7 @@ namespace EntityCore.Tools
 {
     public partial class CodeGenerator
     {
-        public void GenerateService(string dllPath, string projectRoot, string entityName, string? dbContextName)
+        public void GenerateService(string dllPath, string projectRoot, string entityName, string? dbContextName, bool withController)
         {
             var entityType = Assembly.LoadFrom(dllPath)
                      .GetTypes()
@@ -28,14 +28,41 @@ namespace EntityCore.Tools
             Directory.CreateDirectory(servicePath);
 
             string serviceImplementationPath = Path.Combine(servicePath, $"{entityName}sService.cs");
-            string serviceDeclarationPath = Path.Combine(servicePath, $"I{entityName}sService.cs");
-
             File.WriteAllText(serviceImplementationPath, serviceImplementationCode);
+
+            string serviceDeclarationPath = Path.Combine(servicePath, $"I{entityName}sService.cs");
             File.WriteAllText(serviceDeclarationPath, serviceDeclarationCode);
+
+            if (withController)
+            {
+                var controllerCode = GenerateControllerCode(dllPath, entityType);
+                var controllerPath = Path.Combine(projectRoot, "Controllers");
+                Directory.CreateDirectory(controllerPath);
+                string controllerFilePath = Path.Combine(controllerPath, $"{entityName}sController.cs");
+                File.WriteAllText(controllerFilePath, controllerCode);
+            }
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"Service for '{entityName}' entity generated successfully.");
             Console.ResetColor();
+        }
+
+        private string GenerateControllerCode(string dllPath, Type entityType)
+        {
+            var entityName = entityType.Name;
+            var primaryKey = FindKeyProperty(entityType);
+
+
+            var classDeclaration = GetControllerClassDeclaration(entityName, primaryKey);
+
+            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Services"))
+                .AddMembers(classDeclaration);
+
+            CompilationUnitSyntax syntaxTree = GenerateUsings(namespaceDeclaration, null, entityType);
+
+            return syntaxTree
+                .NormalizeWhitespace()
+                .ToFullString();
         }
 
         private string GenerateServiceDeclarationCode(string dllPath, Type entityType)
@@ -149,6 +176,79 @@ namespace EntityCore.Tools
                         );
 
             return classDeclaration;
+        }
+
+        private static ClassDeclarationSyntax GetControllerClassDeclaration(string entityName, PropertyInfo primaryKey)
+        {
+            var serviceVariableName = $"_i{entityName}sService";
+            var classDeclaration = SyntaxFactory.ClassDeclaration($"{entityName}sController")
+                        .AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName($"ControllerBase")))
+                        .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                        .AddAttributeLists(
+                            SyntaxFactory.AttributeList(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.Attribute(SyntaxFactory.ParseName("Route"))
+                                        .WithArgumentList(SyntaxFactory.AttributeArgumentList(
+                                            SyntaxFactory.SingletonSeparatedList(
+                                                SyntaxFactory.AttributeArgument(
+                                                    SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("api/[controller]"))
+                                                )))))),
+
+                            SyntaxFactory.AttributeList(
+                                SyntaxFactory.SingletonSeparatedList(
+                                    SyntaxFactory.Attribute(SyntaxFactory.ParseName("ApiController"))))
+                        )
+                        .AddMembers(
+                            // fields
+                            SyntaxFactory.FieldDeclaration(
+                                SyntaxFactory.VariableDeclaration(
+                                    SyntaxFactory.ParseTypeName($"I{entityName}sService"))
+                                .AddVariables(SyntaxFactory.VariableDeclarator(serviceVariableName)))
+                                .AddModifiers(
+                                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),   // private 
+                                    SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)), // readonly
+                            //constructors
+                            SyntaxFactory.ConstructorDeclaration($"{entityName}sController")
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier($"i{entityName}sService"))
+                                    .WithType(SyntaxFactory.ParseTypeName($"I{entityName}sService")))
+                                .WithBody(SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(
+                                    SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"{serviceVariableName} = i{entityName}sService"))
+                                )))
+                            // methods
+                            //GenerateAddActionImplementation(entityName, serviceVariableName),
+                            //GenerateGetAllActionImplementation(entityName, serviceVariableName),
+                            //GenerateGetByIdActionImplementation(entityName, serviceVariableName, primaryKey),
+                            //GenerateUpdateActionImplementation(entityName, serviceVariableName, primaryKey),
+                            //GenerateDeleteActionImplementation(entityName, serviceVariableName, primaryKey)
+                        );
+
+            return classDeclaration;
+        }
+
+        private static MethodDeclarationSyntax GenerateDeleteActionImplementation(string entityName, string serviceVariableName, PropertyInfo primaryKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static MethodDeclarationSyntax GenerateUpdateActionImplementation(string entityName, string serviceVariableName, PropertyInfo primaryKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static MethodDeclarationSyntax GenerateGetByIdActionImplementation(string entityName, string serviceVariableName, PropertyInfo primaryKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static MethodDeclarationSyntax GenerateGetAllActionImplementation(string entityName, string serviceVariableName)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static MethodDeclarationSyntax GenerateAddActionImplementation(string entityName, string serviceVariableName)
+        {
+            throw new NotImplementedException();
         }
 
         private static CompilationUnitSyntax GenerateUsings(

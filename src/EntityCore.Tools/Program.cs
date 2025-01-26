@@ -28,9 +28,14 @@ public class Program
             Console.WriteLine("dllPath:" + dllPath);
 
             string dbContextName = arguments.ContainsKey("context") ? arguments["context"] : null;
+            Console.WriteLine("dbContextName:" + dbContextName);
+            bool withcontroller = arguments.ContainsKey("controller") ? bool.TryParse(arguments["controller"], out withcontroller) : false;
+            Console.WriteLine("withcontroller:" + withcontroller);
+            bool withView = arguments.ContainsKey("view") ? bool.TryParse(arguments["view"], out withView) : false;
+            Console.WriteLine("withView:" + withView);
 
             CodeGenerator codeGenerator = new CodeGenerator();
-            codeGenerator.GenerateService(dllPath, currentDirectory, entityName, dbContextName);
+            codeGenerator.GenerateService(dllPath, currentDirectory, entityName, dbContextName, withcontroller);
         }
         catch(InvalidOperationException ex)
         {
