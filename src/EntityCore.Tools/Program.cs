@@ -1,31 +1,47 @@
-﻿using System.Diagnostics;
+﻿using System.ComponentModel;
+using System.Diagnostics;
 
 namespace EntityCore.Tools;
 public class Program
 {
     private static void Main(string[] args)
     {
-        if (args.Length == 0)
+        try
         {
-            Console.WriteLine("Usage: dotnet crud <command> [options]");
-            return;
+            if (args.Length == 0)
+                throw new InvalidOperationException("Usage: dotnet crud <command> [options]");
+
+            var entityName = args[0];
+            Console.WriteLine("entityName:" + entityName);
+
+            var currentDirectory = Directory.GetCurrentDirectory();
+
+            EnsureBuild(currentDirectory);
+
+            var dllName = Path.GetFileName(currentDirectory.TrimEnd(Path.DirectorySeparatorChar));
+            Console.WriteLine("dllName:" + dllName);
+
+            var dllPath = Path.Combine(currentDirectory, "bin", "Debug", "net9.0", $"{dllName}.dll");
+            Console.WriteLine("dllPath:" + dllPath);
+
+            CodeGenerator codeGenerator = new CodeGenerator();
+            codeGenerator.GenerateService(dllPath, currentDirectory, entityName);
         }
+        catch(InvalidOperationException ex)
+        {
+            HandleException($"Invalida operation exception 400 😁: \n{ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            HandleException($"Unhandled exception 500 😁:{ex.Message}");
+        }
+    }
 
-        var entityName = args[0];
-        Console.WriteLine("entityName:" + entityName);
-
-        var currentDirectory = Directory.GetCurrentDirectory();
-
-        EnsureBuild(currentDirectory);
-
-        var dllName = Path.GetFileName(currentDirectory.TrimEnd(Path.DirectorySeparatorChar));
-        Console.WriteLine("dllName:" + dllName);
-
-        var dllPath = Path.Combine(currentDirectory, "bin", "Debug", "net9.0", $"{dllName}.dll");
-        Console.WriteLine("dllPath:" + dllPath);
-
-        CodeGenerator codeGenerator = new CodeGenerator();
-        codeGenerator.GenerateService(dllPath, currentDirectory, entityName);
+    private static void HandleException(string message)
+    {
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine(message);
+        Console.ResetColor();
     }
 
     private static void EnsureBuild(string projectPath)
@@ -48,12 +64,7 @@ public class Program
         process.WaitForExit();
 
         if (process.ExitCode != 0)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("Build failed. Please fix the errors and try again.");
-            Console.ResetColor();
-            Environment.Exit(1);
-        }
+            throw new InvalidAsynchronousStateException("Build failed. Please fix the errors and try again.");
 
         Console.WriteLine("Build successful.");
     }

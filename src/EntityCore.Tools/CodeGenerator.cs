@@ -28,12 +28,15 @@ namespace EntityCore.Tools
                                  .GetTypes()
                                  .FirstOrDefault(t => t.Name == entityName);
 
-            var applicationDbContext = Assembly.LoadFrom(dllPath)
+            var dbContextType = Assembly.LoadFrom(dllPath)
                                               .GetTypes()
                                               .FirstOrDefault(t => t.Name == "ApplicationDbContext");
 
-            if (entityType == null)
+            if (entityType is null)
                 throw new InvalidOperationException($"Entity with name '{entityName}' not found in the specified assembly.");
+
+            if (dbContextType is null)
+                throw new InvalidOperationException("DbContext not found in the specified assembly.");
 
             var primaryKey = FindKeyProperty(entityType);
 
@@ -42,26 +45,40 @@ namespace EntityCore.Tools
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Services"))
                 .AddMembers(classDeclaration);
 
-            CompilationUnitSyntax syntaxTree = GenerateUsings(namespaceDeclaration);
+            CompilationUnitSyntax syntaxTree = GenerateUsings(namespaceDeclaration, dbContextType, entityType);
 
             return syntaxTree
                 .NormalizeWhitespace()
                 .ToFullString();
         }
 
-        private static CompilationUnitSyntax GenerateUsings(NamespaceDeclarationSyntax namespaceDeclaration)
+        private static CompilationUnitSyntax GenerateUsings(
+            NamespaceDeclarationSyntax namespaceDeclaration,
+            Type? dbContextType,
+            Type? entityType)
         {
+            var usings = new List<string>
+            {
+                "System",
+                "System.Collections.Generic",
+                "System.Linq",
+                "System.Text",
+                "System.Threading.Tasks",
+                "Microsoft.EntityFrameworkCore"
+            };
+
+            // Qo'shimcha using'larni qo'shish (agar namespace mavjud bo'lsa)
+            if (!string.IsNullOrEmpty(dbContextType?.Namespace))
+                usings.Add(dbContextType.Namespace);
+
+            if (!string.IsNullOrEmpty(entityType?.Namespace))
+                usings.Add(entityType.Namespace);
+
+            // Syntax daraxtini yaratish
             var syntaxTree = SyntaxFactory.CompilationUnit()
-                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")))
-                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Collections.Generic")))
-                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Linq")))
-                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Text")))
-                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Threading.Tasks")))
-                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Microsoft.EntityFrameworkCore")))
-                // Todo : avval namespace bor yoki yo'qligini tekshirish kerak
-                //.AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(entityType.Namespace!)))
-                //.AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(applicationDbContext!.Namespace!)))
+                .AddUsings(usings.Distinct().Select(u => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(u))).ToArray())
                 .AddMembers(namespaceDeclaration);
+
             return syntaxTree;
         }
 
