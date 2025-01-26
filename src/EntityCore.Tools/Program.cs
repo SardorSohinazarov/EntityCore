@@ -1,21 +1,60 @@
-﻿using EntityCore.Tools;
+﻿using System.Diagnostics;
 
-if (args.Length == 0)
+namespace EntityCore.Tools;
+public class Program
 {
-    Console.WriteLine("Usage: dotnet crud <command> [options]");
-    return;
+    private static void Main(string[] args)
+    {
+        if (args.Length == 0)
+        {
+            Console.WriteLine("Usage: dotnet crud <command> [options]");
+            return;
+        }
+
+        var entityName = args[0];
+        Console.WriteLine("entityName:" + entityName);
+
+        var currentDirectory = Directory.GetCurrentDirectory();
+
+        EnsureBuild(currentDirectory);
+
+        var dllName = Path.GetFileName(currentDirectory.TrimEnd(Path.DirectorySeparatorChar));
+        Console.WriteLine("dllName:" + dllName);
+
+        var dllPath = Path.Combine(currentDirectory, "bin", "Debug", "net9.0", $"{dllName}.dll");
+        Console.WriteLine("dllPath:" + dllPath);
+
+        CodeGenerator codeGenerator = new CodeGenerator();
+        codeGenerator.GenerateService(dllPath, currentDirectory, entityName);
+    }
+
+    private static void EnsureBuild(string projectPath)
+    {
+        Console.WriteLine("Building the project...");
+        var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = $"build \"{projectPath}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true,
+            }
+        };
+
+        process.Start();
+        process.WaitForExit();
+
+        if (process.ExitCode != 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("Build failed. Please fix the errors and try again.");
+            Console.ResetColor();
+            Environment.Exit(1);
+        }
+
+        Console.WriteLine("Build successful.");
+    }
 }
-
-var entityName = args[0];
-Console.WriteLine("entityName:" + entityName);
-
-var currentDirectory = Directory.GetCurrentDirectory();
-
-var dllName = Path.GetFileName(currentDirectory.TrimEnd(Path.DirectorySeparatorChar));
-Console.WriteLine("dllName:" + dllName);
-
-var dllPath = Path.Combine(currentDirectory, "bin", "Debug", "net9.0", $"{dllName}.dll");
-Console.WriteLine("dllPath:" + dllPath);
-
-CodeGenerator codeGenerator = new CodeGenerator();
-codeGenerator.GenerateService(dllPath, currentDirectory, entityName);

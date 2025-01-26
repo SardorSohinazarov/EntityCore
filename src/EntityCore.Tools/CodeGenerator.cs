@@ -16,6 +16,10 @@ namespace EntityCore.Tools
 
             Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
             File.WriteAllText(outputPath, serviceCode);
+
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"Service for '{entityName}' entity generated successfully.");
+            Console.ResetColor();
         }
 
         private string GenerateServiceCode(string dllPath, string entityName)
