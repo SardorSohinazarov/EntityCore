@@ -55,7 +55,7 @@ namespace EntityCore.Tools
 
             var classDeclaration = GetControllerClassDeclaration(entityName, primaryKey);
 
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Services"))
+            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Controllers"))
                 .AddMembers(classDeclaration);
 
             CompilationUnitSyntax syntaxTree = GenerateUsings(namespaceDeclaration, null, entityType);
@@ -180,7 +180,7 @@ namespace EntityCore.Tools
 
         private static ClassDeclarationSyntax GetControllerClassDeclaration(string entityName, PropertyInfo primaryKey)
         {
-            var serviceVariableName = $"_i{entityName}sService";
+            var serviceVariableName = $"{entityName}sService".GenerateFieldNameWithUnderscore();
             var classDeclaration = SyntaxFactory.ClassDeclaration($"{entityName}sController")
                         .AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName($"ControllerBase")))
                         .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
@@ -214,9 +214,9 @@ namespace EntityCore.Tools
                                     .WithType(SyntaxFactory.ParseTypeName($"I{entityName}sService")))
                                 .WithBody(SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(
                                     SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"{serviceVariableName} = i{entityName}sService"))
-                                )))
+                                ))),
                             // methods
-                            //GenerateAddActionImplementation(entityName, serviceVariableName),
+                            GenerateAddActionImplementation(entityName, serviceVariableName)
                             //GenerateGetAllActionImplementation(entityName, serviceVariableName),
                             //GenerateGetByIdActionImplementation(entityName, serviceVariableName, primaryKey),
                             //GenerateUpdateActionImplementation(entityName, serviceVariableName, primaryKey),
@@ -248,7 +248,22 @@ namespace EntityCore.Tools
 
         private static MethodDeclarationSyntax GenerateAddActionImplementation(string entityName, string serviceVariableName)
         {
-            throw new NotImplementedException();
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
+                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "AddAsync")
+                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
+                .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
+                .AddAttributeLists(
+                    SyntaxFactory.AttributeList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpPost"))
+                        )
+                    )
+                )
+                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
+                    .WithType(SyntaxFactory.ParseTypeName(entityName)))
+                .WithBody(SyntaxFactory.Block(
+                    SyntaxFactory.ParseStatement($"return await {serviceVariableName}.AddAsync(entity);"))
+                );
         }
 
         private static CompilationUnitSyntax GenerateUsings(
