@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace EntityCore.Tools;
 public class Program
@@ -21,7 +22,7 @@ public class Program
             var dllName = Path.GetFileName(currentDirectory.TrimEnd(Path.DirectorySeparatorChar));
             Console.WriteLine("dllName:" + dllName);
 
-            var dllPath = Path.Combine(currentDirectory, "bin", "Debug", "net9.0", $"{dllName}.dll");
+            var dllPath = Assembly.GetExecutingAssembly().Location; //Path.Combine(currentDirectory, "bin", "Debug", "net9.0", $"{dllName}.dll");
             Console.WriteLine("dllPath:" + dllPath);
 
             CodeGenerator codeGenerator = new CodeGenerator();
