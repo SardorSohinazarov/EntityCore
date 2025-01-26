@@ -9,9 +9,9 @@ namespace EntityCore.Tools
 {
     public partial class CodeGenerator
     {
-        public void GenerateService(string dllPath, string projectRoot, string entityName)
+        public void GenerateService(string dllPath, string projectRoot, string entityName, string? dbContextName)
         {
-            var serviceCode = GenerateServiceCode(dllPath, entityName);
+            var serviceCode = GenerateServiceCode(dllPath, entityName, dbContextName);
 
             string outputPath = Path.Combine(projectRoot, "Services", $"{entityName}sService.cs");
 
@@ -23,15 +23,37 @@ namespace EntityCore.Tools
             Console.ResetColor();
         }
 
-        private string GenerateServiceCode(string dllPath, string entityName)
+        private string GenerateServiceCode(string dllPath, string entityName, string? dbContextName)
         {
             var entityType = Assembly.LoadFrom(dllPath)
                                  .GetTypes()
                                  .FirstOrDefault(t => t.Name == entityName);
 
-            var dbContextType = Assembly.LoadFrom(dllPath)
+            Type? dbContextType = null;
+
+            if (dbContextName is not null)
+            { 
+                dbContextType = Assembly.LoadFrom(dllPath)
                                               .GetTypes()
-                                              .FirstOrDefault(t => typeof(DbContext).IsAssignableFrom(t) && t.IsClass && !t.IsAbstract);
+                                              .FirstOrDefault(t => typeof(DbContext).IsAssignableFrom(t) 
+                                                       && t.IsClass
+                                                       && !t.IsAbstract
+                                                       && t.Name == dbContextName
+                                                       );
+            }
+            else
+            {
+                var dbContextTypes = Assembly.LoadFrom(dllPath)
+                                              .GetTypes()
+                                              .Where(t => typeof(DbContext).IsAssignableFrom(t)
+                                                       && t.IsClass
+                                                       && !t.IsAbstract);
+
+                if(dbContextTypes.Count() == 1)
+                    dbContextType = dbContextTypes.First();
+                else if(dbContextTypes.Count() > 1)
+                    throw new InvalidOperationException("Multiple DbContexts found in the specified assembly. Please choose DbContext name. ex: --context <DbContextName>");
+            }
 
             if (entityType is null)
                 throw new InvalidOperationException($"Entity with name '{entityName}' not found in the specified assembly.");
