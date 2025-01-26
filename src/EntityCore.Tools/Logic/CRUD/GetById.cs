@@ -6,7 +6,7 @@ namespace EntityCore.Tools
 {
     public partial class CodeGenerator
     {
-        private static MethodDeclarationSyntax GenerateGetByIdMethod(string entityName, PropertyInfo primaryKey)
+        private static MethodDeclarationSyntax GenerateGetByIdMethod(string entityName, string dbContextVariableName, PropertyInfo primaryKey)
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(entityName)), "GetByIdAsync")
@@ -16,7 +16,7 @@ namespace EntityCore.Tools
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                     .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entity = await _applicationDbContext.Set<{entityName}>().FirstOrDefaultAsync(x => x.{primaryKey.Name} == id);"),
+                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{entityName}>().FirstOrDefaultAsync(x => x.{primaryKey.Name} == id);"),
                                     SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{entityName} with Id {{id}} not found.\");"),
                                     SyntaxFactory.ParseStatement($"return entity;")
                                 ));
