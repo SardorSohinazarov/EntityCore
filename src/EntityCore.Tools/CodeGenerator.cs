@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
@@ -8,9 +9,9 @@ namespace EntityCore.Tools
 {
     public partial class CodeGenerator
     {
-        public void GenerateService(string dllPath, string projectRoot, string entityName)
+        public void GenerateService(string dllPath, string projectRoot, string entityName, string? dbContextName)
         {
-            var serviceCode = GenerateServiceCode(dllPath, entityName);
+            var serviceCode = GenerateServiceCode(dllPath, entityName, dbContextName);
 
             string outputPath = Path.Combine(projectRoot, "Services", $"{entityName}sService.cs");
 
@@ -22,15 +23,37 @@ namespace EntityCore.Tools
             Console.ResetColor();
         }
 
-        private string GenerateServiceCode(string dllPath, string entityName)
+        private string GenerateServiceCode(string dllPath, string entityName, string? dbContextName)
         {
             var entityType = Assembly.LoadFrom(dllPath)
                                  .GetTypes()
                                  .FirstOrDefault(t => t.Name == entityName);
 
-            var dbContextType = Assembly.LoadFrom(dllPath)
+            Type? dbContextType = null;
+
+            if (dbContextName is not null)
+            { 
+                dbContextType = Assembly.LoadFrom(dllPath)
                                               .GetTypes()
-                                              .FirstOrDefault(t => t.Name == "ApplicationDbContext");
+                                              .FirstOrDefault(t => typeof(DbContext).IsAssignableFrom(t) 
+                                                       && t.IsClass
+                                                       && !t.IsAbstract
+                                                       && t.Name == dbContextName
+                                                       );
+            }
+            else
+            {
+                var dbContextTypes = Assembly.LoadFrom(dllPath)
+                                              .GetTypes()
+                                              .Where(t => typeof(DbContext).IsAssignableFrom(t)
+                                                       && t.IsClass
+                                                       && !t.IsAbstract);
+
+                if(dbContextTypes.Count() == 1)
+                    dbContextType = dbContextTypes.First();
+                else if(dbContextTypes.Count() > 1)
+                    throw new InvalidOperationException("Multiple DbContexts found in the specified assembly. Please choose DbContext name. ex: --context <DbContextName>");
+            }
 
             if (entityType is null)
                 throw new InvalidOperationException($"Entity with name '{entityName}' not found in the specified assembly.");
@@ -40,7 +63,7 @@ namespace EntityCore.Tools
 
             var primaryKey = FindKeyProperty(entityType);
 
-            var classDeclaration = GetClassDeclaration(entityName, primaryKey);
+            var classDeclaration = GetClassDeclaration(entityName, primaryKey, dbContextType);
 
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Services"))
                 .AddMembers(classDeclaration);
@@ -82,35 +105,39 @@ namespace EntityCore.Tools
             return syntaxTree;
         }
 
-        private static ClassDeclarationSyntax GetClassDeclaration(string entityName, PropertyInfo primaryKey)
+        private static ClassDeclarationSyntax GetClassDeclaration(string entityName, PropertyInfo primaryKey, Type dbContextType)
         {
-            return SyntaxFactory.ClassDeclaration($"{entityName}sService")
+            var dbContextVariableName = dbContextType.Name.GenerateFieldNameWithUnderscore();
+
+            var classDeclaration = SyntaxFactory.ClassDeclaration($"{entityName}sService")
                         .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                         .AddMembers(
                             // fields
                             SyntaxFactory.FieldDeclaration(
                                 SyntaxFactory.VariableDeclaration(
-                                    SyntaxFactory.ParseTypeName("ApplicationDbContext"))
-                                .AddVariables(SyntaxFactory.VariableDeclarator("_applicationDbContext")))
+                                    SyntaxFactory.ParseTypeName(dbContextType.Name))
+                                .AddVariables(SyntaxFactory.VariableDeclarator(dbContextVariableName)))
                                 .AddModifiers(
                                     SyntaxFactory.Token(SyntaxKind.PrivateKeyword),   // private 
                                     SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)), // readonly
                             //constructors
                             SyntaxFactory.ConstructorDeclaration($"{entityName}sService")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("applicationDbContext"))
-                                    .WithType(SyntaxFactory.ParseTypeName("ApplicationDbContext")))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(dbContextType.Name.GenerateFieldName()))
+                                    .WithType(SyntaxFactory.ParseTypeName(dbContextType.Name)))
                                 .WithBody(SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(
-                                    SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression("_applicationDbContext = applicationDbContext"))
+                                    SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"{dbContextVariableName} = {dbContextType.Name.GenerateFieldName()}"))
                                 ))),
 
                             // methods
-                            GenerateAddMethod(entityName),
-                            GenerateGetAllMethod(entityName),
-                            GenerateGetByIdMethod(entityName, primaryKey),
-                            GenerateUpdateMethod(entityName, primaryKey),
-                            GenerateDeleteMothod(entityName, primaryKey)
+                            GenerateAddMethod(entityName, dbContextVariableName),
+                            GenerateGetAllMethod(entityName, dbContextVariableName),
+                            GenerateGetByIdMethod(entityName, dbContextVariableName, primaryKey),
+                            GenerateUpdateMethod(entityName, dbContextVariableName, primaryKey),
+                            GenerateDeleteMothod(entityName, dbContextVariableName, primaryKey)
                         );
+
+            return classDeclaration;
         }
 
         private PropertyInfo FindKeyProperty(Type entityType)

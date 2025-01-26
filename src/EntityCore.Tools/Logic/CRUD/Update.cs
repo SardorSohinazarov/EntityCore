@@ -6,7 +6,7 @@ namespace EntityCore.Tools
 {
     public partial class CodeGenerator
     {
-        private static MethodDeclarationSyntax GenerateUpdateMethod(string entityName, PropertyInfo primaryKey)
+        private static MethodDeclarationSyntax GenerateUpdateMethod(string entityName, string dbContextVariableName, PropertyInfo primaryKey)
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(entityName)), "UpdateAsync")
@@ -18,8 +18,8 @@ namespace EntityCore.Tools
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
                                     .WithType(SyntaxFactory.ParseTypeName(entityName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entry = _applicationDbContext.Set<{entityName}>().Update(entity);"),
-                                    SyntaxFactory.ParseStatement($"await _applicationDbContext.SaveChangesAsync();"),
+                                    SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{entityName}>().Update(entity);"),
+                                    SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"),
                                     SyntaxFactory.ParseStatement($"return entry.Entity;")
                                 ));
         }

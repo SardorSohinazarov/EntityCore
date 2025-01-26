@@ -24,8 +24,12 @@ public class Program
             var dllPath = Path.Combine(currentDirectory, "bin", "Debug", "net9.0", $"{dllName}.dll");
             Console.WriteLine("dllPath:" + dllPath);
 
+            string dbContextName = null;
+            if (args.Length == 3 && args[1] == "--context")
+                dbContextName = args[2];
+
             CodeGenerator codeGenerator = new CodeGenerator();
-            codeGenerator.GenerateService(dllPath, currentDirectory, entityName);
+            codeGenerator.GenerateService(dllPath, currentDirectory, entityName, dbContextName);
         }
         catch(InvalidOperationException ex)
         {
