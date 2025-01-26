@@ -6,7 +6,19 @@ namespace EntityCore.Tools
 {
     public partial class CodeGenerator
     {
-        private static MethodDeclarationSyntax GenerateUpdateMethod(string entityName, string dbContextVariableName, PropertyInfo primaryKey)
+        private static MethodDeclarationSyntax GenerateUpdateMethodDeclaration(string entityName, PropertyInfo primaryKey)
+        {
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(entityName)), "UpdateAsync")
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
+                                    .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
+                                    .WithType(SyntaxFactory.ParseTypeName(entityName)))
+                                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                                );
+        }
+
+        private static MethodDeclarationSyntax GenerateUpdateMethodImplementation(string entityName, string dbContextVariableName, PropertyInfo primaryKey)
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(entityName)), "UpdateAsync")

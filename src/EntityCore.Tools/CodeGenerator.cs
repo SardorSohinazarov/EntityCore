@@ -11,23 +11,66 @@ namespace EntityCore.Tools
     {
         public void GenerateService(string dllPath, string projectRoot, string entityName, string? dbContextName)
         {
-            var serviceCode = GenerateServiceCode(dllPath, entityName, dbContextName);
+            var entityType = Assembly.LoadFrom(dllPath)
+                     .GetTypes()
+                     .FirstOrDefault(t => t.Name == entityName);
 
-            string outputPath = Path.Combine(projectRoot, "Services", $"{entityName}sService.cs");
+            if (entityType is null)
+                throw new InvalidOperationException($"Entity with name '{entityName}' not found in the specified assembly.");
 
-            Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
-            File.WriteAllText(outputPath, serviceCode);
+            var serviceImplementationCode = GenerateServiceImplementationCode(dllPath, entityType, dbContextName);
+            var serviceDeclarationCode = GenerateServiceDeclarationCode(dllPath, entityType);
+
+            string outputPath = Path.Combine(projectRoot, "Services");
+            Directory.CreateDirectory(outputPath);
+
+            var servicePath = Path.Combine(outputPath, $"{entityName}s");
+            Directory.CreateDirectory(servicePath);
+
+            string serviceImplementationPath = Path.Combine(servicePath, $"{entityName}sService.cs");
+            string serviceDeclarationPath = Path.Combine(servicePath, $"I{entityName}sService.cs");
+
+            File.WriteAllText(serviceImplementationPath, serviceImplementationCode);
+            File.WriteAllText(serviceDeclarationPath, serviceDeclarationCode);
 
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"Service for '{entityName}' entity generated successfully.");
             Console.ResetColor();
         }
 
-        private string GenerateServiceCode(string dllPath, string entityName, string? dbContextName)
+        private string GenerateServiceDeclarationCode(string dllPath, Type entityType)
         {
-            var entityType = Assembly.LoadFrom(dllPath)
-                                 .GetTypes()
-                                 .FirstOrDefault(t => t.Name == entityName);
+            var entityName = entityType.Name;
+            var primaryKey = FindKeyProperty(entityType);
+
+            InterfaceDeclarationSyntax interfaceDeclaration = GetInterfaceDeclaration(entityName, primaryKey);
+
+            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Services"))
+                .AddMembers(interfaceDeclaration);
+
+            CompilationUnitSyntax syntaxTree = GenerateUsings(namespaceDeclaration, null, entityType);
+
+            return syntaxTree
+                .NormalizeWhitespace()
+                .ToFullString();
+        }
+
+        private InterfaceDeclarationSyntax GetInterfaceDeclaration(string entityName, PropertyInfo primaryKey)
+        {
+            return SyntaxFactory.InterfaceDeclaration($"I{entityName}sService")
+                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                .AddMembers(
+                    GenerateAddMethodDecleration(entityName),
+                    GenerateGetAllMethodDeclaration(entityName),
+                    GenerateGetByIdMethodDeclaration(entityName, primaryKey),
+                    GenerateUpdateMethodDeclaration(entityName, primaryKey),
+                    GenerateDeleteMethodDeclaration(entityName, primaryKey)
+                );
+        }
+
+        private string GenerateServiceImplementationCode(string dllPath, Type entityType, string? dbContextName)
+        {
+            string entityName = entityType.Name;
 
             Type? dbContextType = null;
 
@@ -55,9 +98,6 @@ namespace EntityCore.Tools
                     throw new InvalidOperationException("Multiple DbContexts found in the specified assembly. Please choose DbContext name. ex: --context <DbContextName>");
             }
 
-            if (entityType is null)
-                throw new InvalidOperationException($"Entity with name '{entityName}' not found in the specified assembly.");
-
             if (dbContextType is null)
                 throw new InvalidOperationException("DbContext not found in the specified assembly.");
 
@@ -73,6 +113,42 @@ namespace EntityCore.Tools
             return syntaxTree
                 .NormalizeWhitespace()
                 .ToFullString();
+        }
+
+        private static ClassDeclarationSyntax GetClassDeclaration(string entityName, PropertyInfo primaryKey, Type dbContextType)
+        {
+            var dbContextVariableName = dbContextType.Name.GenerateFieldNameWithUnderscore();
+
+            var classDeclaration = SyntaxFactory.ClassDeclaration($"{entityName}sService")
+                        .AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName($"I{entityName}sService")))
+                        .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                        .AddMembers(
+                            // fields
+                            SyntaxFactory.FieldDeclaration(
+                                SyntaxFactory.VariableDeclaration(
+                                    SyntaxFactory.ParseTypeName(dbContextType.Name))
+                                .AddVariables(SyntaxFactory.VariableDeclarator(dbContextVariableName)))
+                                .AddModifiers(
+                                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),   // private 
+                                    SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)), // readonly
+                            //constructors
+                            SyntaxFactory.ConstructorDeclaration($"{entityName}sService")
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(dbContextType.Name.GenerateFieldName()))
+                                    .WithType(SyntaxFactory.ParseTypeName(dbContextType.Name)))
+                                .WithBody(SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(
+                                    SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"{dbContextVariableName} = {dbContextType.Name.GenerateFieldName()}"))
+                                ))),
+
+                            // methods
+                            GenerateAddMethodImplementation(entityName, dbContextVariableName),
+                            GenerateGetAllMethodImplementation(entityName, dbContextVariableName),
+                            GenerateGetByIdMethodImplementation(entityName, dbContextVariableName, primaryKey),
+                            GenerateUpdateMethodImplementation(entityName, dbContextVariableName, primaryKey),
+                            GenerateDeleteMethodImplementation(entityName, dbContextVariableName, primaryKey)
+                        );
+
+            return classDeclaration;
         }
 
         private static CompilationUnitSyntax GenerateUsings(
@@ -103,41 +179,6 @@ namespace EntityCore.Tools
                 .AddMembers(namespaceDeclaration);
 
             return syntaxTree;
-        }
-
-        private static ClassDeclarationSyntax GetClassDeclaration(string entityName, PropertyInfo primaryKey, Type dbContextType)
-        {
-            var dbContextVariableName = dbContextType.Name.GenerateFieldNameWithUnderscore();
-
-            var classDeclaration = SyntaxFactory.ClassDeclaration($"{entityName}sService")
-                        .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                        .AddMembers(
-                            // fields
-                            SyntaxFactory.FieldDeclaration(
-                                SyntaxFactory.VariableDeclaration(
-                                    SyntaxFactory.ParseTypeName(dbContextType.Name))
-                                .AddVariables(SyntaxFactory.VariableDeclarator(dbContextVariableName)))
-                                .AddModifiers(
-                                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),   // private 
-                                    SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)), // readonly
-                            //constructors
-                            SyntaxFactory.ConstructorDeclaration($"{entityName}sService")
-                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(dbContextType.Name.GenerateFieldName()))
-                                    .WithType(SyntaxFactory.ParseTypeName(dbContextType.Name)))
-                                .WithBody(SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(
-                                    SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"{dbContextVariableName} = {dbContextType.Name.GenerateFieldName()}"))
-                                ))),
-
-                            // methods
-                            GenerateAddMethod(entityName, dbContextVariableName),
-                            GenerateGetAllMethod(entityName, dbContextVariableName),
-                            GenerateGetByIdMethod(entityName, dbContextVariableName, primaryKey),
-                            GenerateUpdateMethod(entityName, dbContextVariableName, primaryKey),
-                            GenerateDeleteMothod(entityName, dbContextVariableName, primaryKey)
-                        );
-
-            return classDeclaration;
         }
 
         private PropertyInfo FindKeyProperty(Type entityType)

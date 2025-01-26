@@ -5,7 +5,15 @@ namespace EntityCore.Tools
 {
     public partial class CodeGenerator
     {
-        private static MethodDeclarationSyntax GenerateGetAllMethod(string entityName, string dbContextVariableName)
+        private static MethodDeclarationSyntax GenerateGetAllMethodDeclaration(string entityName)
+        {
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{entityName}>")), "GetAllAsync")
+                                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                                );
+        }
+
+        private static MethodDeclarationSyntax GenerateGetAllMethodImplementation(string entityName, string dbContextVariableName)
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{entityName}>")), "GetAllAsync")
