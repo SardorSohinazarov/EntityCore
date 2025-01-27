@@ -24,7 +24,7 @@ public class Program
             var dllName = Path.GetFileName(currentDirectory.TrimEnd(Path.DirectorySeparatorChar));
             Console.WriteLine("dllName:" + dllName);
 
-            var dllPath = Path.Combine(currentDirectory, "bin", "Debug", "net9.0", $"{dllName}.dll");
+            var dllPath = Path.Combine(currentDirectory, "bin", "Debug", "net8.0", $"{dllName}.dll");
             Console.WriteLine("dllPath:" + dllPath);
 
             string dbContextName = arguments.ContainsKey("context") ? arguments["context"] : null;
@@ -39,10 +39,12 @@ public class Program
         }
         catch(InvalidOperationException ex)
         {
+            Console.WriteLine("Stack Trace:" + ex.StackTrace);
             HandleException($"Invalida operation exception 400 😁: \n{ex.Message}");
         }
         catch (Exception ex)
         {
+            Console.WriteLine("Stack Trace:" + ex.StackTrace);
             HandleException($"Unhandled exception 500 😁:{ex.Message}");
         }
     }
