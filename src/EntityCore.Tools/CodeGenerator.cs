@@ -216,11 +216,11 @@ namespace EntityCore.Tools
                                     SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"{serviceVariableName} = i{entityName}sService"))
                                 ))),
                             // methods
-                            GenerateAddActionImplementation(entityName, serviceVariableName)
-                            //GenerateGetAllActionImplementation(entityName, serviceVariableName),
-                            //GenerateGetByIdActionImplementation(entityName, serviceVariableName, primaryKey),
-                            //GenerateUpdateActionImplementation(entityName, serviceVariableName, primaryKey),
-                            //GenerateDeleteActionImplementation(entityName, serviceVariableName, primaryKey)
+                            GenerateAddActionImplementation(entityName, serviceVariableName),
+                            GenerateGetAllActionImplementation(entityName, serviceVariableName),
+                            GenerateGetByIdActionImplementation(entityName, serviceVariableName, primaryKey),
+                            GenerateUpdateActionImplementation(entityName, serviceVariableName, primaryKey),
+                            GenerateDeleteActionImplementation(entityName, serviceVariableName, primaryKey)
                         );
 
             return classDeclaration;
@@ -228,42 +228,141 @@ namespace EntityCore.Tools
 
         private static MethodDeclarationSyntax GenerateDeleteActionImplementation(string entityName, string serviceVariableName, PropertyInfo primaryKey)
         {
-            throw new NotImplementedException();
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "DeleteAsync")
+                                .AddModifiers(
+                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
+                                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
+                                .AddAttributeLists(
+                                    SyntaxFactory.AttributeList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpDelete"))
+                                                .WithArgumentList(
+                                                    SyntaxFactory.AttributeArgumentList(
+                                                        SyntaxFactory.SingletonSeparatedList(
+                                                            SyntaxFactory.AttributeArgument(
+                                                                SyntaxFactory.LiteralExpression(
+                                                                    SyntaxKind.StringLiteralExpression,
+                                                                    SyntaxFactory.Literal("{id}")
+                                                                )
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                        )
+                                    )
+                                )
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
+                                .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
+                                .WithBody(SyntaxFactory.Block(
+                                    SyntaxFactory.ParseStatement($"return await {serviceVariableName}.DeleteAsync(id);")
+                                ));
         }
 
         private static MethodDeclarationSyntax GenerateUpdateActionImplementation(string entityName, string serviceVariableName, PropertyInfo primaryKey)
         {
-            throw new NotImplementedException();
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "UpdateAsync")
+                                .AddModifiers(
+                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
+                                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
+                                .AddAttributeLists(
+                                    SyntaxFactory.AttributeList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpPut"))
+                                                .WithArgumentList(
+                                                    SyntaxFactory.AttributeArgumentList(
+                                                        SyntaxFactory.SingletonSeparatedList(
+                                                            SyntaxFactory.AttributeArgument(
+                                                                SyntaxFactory.LiteralExpression(
+                                                                    SyntaxKind.StringLiteralExpression,
+                                                                    SyntaxFactory.Literal("{id}")
+                                                                )
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                        )
+                                    )
+                                )
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
+                                    .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
+                                    .WithType(SyntaxFactory.ParseTypeName(entityName)))
+                                .WithBody(SyntaxFactory.Block(
+                                    SyntaxFactory.ParseStatement($"return await {serviceVariableName}.UpdateAsync(id,entity);")
+                                ));
         }
 
         private static MethodDeclarationSyntax GenerateGetByIdActionImplementation(string entityName, string serviceVariableName, PropertyInfo primaryKey)
         {
-            throw new NotImplementedException();
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
+                               .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "GetByIdAsync")
+                               .AddModifiers(
+                                   SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
+                                   SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
+                                .AddAttributeLists(
+                                    SyntaxFactory.AttributeList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpGet"))
+                                                .WithArgumentList(
+                                                    SyntaxFactory.AttributeArgumentList(
+                                                        SyntaxFactory.SingletonSeparatedList(
+                                                            SyntaxFactory.AttributeArgument(
+                                                                SyntaxFactory.LiteralExpression(
+                                                                    SyntaxKind.StringLiteralExpression,
+                                                                    SyntaxFactory.Literal("{id}")
+                                                                )
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                        )
+                                    )
+                                )
+                               .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
+                                   .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
+                               .WithBody(SyntaxFactory.Block(
+                                   SyntaxFactory.ParseStatement($"return await {serviceVariableName}.GetByIdAsync(id);")
+                               ));
         }
 
         private static MethodDeclarationSyntax GenerateGetAllActionImplementation(string entityName, string serviceVariableName)
         {
-            throw new NotImplementedException();
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "GetAllAsync")
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
+                                .AddAttributeLists(
+                                    SyntaxFactory.AttributeList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpGet"))
+                                        )
+                                    )
+                                )
+                                .WithBody(SyntaxFactory.Block(
+                                    SyntaxFactory.ParseStatement($"return await {serviceVariableName}.GetAllAsync();"))
+                                );
         }
 
         private static MethodDeclarationSyntax GenerateAddActionImplementation(string entityName, string serviceVariableName)
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "AddAsync")
-                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
-                .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
-                .AddAttributeLists(
-                    SyntaxFactory.AttributeList(
-                        SyntaxFactory.SingletonSeparatedList(
-                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpPost"))
-                        )
-                    )
-                )
-                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
-                    .WithType(SyntaxFactory.ParseTypeName(entityName)))
-                .WithBody(SyntaxFactory.Block(
-                    SyntaxFactory.ParseStatement($"return await {serviceVariableName}.AddAsync(entity);"))
-                );
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "AddAsync")
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
+                                .AddAttributeLists(
+                                    SyntaxFactory.AttributeList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpPost"))
+                                        )
+                                    )
+                                )
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
+                                    .WithType(SyntaxFactory.ParseTypeName(entityName)))
+                                .WithBody(SyntaxFactory.Block(
+                                    SyntaxFactory.ParseStatement($"return await {serviceVariableName}.AddAsync(entity);"))
+                                );
         }
 
         private static CompilationUnitSyntax GenerateUsings(
