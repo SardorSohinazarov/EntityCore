@@ -7,7 +7,7 @@ namespace EntityCore.Tools
 {
     public partial class Generator
     {
-        private string GenerateServiceDeclarationCode(Assembly assembly, Type entityType)
+        private string GenerateServiceDeclarationCode(Type entityType)
         {
             var entityName = entityType.Name;
             var primaryKey = FindKeyProperty(entityType);

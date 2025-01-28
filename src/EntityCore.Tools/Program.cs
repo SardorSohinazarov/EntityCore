@@ -21,8 +21,8 @@ public class Program
 
             EnsureBuild(currentDirectory);
 
-            Generator codeGenerator = new Generator();
-            codeGenerator.Generate(currentDirectory, arguments);
+            Generator generator = new Generator(currentDirectory, arguments);
+            generator.Generate();
         }
         catch(InvalidOperationException ex)
         {
