@@ -17,9 +17,6 @@ public class Program
 
             var arguments = ParseArguments(args);
 
-            var entityName = arguments["entity"];
-            Console.WriteLine("entityName:" + entityName);
-
             var currentDirectory = Directory.GetCurrentDirectory();
 
             EnsureBuild(currentDirectory);

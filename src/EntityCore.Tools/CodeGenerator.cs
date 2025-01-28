@@ -30,8 +30,8 @@ namespace EntityCore.Tools
             if (entityType is null)
                 throw new InvalidOperationException($"Entity with name '{entityName}' not found in the specified assembly.");
 
-            var serviceImplementationCode = GenerateServiceImplementationCode(dllPath, entityType, dbContextName);
-            var serviceDeclarationCode = GenerateServiceDeclarationCode(dllPath, entityType);
+            var serviceImplementationCode = GenerateServiceImplementationCode(assembly, entityType, dbContextName);
+            var serviceDeclarationCode = GenerateServiceDeclarationCode(assembly, entityType);
 
             string outputPath = Path.Combine(projectRoot, "Services");
             Directory.CreateDirectory(outputPath);
@@ -47,7 +47,7 @@ namespace EntityCore.Tools
 
             if (withController)
             {
-                var controllerCode = GenerateControllerCode(dllPath, entityType);
+                var controllerCode = GenerateControllerCode(assembly, entityType);
                 var controllerPath = Path.Combine(projectRoot, "Controllers");
                 Directory.CreateDirectory(controllerPath);
                 string controllerFilePath = Path.Combine(controllerPath, $"{entityName}sController.cs");
@@ -79,6 +79,7 @@ namespace EntityCore.Tools
             throw new InvalidOperationException("Dll file not found.");
         }
 
+        // Hozircha kerak emas lekin qo'shimcha dll lar bilan yuklansa balki kerak bo'ladi
         private static void LoadAssembly(Assembly assembly)
         {
             var references = assembly.GetReferencedAssemblies();
@@ -96,32 +97,55 @@ namespace EntityCore.Tools
             }
         }
 
-        private string GenerateControllerCode(string dllPath, Type entityType)
+        private string GenerateControllerCode(Assembly assembly, Type entityType)
         {
             var entityName = entityType.Name;
             var primaryKey = FindKeyProperty(entityType);
-
 
             var classDeclaration = GetControllerClassDeclaration(entityName, primaryKey);
 
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Controllers"))
                 .AddMembers(classDeclaration);
 
-            CompilationUnitSyntax syntaxTree = GenerateUsings(namespaceDeclaration, null, entityType);
+            CompilationUnitSyntax syntaxTree = GenerateControllerUsings(assembly,namespaceDeclaration, entityType);
 
             return syntaxTree
                 .NormalizeWhitespace()
                 .ToFullString();
         }
 
-        private string GenerateServiceDeclarationCode(string dllPath, Type entityType)
+        private CompilationUnitSyntax GenerateControllerUsings(Assembly assembly,NamespaceDeclarationSyntax namespaceDeclaration, Type entityType)
+        {
+            var usings = new List<string>
+            {
+                "System",
+                "System.Collections.Generic",
+                "System.Linq",
+                "System.Text",
+                "System.Threading.Tasks",
+                "Microsoft.AspNetCore.Mvc",
+                $"Services.{entityType.Name}s"
+            };
+
+            if (!string.IsNullOrEmpty(entityType?.Namespace))
+                usings.Add(entityType.Namespace);
+
+            // Syntax daraxtini yaratish
+            var syntaxTree = SyntaxFactory.CompilationUnit()
+                .AddUsings(usings.Distinct().Select(u => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(u))).ToArray())
+                .AddMembers(namespaceDeclaration);
+
+            return syntaxTree;
+        }
+
+        private string GenerateServiceDeclarationCode(Assembly assembly, Type entityType)
         {
             var entityName = entityType.Name;
             var primaryKey = FindKeyProperty(entityType);
 
             InterfaceDeclarationSyntax interfaceDeclaration = GetInterfaceDeclaration(entityName, primaryKey);
 
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Services"))
+            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName($"Services.{entityName}s"))
                 .AddMembers(interfaceDeclaration);
 
             CompilationUnitSyntax syntaxTree = GenerateUsings(namespaceDeclaration, null, entityType);
@@ -144,7 +168,7 @@ namespace EntityCore.Tools
                 );
         }
 
-        private string GenerateServiceImplementationCode(string dllPath, Type entityType, string? dbContextName)
+        private string GenerateServiceImplementationCode(Assembly assembly, Type entityType, string? dbContextName)
         {
             string entityName = entityType.Name;
 
@@ -152,21 +176,20 @@ namespace EntityCore.Tools
 
             if (dbContextName is not null)
             { 
-                dbContextType = Assembly.LoadFrom(dllPath)
-                                              .GetTypes()
-                                              .FirstOrDefault(t => typeof(DbContext).IsAssignableFrom(t) 
-                                                       && t.IsClass
-                                                       && !t.IsAbstract
-                                                       && t.Name == dbContextName
-                                                       );
+                dbContextType = assembly.GetTypes()
+                                        .FirstOrDefault(t => typeof(DbContext).IsAssignableFrom(t) 
+                                            && t.IsClass
+                                            && !t.IsAbstract
+                                            && t.Name == dbContextName
+                                        );
             }
             else
             {
-                var dbContextTypes = Assembly.LoadFrom(dllPath)
-                                              .GetTypes()
-                                              .Where(t => typeof(DbContext).IsAssignableFrom(t)
-                                                       && t.IsClass
-                                                       && !t.IsAbstract);
+                var dbContextTypes = assembly.GetTypes()
+                                             .Where(t => typeof(DbContext).IsAssignableFrom(t)
+                                                && t.IsClass
+                                                && !t.IsAbstract
+                                             );
 
                 if(dbContextTypes.Count() == 1)
                     dbContextType = dbContextTypes.First();
@@ -181,7 +204,7 @@ namespace EntityCore.Tools
 
             var classDeclaration = GetClassDeclaration(entityName, primaryKey, dbContextType);
 
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Services"))
+            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName($"Services.{entityName}s"))
                 .AddMembers(classDeclaration);
 
             CompilationUnitSyntax syntaxTree = GenerateUsings(namespaceDeclaration, dbContextType, entityType);

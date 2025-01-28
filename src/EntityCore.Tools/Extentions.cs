@@ -26,7 +26,5 @@
 
         public static string GenerateFieldNameWithUnderscore(this string str)
             => $"_{str.GenerateFieldName()}";
-
-        public static char sep = Path.DirectorySeparatorChar;
     }
 }
