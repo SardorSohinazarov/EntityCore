@@ -11,10 +11,20 @@ namespace EntityCore.Tools
 {
     public partial class CodeGenerator
     {
-        public void GenerateService(string dllPath, string projectRoot, string entityName, string? dbContextName, bool withController)
+        public void GenerateService(string projectRoot, Dictionary<string, string> arguments)
         {
+            var dllPath = FindDllPath(projectRoot);
             var assembly = Assembly.UnsafeLoadFrom(dllPath);
-            //LoadAssembly(assembly);
+
+            var entityName = arguments["entity"];
+            Console.WriteLine("entityName:" + entityName);
+            string dbContextName = arguments.ContainsKey("context") ? arguments["context"] : null;
+            Console.WriteLine("dbContextName:" + dbContextName);
+            bool withController = arguments.ContainsKey("controller") ? bool.TryParse(arguments["controller"], out withController) : false;
+            Console.WriteLine("withcontroller:" + withController);
+            bool withView = arguments.ContainsKey("view") ? bool.TryParse(arguments["view"], out withView) : false;
+            Console.WriteLine("withView:" + withView);
+
             var entityType = assembly.GetTypes().FirstOrDefault(t => t.Name == entityName);
 
             if (entityType is null)
@@ -47,6 +57,26 @@ namespace EntityCore.Tools
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"Service for '{entityName}' entity generated successfully.");
             Console.ResetColor();
+        }
+
+        static string? FindDllPath(string projectRootPath)
+        {
+            string[] versions = { "net7.0", "net8.0", "net9.0" };
+
+            var dllName = Path.GetFileName(projectRootPath.TrimEnd(Path.DirectorySeparatorChar));
+            Console.WriteLine("dllName:" + dllName);
+
+            string publishPath = "bin/Release";
+
+            foreach (var version in versions)
+            {
+                string path = Path.Combine(projectRootPath, "bin", "Debug", version, $"{dllName}.dll");
+
+                if (File.Exists(path))
+                    return path;
+            }
+
+            throw new InvalidOperationException("Dll file not found.");
         }
 
         private static void LoadAssembly(Assembly assembly)
