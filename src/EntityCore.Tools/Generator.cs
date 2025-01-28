@@ -9,29 +9,37 @@ namespace EntityCore.Tools
 {
     public partial class Generator
     {
-        public void Generate(string projectRoot, Dictionary<string, string> arguments)
+        private readonly Assembly _assembly;
+        private readonly Dictionary<string, string> _arguments;
+        private readonly string _projectRoot;
+        public Generator(string projectRoot, Dictionary<string, string> arguments)
         {
-            var dllPath = FindDllPath(projectRoot);
+            _projectRoot = projectRoot;
+            var dllPath = FindDllPath(_projectRoot);
             var assembly = Assembly.UnsafeLoadFrom(dllPath);
+            _arguments = arguments;
+        }
 
-            var entityName = arguments["entity"];
+        public void Generate()
+        {
+            var entityName = _arguments["entity"];
             Console.WriteLine("entityName:" + entityName);
-            string dbContextName = arguments.ContainsKey("context") ? arguments["context"] : null;
+            string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
             Console.WriteLine("dbContextName:" + dbContextName);
-            bool withController = arguments.ContainsKey("controller") ? bool.TryParse(arguments["controller"], out withController) : false;
+            bool withController = _arguments.ContainsKey("controller") ? bool.TryParse(_arguments["controller"], out withController) : false;
             Console.WriteLine("withcontroller:" + withController);
-            bool withView = arguments.ContainsKey("view") ? bool.TryParse(arguments["view"], out withView) : false;
+            bool withView = _arguments.ContainsKey("view") ? bool.TryParse(_arguments["view"], out withView) : false;
             Console.WriteLine("withView:" + withView);
 
-            var entityType = assembly.GetTypes().FirstOrDefault(t => t.Name == entityName);
+            var entityType = _assembly.GetTypes().FirstOrDefault(t => t.Name == entityName);
 
             if (entityType is null)
-                throw new InvalidOperationException($"Entity with name '{entityName}' not found in the specified assembly.");
+                throw new InvalidOperationException($"Entity with name '{entityName}' not found in the specified _assembly.");
 
-            var serviceImplementationCode = GenerateServiceImplementationCode(assembly, entityType, dbContextName);
-            var serviceDeclarationCode = GenerateServiceDeclarationCode(assembly, entityType);
+            var serviceImplementationCode = GenerateServiceImplementationCode(entityType, dbContextName);
+            var serviceDeclarationCode = GenerateServiceDeclarationCode(entityType);
 
-            string outputPath = Path.Combine(projectRoot, "Services");
+            string outputPath = Path.Combine(_projectRoot, "Services");
             Directory.CreateDirectory(outputPath);
 
             var servicePath = Path.Combine(outputPath, $"{entityName}s");
@@ -45,8 +53,8 @@ namespace EntityCore.Tools
 
             if (withController)
             {
-                var controllerCode = GenerateControllerCode(assembly, entityType);
-                var controllerPath = Path.Combine(projectRoot, "Controllers");
+                var controllerCode = GenerateControllerCode(entityType);
+                var controllerPath = Path.Combine(_projectRoot, "Controllers");
                 Directory.CreateDirectory(controllerPath);
                 string controllerFilePath = Path.Combine(controllerPath, $"{entityName}sController.cs");
                 File.WriteAllText(controllerFilePath, controllerCode);
@@ -95,7 +103,7 @@ namespace EntityCore.Tools
             }
         }
 
-        private CompilationUnitSyntax GenerateControllerUsings(Assembly assembly,NamespaceDeclarationSyntax namespaceDeclaration, Type entityType)
+        private CompilationUnitSyntax GenerateControllerUsings(NamespaceDeclarationSyntax namespaceDeclaration, Type entityType)
         {
             var usings = new List<string>
             {

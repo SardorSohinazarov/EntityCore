@@ -7,7 +7,7 @@ namespace EntityCore.Tools
 {
     public partial class Generator
     {
-        private string GenerateControllerCode(Assembly assembly, Type entityType)
+        private string GenerateControllerCode(Type entityType)
         {
             var entityName = entityType.Name;
             var primaryKey = FindKeyProperty(entityType);
@@ -17,7 +17,7 @@ namespace EntityCore.Tools
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Controllers"))
                 .AddMembers(classDeclaration);
 
-            CompilationUnitSyntax syntaxTree = GenerateControllerUsings(assembly, namespaceDeclaration, entityType);
+            CompilationUnitSyntax syntaxTree = GenerateControllerUsings(namespaceDeclaration, entityType);
 
             return syntaxTree
                 .NormalizeWhitespace()

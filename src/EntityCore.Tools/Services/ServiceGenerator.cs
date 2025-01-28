@@ -8,7 +8,7 @@ namespace EntityCore.Tools
 {
     public partial class Generator
     {
-        private string GenerateServiceImplementationCode(Assembly assembly, Type entityType, string? dbContextName)
+        private string GenerateServiceImplementationCode(Type entityType, string? dbContextName)
         {
             string entityName = entityType.Name;
 
@@ -16,7 +16,7 @@ namespace EntityCore.Tools
 
             if (dbContextName is not null)
             {
-                dbContextType = assembly.GetTypes()
+                dbContextType = _assembly.GetTypes()
                                         .FirstOrDefault(t => typeof(DbContext).IsAssignableFrom(t)
                                             && t.IsClass
                                             && !t.IsAbstract
@@ -25,7 +25,7 @@ namespace EntityCore.Tools
             }
             else
             {
-                var dbContextTypes = assembly.GetTypes()
+                var dbContextTypes = _assembly.GetTypes()
                                              .Where(t => typeof(DbContext).IsAssignableFrom(t)
                                                 && t.IsClass
                                                 && !t.IsAbstract
