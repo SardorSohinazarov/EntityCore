@@ -10,41 +10,50 @@ public class Program
         try
         {
             if (args.Length == 0)
-                throw new InvalidOperationException("Usage: dotnet crud <command> [options]");
+            {
+                DrawLogo();
+                return;
+            }
 
             var arguments = ParseArguments(args);
-
-            var entityName = arguments["entity"];
-            Console.WriteLine("entityName:" + entityName);
 
             var currentDirectory = Directory.GetCurrentDirectory();
 
             EnsureBuild(currentDirectory);
 
-            var dllName = Path.GetFileName(currentDirectory.TrimEnd(Path.DirectorySeparatorChar));
-            Console.WriteLine("dllName:" + dllName);
-
-            var dllPath = Path.Combine(currentDirectory, "bin", "Debug", "net9.0", $"{dllName}.dll");
-            Console.WriteLine("dllPath:" + dllPath);
-
-            string dbContextName = arguments.ContainsKey("context") ? arguments["context"] : null;
-            Console.WriteLine("dbContextName:" + dbContextName);
-            bool withcontroller = arguments.ContainsKey("controller") ? bool.TryParse(arguments["controller"], out withcontroller) : false;
-            Console.WriteLine("withcontroller:" + withcontroller);
-            bool withView = arguments.ContainsKey("view") ? bool.TryParse(arguments["view"], out withView) : false;
-            Console.WriteLine("withView:" + withView);
-
-            CodeGenerator codeGenerator = new CodeGenerator();
-            codeGenerator.GenerateService(dllPath, currentDirectory, entityName, dbContextName, withcontroller);
+            Generator codeGenerator = new Generator();
+            codeGenerator.Generate(currentDirectory, arguments);
         }
         catch(InvalidOperationException ex)
         {
+            Console.WriteLine("Stack Trace:" + ex.StackTrace);
             HandleException($"Invalida operation exception 400 😁: \n{ex.Message}");
         }
         catch (Exception ex)
         {
+            Console.WriteLine("Stack Trace:" + ex.StackTrace);
             HandleException($"Unhandled exception 500 😁:{ex.Message}");
         }
+    }
+
+    private static void DrawLogo()
+    {
+        Console.WriteLine(@"
+         ███████ ███    ██ ████████ ██ ████████ ██    ██  ██████   ██████  ██████  ████████
+         ██      ████   ██    ██    ██    ██    ██    ██ ██       ██    ██ ██   ██ ██
+         █████   ██ ██  ██    ██    ██    ██     ██████  ██       ██    ██ █████   ████████
+         ██      ██  ██ ██    ██    ██    ██       ██    ██       ██    ██ ██   ██ ██
+         ███████ ██   ████    ██    ██    ██       ██     ██████   ██████  ██   ██ ████████
+        ");
+
+        Console.WriteLine("EntityCore.Tools - A tool to generate CRUD operations for Entity Framework Core.");
+
+        Console.WriteLine("Usage: dotnet crud <entity> [options]");
+        Console.WriteLine("Options:");
+        Console.WriteLine("  --context <context>  The DbContext class name. Default is the first DbContext found in the project.");
+        Console.WriteLine("  --controller         Generate a controller for the entity. Default is false.");
+        Console.WriteLine("  --view               Generate views for the entity. Default is false.");
+        Console.WriteLine("Use \"dotnet crud [command] --help\" for more information about a command.");
     }
 
     private static void HandleException(string message)
