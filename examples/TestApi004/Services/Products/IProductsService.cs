@@ -1,19 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
+using TestApi004.DataTransferObjects;
 using TestApi001.Entities;
 
-namespace Services
+namespace Services.Products
 {
     public interface IProductsService
     {
-        Task<Product> AddAsync(Product entity);
-        Task<List<Product>> GetAllAsync();
-        Task<Product> GetByIdAsync(int id);
-        Task<Product> UpdateAsync(int id, Product entity);
-        Task<Product> DeleteAsync(int id);
+        Task<ProductViewModel> AddAsync(Product entity);
+        Task<List<ProductViewModel>> GetAllAsync();
+        Task<ProductViewModel> GetByIdAsync(int id);
+        Task<ProductViewModel> UpdateAsync(int id, Product entity);
+        Task<ProductViewModel> DeleteAsync(int id);
     }
 }

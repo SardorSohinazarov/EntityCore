@@ -39,8 +39,10 @@ namespace EntityCore.Tools
 
         private MemberDeclarationSyntax GenerateAddMethodDecleration(string entityName)
         {
+            var returnTypeName = GetReturnTypeName(entityName);
+
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                    .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(entityName)), "AddAsync")
+                    .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "AddAsync")
                     .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
                         .WithType(SyntaxFactory.ParseTypeName(entityName)))
                     .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
@@ -48,16 +50,20 @@ namespace EntityCore.Tools
 
         private MethodDeclarationSyntax GenerateGetAllMethodDeclaration(string entityName)
         {
+            var returnTypeName = GetReturnTypeName(entityName);
+
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{entityName}>")), "GetAllAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{returnTypeName}>")), "GetAllAsync")
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)
                                 );
         }
 
         private MethodDeclarationSyntax GenerateGetByIdMethodDeclaration(string entityName, PropertyInfo primaryKey)
         {
+            var returnTypeName = GetReturnTypeName(entityName);
+
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(entityName)), "GetByIdAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "GetByIdAsync")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                     .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)
@@ -66,8 +72,10 @@ namespace EntityCore.Tools
 
         private MethodDeclarationSyntax GenerateUpdateMethodDeclaration(string entityName, PropertyInfo primaryKey)
         {
+            var returnTypeName = GetReturnTypeName(entityName);
+
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(entityName)), "UpdateAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "UpdateAsync")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                     .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
@@ -78,8 +86,10 @@ namespace EntityCore.Tools
 
         private MethodDeclarationSyntax GenerateDeleteMethodDeclaration(string entityName, PropertyInfo primaryKey)
         {
+            var returnTypeName = GetReturnTypeName(entityName);
+
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(entityName)), "DeleteAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "DeleteAsync")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                     .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)
