@@ -16,7 +16,7 @@ namespace EntityCore.Tools
         {
             _projectRoot = projectRoot;
             var dllPath = FindDllPath(_projectRoot);
-            var assembly = Assembly.UnsafeLoadFrom(dllPath);
+            _assembly = Assembly.UnsafeLoadFrom(dllPath);
             _arguments = arguments;
         }
 
@@ -122,15 +122,21 @@ namespace EntityCore.Tools
             return syntaxTree;
         }
 
-        private static CompilationUnitSyntax GenerateUsings(
+        private CompilationUnitSyntax GenerateUsings(
             NamespaceDeclarationSyntax namespaceDeclaration,
             Type? dbContextType,
             Type? entityType)
         {
             var usings = new List<string>
             {
-                "Microsoft.EntityFrameworkCore"
+                "Microsoft.EntityFrameworkCore",
+                "AutoMapper"
             };
+
+            var viewModelType = GetViewModel(entityType.Name);
+
+            if(!string.IsNullOrEmpty(viewModelType?.Namespace))
+                usings.Add(viewModelType.Namespace);
 
             // Qo'shimcha using'larni qo'shish (agar namespace mavjud bo'lsa)
             if (!string.IsNullOrEmpty(dbContextType?.Namespace))
@@ -166,6 +172,18 @@ namespace EntityCore.Tools
                 throw new InvalidOperationException("Entity must have a key property.");
 
             return keyProperty;
+        }
+
+        private string GetReturnTypeName(string entityName)
+        {
+            var viewModelType = GetViewModel(entityName);
+            return viewModelType is null ? entityName : viewModelType.Name;
+        }
+
+        private Type GetViewModel(string entityName)
+        {
+            var viewModelName = $"{entityName}ViewModel";
+            return _assembly.GetTypes().FirstOrDefault(t => t.Name == viewModelName);
         }
     }
 }
