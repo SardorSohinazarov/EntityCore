@@ -14,7 +14,6 @@ namespace EntityCore.Tools
         public void GenerateService(string dllPath, string projectRoot, string entityName, string? dbContextName, bool withController)
         {
             var assembly = Assembly.UnsafeLoadFrom(dllPath);
-            //LoadAssembly1(assembly);
             //LoadAssembly(assembly);
             var entityType = assembly.GetTypes().FirstOrDefault(t => t.Name == entityName);
 
@@ -50,7 +49,7 @@ namespace EntityCore.Tools
             Console.ResetColor();
         }
 
-        private static void LoadAssembly1(Assembly assembly)
+        private static void LoadAssembly(Assembly assembly)
         {
             var references = assembly.GetReferencedAssemblies();
             foreach (var reference in references)
@@ -64,46 +63,6 @@ namespace EntityCore.Tools
                     var path = Path.Combine(NuGetEnvironment.GetFolderPath(NuGetFolderPath.NuGetHome), "packages", reference.Name, reference.Version.ToString(), $"{reference.Name}.dll");
                     Assembly.LoadFrom(path);
                 }
-            }
-        }
-
-        public static void LoadAssembly(Assembly DLL)
-        {
-            DependencyContext context = DependencyContext.Load(DLL)!;
-            var nugetPath = NuGetEnvironment.GetFolderPath(NuGetFolderPath.NuGetHome);
-            var referenced = DLL.GetReferencedAssemblies();
-            foreach (var item in DLL.GetReferencedAssemblies().Where(x => x.Name!.Contains("System")))
-            {
-                var lbl = context.RuntimeLibraries.FirstOrDefault(x => x.Name == item.Name);
-                if (lbl != null && lbl.RuntimeAssemblyGroups.Count > 0 && lbl.RuntimeAssemblyGroups[0].AssetPaths.Count > 0)
-                {
-                    string assemblyPath = Path.Combine(nugetPath + $"{Path.DirectorySeparatorChar}packages{Path.DirectorySeparatorChar}{lbl.Path}", lbl.RuntimeAssemblyGroups[0].AssetPaths[0]);
-                    Assembly.LoadFrom(assemblyPath);
-                }
-                else
-                {
-                    Assembly.Load(item);
-                }
-            }
-
-            var list = referenced.Where(x => !x.Name!.Contains("System")).Select(x =>
-            {
-                return context.RuntimeLibraries.First(t => t.Name == x.Name || t.RuntimeAssemblyGroups.Count > 0 && t.RuntimeAssemblyGroups[0].AssetPaths[0].Contains(x.Name!));
-            }).ToList();
-
-            foreach (var library in list)
-            {
-                try
-                {
-                    Assembly.Load(library.Name);
-                }
-                catch (Exception)
-                {
-
-                    string assemblyPath = Path.Combine(nugetPath + $"{Path.DirectorySeparatorChar}packages{Path.DirectorySeparatorChar}{library.Path}", library.RuntimeAssemblyGroups[0].AssetPaths[0]);
-                    Assembly.LoadFrom(assemblyPath);
-                }
-
             }
         }
 
