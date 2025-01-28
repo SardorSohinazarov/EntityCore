@@ -315,7 +315,7 @@ namespace EntityCore.Tools
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                 .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"return await {serviceVariableName}.DeleteAsync(id);")
+                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.DeleteAsync(id));")
                                 ));
         }
 
@@ -350,7 +350,7 @@ namespace EntityCore.Tools
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
                                     .WithType(SyntaxFactory.ParseTypeName(entityName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"return await {serviceVariableName}.UpdateAsync(id,entity);")
+                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.UpdateAsync(id,entity));")
                                 ));
         }
 
@@ -383,7 +383,7 @@ namespace EntityCore.Tools
                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                    .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
                                .WithBody(SyntaxFactory.Block(
-                                   SyntaxFactory.ParseStatement($"return await {serviceVariableName}.GetByIdAsync(id);")
+                                   SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.GetByIdAsync(id));")
                                ));
         }
 
@@ -401,7 +401,7 @@ namespace EntityCore.Tools
                                     )
                                 )
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"return await {serviceVariableName}.GetAllAsync();"))
+                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.GetAllAsync());"))
                                 );
         }
 
@@ -421,7 +421,7 @@ namespace EntityCore.Tools
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
                                     .WithType(SyntaxFactory.ParseTypeName(entityName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"return await {serviceVariableName}.AddAsync(entity);"))
+                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.AddAsync(entity));"))
                                 );
         }
 

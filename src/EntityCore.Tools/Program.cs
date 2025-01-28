@@ -24,7 +24,7 @@ public class Program
             var dllName = Path.GetFileName(currentDirectory.TrimEnd(Path.DirectorySeparatorChar));
             Console.WriteLine("dllName:" + dllName);
 
-            var dllPath = Path.Combine(currentDirectory, "bin", "Debug", "net8.0", $"{dllName}.dll");
+            var dllPath = Path.Combine(currentDirectory, "bin", "Debug", "net7.0", $"{dllName}.dll");
             Console.WriteLine("dllPath:" + dllPath);
 
             string dbContextName = arguments.ContainsKey("context") ? arguments["context"] : null;
