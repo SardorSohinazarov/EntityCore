@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Services.Products;
+using TestApi004.DataTransferObjects;
 using TestApi001.Entities;
 
 namespace Controllers
@@ -9,9 +10,9 @@ namespace Controllers
     public class ProductsController : ControllerBase
     {
         private readonly IProductsService _productsService;
-        public ProductsController(IProductsService iProductsService)
+        public ProductsController(IProductsService productsService)
         {
-            _productsService = iProductsService;
+            _productsService = productsService;
         }
 
         [HttpPost]

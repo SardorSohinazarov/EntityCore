@@ -40,7 +40,10 @@ namespace Services.Products
 
         public async Task<ProductViewModel> UpdateAsync(int id, ProductModificationDto productModificationDto)
         {
-            var entity = _mapper.Map<Product>(productModificationDto);
+            var entity = await _testApiDbContext.Set<Product>().FirstOrDefaultAsync(x => x.Id == id);
+            if (entity == null)
+                throw new InvalidOperationException($"Product with {id} not found.");
+            _mapper.Map(productModificationDto, entity);
             var entry = _testApiDbContext.Set<Product>().Update(entity);
             await _testApiDbContext.SaveChangesAsync();
             return _mapper.Map<ProductViewModel>(entry.Entity);
@@ -57,11 +60,16 @@ namespace Services.Products
         }
     }
 
+    /// <summary>
+    /// AutoMapper mapping profile for Product entity.
+    /// </summary>
     public class ProductMappingProfile : Profile
     {
         public ProductMappingProfile()
         {
             CreateMap<Product, ProductViewModel>();
+            CreateMap<ProductCreationDto, Product>();
+            CreateMap<ProductModificationDto, Product>();
         }
     }
 }

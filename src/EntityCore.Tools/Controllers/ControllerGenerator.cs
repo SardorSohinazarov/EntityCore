@@ -56,11 +56,11 @@ namespace EntityCore.Tools
                                                                                       //constructors
                             SyntaxFactory.ConstructorDeclaration($"{entityName}sController")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier($"i{entityName}sService"))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier($"{entityName}sService".GenerateFieldName()))
                                     .WithType(SyntaxFactory.ParseTypeName($"I{entityName}sService")))
-                                .WithBody(SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(
-                                    SyntaxFactory.ExpressionStatement(SyntaxFactory.ParseExpression($"{serviceVariableName} = i{entityName}sService"))
-                                ))),
+                                .WithBody(SyntaxFactory.Block(
+                                    SyntaxFactory.ParseStatement($"{serviceVariableName} = {$"{entityName}sService".GenerateFieldName()};")
+                                )),
                             // methods
                             GenerateAddActionImplementation(entityName, serviceVariableName),
                             GenerateGetAllActionImplementation(entityName, serviceVariableName),
