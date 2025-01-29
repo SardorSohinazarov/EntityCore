@@ -183,5 +183,29 @@ namespace EntityCore.Tools
             var viewModelName = $"{entityName}ViewModel";
             return _assembly.GetTypes().FirstOrDefault(t => t.Name == viewModelName);
         }
+
+        private string GetCreationDtoTypeName(string entityName)
+        {
+            var creationDtoType = GetCreationDto(entityName);
+            return creationDtoType is null ? entityName : creationDtoType.Name;
+        }
+
+        private Type GetCreationDto(string entityName)
+        {
+            var creationDtoName = $"{entityName}CreationDto";
+            return _assembly.GetTypes().FirstOrDefault(t => t.Name == creationDtoName);
+        }
+
+        private string GetModificationDtoTypeName(string entityName)
+        {
+            var modificationDtoType = GetModificationDto(entityName);
+            return modificationDtoType is null ? entityName : modificationDtoType.Name;
+        }
+
+        private Type GetModificationDto(string entityName)
+        {
+            var modificationDtoName = $"{entityName}ModificationDto";
+            return _assembly.GetTypes().FirstOrDefault(t => t.Name == modificationDtoName);
+        }
     }
 }

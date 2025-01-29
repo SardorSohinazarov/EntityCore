@@ -74,6 +74,10 @@ namespace EntityCore.Tools
 
         private MethodDeclarationSyntax GenerateAddActionImplementation(string entityName, string serviceVariableName)
         {
+            var creationDtoTypeName = GetCreationDtoTypeName(entityName);
+            var parametrName = creationDtoTypeName.GenerateFieldName();
+            var returnTypeName = GetReturnTypeName(entityName);
+
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "AddAsync")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
@@ -85,10 +89,10 @@ namespace EntityCore.Tools
                                         )
                                     )
                                 )
-                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
-                                    .WithType(SyntaxFactory.ParseTypeName(entityName)))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
+                                    .WithType(SyntaxFactory.ParseTypeName(creationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.AddAsync(entity));"))
+                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.AddAsync({parametrName}));"))
                                 );
         }
 
@@ -145,6 +149,10 @@ namespace EntityCore.Tools
 
         private MethodDeclarationSyntax GenerateUpdateActionImplementation(string entityName, string serviceVariableName, PropertyInfo primaryKey)
         {
+            var modificationDtoTypeName = GetModificationDtoTypeName(entityName);
+            var parametrName = modificationDtoTypeName.GenerateFieldName();
+            var returnTypeName = GetReturnTypeName(entityName);
+
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "UpdateAsync")
                                 .AddModifiers(
@@ -171,10 +179,10 @@ namespace EntityCore.Tools
                                 )
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                     .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
-                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
-                                    .WithType(SyntaxFactory.ParseTypeName(entityName)))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
+                                    .WithType(SyntaxFactory.ParseTypeName(modificationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.UpdateAsync(id,entity));")
+                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.UpdateAsync(id,{parametrName}));")
                                 ));
         }
 
