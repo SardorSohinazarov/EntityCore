@@ -39,21 +39,21 @@ public class Program
     private static void DrawLogo()
     {
         Console.WriteLine(@"
-         ███████ ███    ██ ████████ ██ ████████ ██    ██  ██████   ██████  ██████  ████████
-         ██      ████   ██    ██    ██    ██    ██    ██ ██       ██    ██ ██   ██ ██
-         █████   ██ ██  ██    ██    ██    ██     ██████  ██       ██    ██ █████   ████████
-         ██      ██  ██ ██    ██    ██    ██       ██    ██       ██    ██ ██   ██ ██
-         ███████ ██   ████    ██    ██    ██       ██     ██████   ██████  ██   ██ ████████
+         ███████ ███   ██ ████████ ██ ████████ ██    ██  ██████   ██████  ██████  ███████
+         ██      ████  ██    ██    ██    ██    ██    ██ ██       ██    ██ ██   ██ ██
+         █████   ██ ██ ██    ██    ██    ██     ██████  ██       ██    ██ █████   █████
+         ██      ██  ████    ██    ██    ██       ██    ██       ██    ██ ██   ██ ██
+         ███████ ██   ███    ██    ██    ██       ██     ██████   ██████  ██   ██ ███████
         ");
 
         Console.WriteLine("EntityCore.Tools - A tool to generate CRUD operations for Entity Framework Core.");
 
-        Console.WriteLine("Usage: dotnet crud <entity> [options]");
+        Console.WriteLine("Usage: dotnet crud <entityName> [options]");
         Console.WriteLine("Options:");
-        Console.WriteLine("  --context <context>  The DbContext class name. Default is the first DbContext found in the project.");
-        Console.WriteLine("  --controller         Generate a controller for the entity. Default is false.");
-        Console.WriteLine("  --view               Generate views for the entity. Default is false.");
-        Console.WriteLine("Use \"dotnet crud [command] --help\" for more information about a command.");
+        Console.WriteLine("  --context <context>         The DbContext class name. Default is the first DbContext found in the project.");
+        Console.WriteLine("  --controller <true/false>   Generate a controller for the entity. Default is false.");
+        Console.WriteLine("  --view <true/false>         Generate views for the entity. Default is false.");
+        Console.WriteLine("Use \"dotnet crud\" for more information about a command.");
     }
 
     private static void HandleException(string message)

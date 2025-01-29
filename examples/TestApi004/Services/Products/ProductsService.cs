@@ -1,5 +1,5 @@
-using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using TestApi004.DataTransferObjects;
 using TestApi001;
 using TestApi001.Entities;
@@ -16,8 +16,9 @@ namespace Services.Products
             _mapper = mapper;
         }
 
-        public async Task<ProductViewModel> AddAsync(Product entity)
+        public async Task<ProductViewModel> AddAsync(ProductCreationDto productCreationDto)
         {
+            var entity = _mapper.Map<Product>(productCreationDto);
             var entry = await _testApiDbContext.Set<Product>().AddAsync(entity);
             await _testApiDbContext.SaveChangesAsync();
             return _mapper.Map<ProductViewModel>(entry.Entity);
@@ -37,8 +38,9 @@ namespace Services.Products
             return _mapper.Map<ProductViewModel>(entity);
         }
 
-        public async Task<ProductViewModel> UpdateAsync(int id, Product entity)
+        public async Task<ProductViewModel> UpdateAsync(int id, ProductModificationDto productModificationDto)
         {
+            var entity = _mapper.Map<Product>(productModificationDto);
             var entry = _testApiDbContext.Set<Product>().Update(entity);
             await _testApiDbContext.SaveChangesAsync();
             return _mapper.Map<ProductViewModel>(entry.Entity);

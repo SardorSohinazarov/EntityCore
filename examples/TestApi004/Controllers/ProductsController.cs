@@ -15,9 +15,9 @@ namespace Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddAsync(Product entity)
+        public async Task<IActionResult> AddAsync(ProductCreationDto productCreationDto)
         {
-            return Ok(await _productsService.AddAsync(entity));
+            return Ok(await _productsService.AddAsync(productCreationDto));
         }
 
         [HttpGet]
@@ -33,9 +33,9 @@ namespace Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAsync(int id, Product entity)
+        public async Task<IActionResult> UpdateAsync(int id, ProductModificationDto productModificationDto)
         {
-            return Ok(await _productsService.UpdateAsync(id, entity));
+            return Ok(await _productsService.UpdateAsync(id, productModificationDto));
         }
 
         [HttpDelete("{id}")]

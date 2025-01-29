@@ -101,6 +101,8 @@ namespace EntityCore.Tools
 
         private MethodDeclarationSyntax GenerateAddMethodImplementation(string entityName, string dbContextVariableName)
         {
+            var creationDtoTypeName = GetCreationDtoTypeName(entityName);
+            var parametrName = creationDtoTypeName.GenerateFieldName();
             var returnTypeName = GetReturnTypeName(entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
@@ -108,15 +110,15 @@ namespace EntityCore.Tools
                                 .AddModifiers(
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
-                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
-                                    .WithType(SyntaxFactory.ParseTypeName(entityName)))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
+                                    .WithType(SyntaxFactory.ParseTypeName(creationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
+                                    SyntaxFactory.ParseStatement($"var entity = _mapper.Map<{entityName}>({parametrName});"),
                                     SyntaxFactory.ParseStatement($"var entry = await {dbContextVariableName}.Set<{entityName}>().AddAsync(entity);"),
                                     SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"),
                                     SyntaxFactory.ParseStatement($"return {GenerateReturn(entityName)};")
                                 ));
         }
-
 
         private MethodDeclarationSyntax GenerateGetAllMethodImplementation(string entityName, string dbContextVariableName)
         {
@@ -153,6 +155,8 @@ namespace EntityCore.Tools
 
         private MethodDeclarationSyntax GenerateUpdateMethodImplementation(string entityName, string dbContextVariableName, PropertyInfo primaryKey)
         {
+            var modificationDtoTypeName = GetModificationDtoTypeName(entityName);
+            var parametrName = modificationDtoTypeName.GenerateFieldName();
             var returnTypeName = GetReturnTypeName(entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
@@ -162,9 +166,10 @@ namespace EntityCore.Tools
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                     .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
-                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
-                                    .WithType(SyntaxFactory.ParseTypeName(entityName)))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
+                                    .WithType(SyntaxFactory.ParseTypeName(modificationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
+                                    SyntaxFactory.ParseStatement($"var entity = _mapper.Map<{entityName}>({parametrName});"),
                                     SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{entityName}>().Update(entity);"),
                                     SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"),
                                     SyntaxFactory.ParseStatement($"return {GenerateReturn(entityName)};")
