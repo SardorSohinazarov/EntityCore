@@ -27,14 +27,14 @@ namespace EntityCore.Tools
         private InterfaceDeclarationSyntax GetInterfaceDeclaration(string entityName, PropertyInfo primaryKey)
         {
             return SyntaxFactory.InterfaceDeclaration($"I{entityName}sService")
-                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                .AddMembers(
-                    GenerateAddMethodDecleration(entityName),
-                    GenerateGetAllMethodDeclaration(entityName),
-                    GenerateGetByIdMethodDeclaration(entityName, primaryKey),
-                    GenerateUpdateMethodDeclaration(entityName, primaryKey),
-                    GenerateDeleteMethodDeclaration(entityName, primaryKey)
-                );
+                                .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                                .AddMembers(
+                                    GenerateAddMethodDecleration(entityName),
+                                    GenerateGetAllMethodDeclaration(entityName),
+                                    GenerateGetByIdMethodDeclaration(entityName, primaryKey),
+                                    GenerateUpdateMethodDeclaration(entityName, primaryKey),
+                                    GenerateDeleteMethodDeclaration(entityName, primaryKey)
+                                );
         }
 
         private MemberDeclarationSyntax GenerateAddMethodDecleration(string entityName)
@@ -42,10 +42,10 @@ namespace EntityCore.Tools
             var returnTypeName = GetReturnTypeName(entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                    .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "AddAsync")
-                    .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
-                        .WithType(SyntaxFactory.ParseTypeName(entityName)))
-                    .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "AddAsync")
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
+                                    .WithType(SyntaxFactory.ParseTypeName(entityName)))
+                                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
 
         private MethodDeclarationSyntax GenerateGetAllMethodDeclaration(string entityName)

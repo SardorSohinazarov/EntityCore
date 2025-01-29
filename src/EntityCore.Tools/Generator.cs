@@ -114,7 +114,6 @@ namespace EntityCore.Tools
             if (!string.IsNullOrEmpty(entityType?.Namespace))
                 usings.Add(entityType.Namespace);
 
-            // Syntax daraxtini yaratish
             var syntaxTree = SyntaxFactory.CompilationUnit()
                 .AddUsings(usings.Distinct().Select(u => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(u))).ToArray())
                 .AddMembers(namespaceDeclaration);
@@ -129,8 +128,8 @@ namespace EntityCore.Tools
         {
             var usings = new List<string>
             {
-                "Microsoft.EntityFrameworkCore",
-                "AutoMapper"
+                "AutoMapper",
+                "Microsoft.EntityFrameworkCore"
             };
 
             var viewModelType = GetViewModel(entityType.Name);
@@ -145,7 +144,6 @@ namespace EntityCore.Tools
             if (!string.IsNullOrEmpty(entityType?.Namespace))
                 usings.Add(entityType.Namespace);
 
-            // Syntax daraxtini yaratish
             var syntaxTree = SyntaxFactory.CompilationUnit()
                 .AddUsings(usings.Distinct().Select(u => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(u))).ToArray())
                 .AddMembers(namespaceDeclaration);
