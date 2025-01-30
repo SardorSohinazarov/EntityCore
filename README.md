@@ -4,7 +4,7 @@
 
 ## Talablar
 
-- .NET 7.0 yoki undan yuqori versiya
+- .NET 7.0, 8.0, 9.0 yoki undan yuqori versiya
 - Entity Framework Core
 
 ## Foydalanish
