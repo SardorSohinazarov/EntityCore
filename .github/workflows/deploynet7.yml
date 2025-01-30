@@ -14,6 +14,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+      with:
+        path: src/EntityCore.Tools
 
     - name: Set up .NET SDK
       uses: actions/setup-dotnet@v2
@@ -21,13 +23,13 @@ jobs:
         dotnet-version: '7.0.0'
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore src/EntityCore.Tools/EntityCore.Tools.csproj
 
     - name: Build the project
-      run: dotnet build --configuration Release
+      run: dotnet build src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release
 
     - name: Pack the project
-      run: dotnet pack --configuration Release --output ./nupkg
+      run: dotnet pack src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release --output ./nupkg
 
     - name: Publish package to NuGet
       run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
