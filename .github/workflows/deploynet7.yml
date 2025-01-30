@@ -14,8 +14,6 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
-      with:
-        path: src/EntityCore.Tools
 
     - name: Set up .NET SDK
       uses: actions/setup-dotnet@v2
