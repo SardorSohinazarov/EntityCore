@@ -10,7 +10,7 @@
 	<Authors>Sardor Sohinazarov</Authors>
 	<Company>Qiyqiriq</Company>
 	<PackageId>dotnet-crud</PackageId>
-	<Version>1.1.1</Version>
+	<Version>1.1.2</Version>
 	<Description>A .NET CLI tool for generating CRUD operations</Description>
 	<PackageTags>dotnet-cli,crud,tool</PackageTags>
 	<RepositoryUrl>https://github.com/SardorSohinazarov/EntityCore</RepositoryUrl>
@@ -39,6 +39,5 @@
   <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.0" />
   <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="9.0.0" />
 </ItemGroup>
-
 
 </Project>
