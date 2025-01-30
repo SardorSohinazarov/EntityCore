@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
 
 namespace EntityCore.Tools
 {
@@ -7,25 +8,39 @@ namespace EntityCore.Tools
     {
         private ClassDeclarationSyntax GenerateMappingProfile(string entityName)
         {
-            /// <summary>
-            /// AutoMapper mapping profile for {EntityName} entity.
-            /// </summary>
-            //Todo : Shunaqa xml comment o'shadigan qilish kerak
-
             var viewModel = GetViewModel(entityName);
-            if (viewModel is null)
+            var creationDto = GetCreationDto(entityName);
+            var modificationDto = GetModificationDto(entityName);
+
+            if(viewModel == null && creationDto == null && modificationDto == null)
                 return null;
 
+            var xmlComment = SyntaxFactory.TriviaList(
+                SyntaxFactory.Comment("/// <summary>"),
+                SyntaxFactory.Comment($"/// AutoMapper mapping profile for {entityName} entity."),
+                SyntaxFactory.Comment("/// </summary>")
+            );
+
+            var constructorStatements = new List<StatementSyntax>();
+
+            if (viewModel != null)
+                constructorStatements.Add(SyntaxFactory.ParseStatement($"CreateMap<{entityName}, {viewModel.Name}>();"));
+
+            if (creationDto != null)
+                constructorStatements.Add(SyntaxFactory.ParseStatement($"CreateMap<{creationDto.Name}, {entityName}>();"));
+
+            if (modificationDto != null)
+                constructorStatements.Add(SyntaxFactory.ParseStatement($"CreateMap<{modificationDto.Name}, {entityName}>();"));
+
             var mappingProfile = SyntaxFactory.ClassDeclaration($"{entityName}MappingProfile")
-                        .AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName($"Profile")))
+                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                .WithLeadingTrivia(xmlComment)
+                .AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName($"Profile")))
+                .AddMembers(
+                    SyntaxFactory.ConstructorDeclaration($"{entityName}MappingProfile")
                         .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                        .AddMembers(
-                            SyntaxFactory.ConstructorDeclaration($"{entityName}MappingProfile")
-                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                                .WithBody(SyntaxFactory.Block(
-                                    //Todo :  agar view model null bo'lsa qo'shmasin
-                                    SyntaxFactory.ParseStatement($"CreateMap<{entityName},{viewModel.Name}>();")
-                                )));
+                        .WithBody(SyntaxFactory.Block(constructorStatements))
+                );
 
             return mappingProfile;
         }
