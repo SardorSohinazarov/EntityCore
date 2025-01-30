@@ -10,7 +10,7 @@
 	<Authors>Sardor Sohinazarov</Authors>
 	<Company>Qiyqiriq</Company>
 	<PackageId>qiyqiriq-crud</PackageId>
-	<Version>1.1.4</Version>
+	<Version>1.1.5</Version>
 	<Description>A .NET CLI tool for generating CRUD operations</Description>
 	<PackageTags>dotnet-cli,crud,tool</PackageTags>
 	<RepositoryUrl>https://github.com/SardorSohinazarov/EntityCore</RepositoryUrl>
