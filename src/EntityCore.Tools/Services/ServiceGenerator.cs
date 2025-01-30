@@ -169,7 +169,9 @@ namespace EntityCore.Tools
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(modificationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entity = _mapper.Map<{entityName}>({parametrName});"),
+                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{entityName}>().FirstOrDefaultAsync(x => x.Id == id);"),
+                                    SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{entityName} with {{id}} not found.\");"),
+                                    SyntaxFactory.ParseStatement($"_mapper.Map({parametrName}, entity);"),
                                     SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{entityName}>().Update(entity);"),
                                     SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"),
                                     SyntaxFactory.ParseStatement($"return {GenerateReturn(entityName)};")

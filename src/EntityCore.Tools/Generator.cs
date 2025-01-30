@@ -111,6 +111,18 @@ namespace EntityCore.Tools
                 $"Services.{entityType.Name}s"
             };
 
+            var viewModelType = GetViewModel(entityType.Name);
+            if (!string.IsNullOrEmpty(viewModelType?.Namespace))
+                usings.Add(viewModelType.Namespace);
+
+            var creationDtoType = GetCreationDto(entityType.Name);
+            if (!string.IsNullOrEmpty(creationDtoType?.Namespace))
+                usings.Add(creationDtoType.Namespace);
+
+            var modificationDtoType = GetModificationDto(entityType.Name);
+            if (!string.IsNullOrEmpty(modificationDtoType?.Namespace))
+                usings.Add(modificationDtoType.Namespace);
+
             if (!string.IsNullOrEmpty(entityType?.Namespace))
                 usings.Add(entityType.Namespace);
 
@@ -133,11 +145,17 @@ namespace EntityCore.Tools
             };
 
             var viewModelType = GetViewModel(entityType.Name);
-
             if(!string.IsNullOrEmpty(viewModelType?.Namespace))
                 usings.Add(viewModelType.Namespace);
 
-            // Qo'shimcha using'larni qo'shish (agar namespace mavjud bo'lsa)
+            var creationDtoType = GetCreationDto(entityType.Name);
+            if(!string.IsNullOrEmpty(creationDtoType?.Namespace))
+                usings.Add(creationDtoType.Namespace);
+
+            var modificationDtoType = GetModificationDto(entityType.Name);
+            if (!string.IsNullOrEmpty(modificationDtoType?.Namespace))
+                usings.Add(modificationDtoType.Namespace);
+
             if (!string.IsNullOrEmpty(dbContextType?.Namespace))
                 usings.Add(dbContextType.Namespace);
 
