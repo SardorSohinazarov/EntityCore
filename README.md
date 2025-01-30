@@ -6,3 +6,10 @@
 
 - .NET 7.0 yoki undan yuqori versiya
 - Entity Framework Core
+
+## Foydalanish
+
+- `dotnet crud`
+- `dotnet crud <EntityName>`
+- `dotnet crud <EntityName> --context <DbContextName>`
+- `dotnet crud <EntityName> --controller true`
