@@ -20,7 +20,7 @@ jobs:
     - name: Set up .NET SDK
       uses: actions/setup-dotnet@v2
       with:
-        dotnet-version: '7.0.0'
+        dotnet-version: '7.0.x'
 
     - name: Restore dependencies
       run: dotnet restore src/EntityCore.Tools/EntityCore.Tools.csproj
