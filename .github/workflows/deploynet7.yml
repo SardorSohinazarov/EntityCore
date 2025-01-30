@@ -23,12 +23,21 @@ jobs:
           8.0.x
           9.0.x
 
-    - name: Publish packages for multiple versions
+    - name: Extract version from .csproj
+      id: extract_version
       run: |
-        for version in 7 8 9
+        VERSION=$(grep -oP '(?<=<Version>)[^<]+' src/EntityCore.Tools/EntityCore.Tools.csproj)
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Publish packages for multiple .NET versions
+      run: |
+        for dotnet_version in 7 8 9
         do
-          dotnet build src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release -p:Version=${version}.0.0
-          dotnet pack src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release -p:Version=${version}.0.0 --output ./nupkg
+          NEW_VERSION="${dotnet_version}.${VERSION#*.}"
+          echo "Building and packing version $NEW_VERSION for .NET $dotnet_version"
+
+          dotnet build src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release -p:Version=$NEW_VERSION
+          dotnet pack src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release -p:Version=$NEW_VERSION --output ./nupkg
         done
 
     - name: Publish package to NuGet
