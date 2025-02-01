@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Services.Products;
 using System.Reflection;
 using TestApi001;
 
@@ -12,7 +11,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IProductsService, ProductsService>();
+//builder.Services.AddScoped<IProductsService, ProductsService>();
 builder.Services.AddDbContext<TestApiDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default"));
