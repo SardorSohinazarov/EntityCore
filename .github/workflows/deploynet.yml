@@ -19,7 +19,6 @@ jobs:
       uses: actions/setup-dotnet@v2
       with:
         dotnet-version: |
-          7.0.x
           8.0.x
           9.0.x
 
@@ -31,7 +30,7 @@ jobs:
 
     - name: Update TargetFramework and Version for .NET versions
       run: |
-        for dotnet_version in 7 8 9
+        for dotnet_version in 8 9
         do
           NEW_VERSION="${dotnet_version}.${VERSION#*.}"
           echo "Updating target framework and version to .NET $dotnet_version"
