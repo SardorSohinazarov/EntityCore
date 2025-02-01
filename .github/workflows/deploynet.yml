@@ -22,6 +22,9 @@ jobs:
           8.0.x
           9.0.x
 
+    - name: Restore dependencies
+      run: dotnet restore
+
     - name: Extract version from .csproj
       id: extract_version
       run: |
@@ -41,8 +44,8 @@ jobs:
           
           echo "Building and packing version $NEW_VERSION for .NET $dotnet_version"
           
-          dotnet build src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release -p:Version=$NEW_VERSION -f net$dotnet_version
-          dotnet pack src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release -p:Version=$NEW_VERSION -o ./nupkg -f net$dotnet_version
+          dotnet build src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release -p:Version=$NEW_VERSION
+          dotnet pack src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release -p:Version=$NEW_VERSION -o ./nupkg
         done
 
     - name: Publish package to NuGet

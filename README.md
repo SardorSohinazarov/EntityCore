@@ -9,7 +9,7 @@
 
 ## Foydalanish
 
-- `dotnet crud`
+- `dotnet crud` - bu default buyruq, tool haqida malumot beradi
 - `dotnet crud <EntityName>`
 - `dotnet crud <EntityName> --context <DbContextName>`
 - `dotnet crud <EntityName> --controller true`
