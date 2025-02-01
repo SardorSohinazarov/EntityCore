@@ -29,15 +29,21 @@ jobs:
         VERSION=$(grep -oP '(?<=<Version>)[^<]+' src/EntityCore.Tools/EntityCore.Tools.csproj)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
 
-    - name: Publish packages for multiple .NET versions
+    - name: Update TargetFramework and Version for .NET versions
       run: |
         for dotnet_version in 7 8 9
         do
           NEW_VERSION="${dotnet_version}.${VERSION#*.}"
+          echo "Updating target framework and version to .NET $dotnet_version"
+          
+          # O'zgartirish: csproj faylida target framework va versiyani yangilash
+          sed -i "s|<TargetFramework>net[0-9]\.[0-9]</TargetFramework>|<TargetFramework>net$dotnet_version.0</TargetFramework>|" src/EntityCore.Tools/EntityCore.Tools.csproj
+          sed -i "s|<Version>.*</Version>|<Version>$NEW_VERSION</Version>|" src/EntityCore.Tools/EntityCore.Tools.csproj
+          
           echo "Building and packing version $NEW_VERSION for .NET $dotnet_version"
-
-          dotnet build src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release -p:Version=$NEW_VERSION
-          dotnet pack src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release -p:Version=$NEW_VERSION --output ./nupkg
+          
+          dotnet build src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release -p:Version=$NEW_VERSION -f net$dotnet_version
+          dotnet pack src/EntityCore.Tools/EntityCore.Tools.csproj --configuration Release -p:Version=$NEW_VERSION -o ./nupkg -f net$dotnet_version
         done
 
     - name: Publish package to NuGet
