@@ -42,11 +42,17 @@ namespace EntityCore.Tools
 
             var primaryKey = FindKeyProperty(entityType);
 
+            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName($"Services.{entityName}s"));
+            
             var classDeclaration = GetClassDeclaration(entityName, primaryKey, dbContextType);
 
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName($"Services.{entityName}s"))
-                .AddMembers(classDeclaration)
-                .AddMembers(GenerateMappingProfile(entityName));
+            if(classDeclaration is not null)
+                namespaceDeclaration = namespaceDeclaration.AddMembers(classDeclaration);
+
+            var mappingProfile = GenerateMappingProfile(entityName);
+
+            if(mappingProfile is not null)
+                namespaceDeclaration = namespaceDeclaration.AddMembers(mappingProfile);
 
             CompilationUnitSyntax syntaxTree = GenerateUsings(namespaceDeclaration, dbContextType, entityType);
 

@@ -31,6 +31,9 @@ namespace EntityCore.Tools
             bool withView = _arguments.ContainsKey("view") ? bool.TryParse(_arguments["view"], out withView) : false;
             Console.WriteLine("withView:" + withView);
 
+            if(_assembly is null)
+                throw new InvalidOperationException("Assembly not found.");
+
             var entityType = _assembly.GetTypes().FirstOrDefault(t => t.Name == entityName);
 
             if (entityType is null)
@@ -72,20 +75,21 @@ namespace EntityCore.Tools
             var dllName = Path.GetFileName(projectRootPath.TrimEnd(Path.DirectorySeparatorChar));
             Console.WriteLine("dllName:" + dllName);
 
-            string publishPath = "bin/Release";
-
             foreach (var version in versions)
             {
                 string path = Path.Combine(projectRootPath, "bin", "Debug", version, $"{dllName}.dll");
 
                 if (File.Exists(path))
+                {
+                    Console.WriteLine($"dll-path: {path}");
                     return path;
+                }
             }
 
             throw new InvalidOperationException("Dll file not found.");
         }
 
-        // Hozircha kerak emas lekin qo'shimcha dll lar bilan yuklansa balki kerak bo'ladi
+        #region Hozircha kerak emas lekin qo'shimcha dll lar bilan yuklansa balki kerak bo'ladi
         private static void LoadAssembly(Assembly assembly)
         {
             var references = assembly.GetReferencedAssemblies();
@@ -102,6 +106,7 @@ namespace EntityCore.Tools
                 }
             }
         }
+        #endregion
 
         private CompilationUnitSyntax GenerateControllerUsings(NamespaceDeclarationSyntax namespaceDeclaration, Type entityType)
         {
