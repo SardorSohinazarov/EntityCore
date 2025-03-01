@@ -10,6 +10,6 @@
 ## Foydalanish
 
 - `dotnet crud` - bu default buyruq, tool haqida malumot beradi
-- `dotnet crud <EntityName>`
-- `dotnet crud <EntityName> --context <DbContextName>`
-- `dotnet crud <EntityName> --controller true`
+- `dotnet crud <EntityName>` - du EntityName bo'yicha CRUD service generatsiya qilish uchun
+- `dotnet crud <EntityName> --context <DbContextName>` - agar dbContextlar yagona bo'lmasa birini tanlash uchun
+- `dotnet crud <EntityName> --controller true` - controller ham generatsiya qilish uchun

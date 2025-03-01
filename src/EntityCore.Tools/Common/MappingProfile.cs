@@ -13,7 +13,10 @@ namespace EntityCore.Tools
             var modificationDto = GetModificationDto(entityName);
 
             if(viewModel == null && creationDto == null && modificationDto == null)
+            {
+                Console.WriteLine($"Data transfer objects not found for this entity -> {entityName}");
                 return null;
+            }
 
             var xmlComment = SyntaxFactory.TriviaList(
                 SyntaxFactory.Comment("/// <summary>"),
