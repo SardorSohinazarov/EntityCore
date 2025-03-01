@@ -15,8 +15,8 @@ namespace EntityCore.Tools
         public Generator(string projectRoot, Dictionary<string, string> arguments)
         {
             _projectRoot = projectRoot;
-            var dllPath = FindDllPath(_projectRoot);
-            _assembly = Assembly.UnsafeLoadFrom(dllPath);
+            var loader = new AssemblyLoader();
+            _assembly = loader.Load(_projectRoot);
             _arguments = arguments;
         }
 
@@ -66,27 +66,6 @@ namespace EntityCore.Tools
             Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine($"Service for '{entityName}' entity generated successfully.");
             Console.ResetColor();
-        }
-
-        static string? FindDllPath(string projectRootPath)
-        {
-            string[] versions = { "net7.0", "net8.0", "net9.0" };
-
-            var dllName = Path.GetFileName(projectRootPath.TrimEnd(Path.DirectorySeparatorChar));
-            Console.WriteLine("dllName:" + dllName);
-
-            foreach (var version in versions)
-            {
-                string path = Path.Combine(projectRootPath, "bin", "Debug", version, $"{dllName}.dll");
-
-                if (File.Exists(path))
-                {
-                    Console.WriteLine($"dll-path: {path}");
-                    return path;
-                }
-            }
-
-            throw new InvalidOperationException("Dll file not found.");
         }
 
         #region Hozircha kerak emas lekin qo'shimcha dll lar bilan yuklansa balki kerak bo'ladi
