@@ -1,6 +1,6 @@
 # EntityCore
 
-`dotnet-crud` - .NET CLI vositasi, CRUD (Create, Read, Update, Delete) operatsiyalarini yaratish uchun mo'ljallangan. Bu tool Entity Framework Core bilan ishlovchi dasturlar uchun tez va oson kodlarni generatsiya qilishga yordam beradi. Admin panelingizni commandalar orqali bir zumda generatsiya qildiring (MVC).
+`dotnet-crud` - .NET CLI vositasi, CRUD (Create, Read, Update, Delete) operatsiyalarini yaratish uchun mo'ljallangan. Bu tool Entity Framework Core bilan ishlovchi dasturlar uchun tez va oson kodlarni generatsiya qilishga yordam beradi. Admin panelingizni commandalar orqali bir zumda generatsiya qildiring.
 
 ## Talablar
 
