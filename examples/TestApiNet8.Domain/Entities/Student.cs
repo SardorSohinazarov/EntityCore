@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace TestApiWithNet8.Entities
+﻿namespace TestApiWithNet8.Entities
 {
     public class Student
     {
@@ -26,10 +24,5 @@ namespace TestApiWithNet8.Entities
     {
         public string Name { get; set; }
         public string Age { get; set; }
-    }
-
-    public class ApplicationDbContext : DbContext
-    {
-        public DbSet<Student> Students { get; set; }
     }
 }

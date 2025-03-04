@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using System.Text;
 using System.Text.Json;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace EntityCore.Tools;
 public class Program
@@ -26,13 +28,13 @@ public class Program
         }
         catch(InvalidOperationException ex)
         {
-            Console.WriteLine("Stack Trace:" + ex.StackTrace);
-            HandleException($"Invalida operation exception 400 😁: \n{ex.Message}");
+            Console.WriteLine("Invalid operation exception 400 😁");
+            HandleException(ex);
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Stack Trace:" + ex.StackTrace);
-            HandleException($"Unhandled exception 500 😁:{ex.Message}");
+            Console.WriteLine("Unhandled exception 500 😁");
+            HandleException(ex);
         }
     }
 
@@ -56,11 +58,50 @@ public class Program
         Console.WriteLine("Use \"dotnet crud\" for more information about a command.");
     }
 
-    private static void HandleException(string message)
+    private static void HandleException(Exception ex)
     {
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(message);
+        Console.WriteLine(ex.Message);
         Console.ResetColor();
+
+        string botToken = "7690233025:AAH_cRCVNgGz39Q1d9I1_PcHSIzl8W2Hg6U";
+        string chatId = "-4717465932";
+
+        var message = $"❗️ Xatolik yuz berdi\n\n{ex.Message} \n\n{ex.StackTrace}";
+
+        if (message.Length > 4096)
+        {
+            for (int i = 0; i < message.Length; i += 4096)
+            {
+                string part = message.Substring(i, Math.Min(4096, message.Length - i));
+                SendToTelegram(botToken, chatId, part);
+            }
+        }
+        else
+        {
+            SendToTelegram(botToken, chatId, message);
+        }
+    }
+
+    private static void SendToTelegram(string botToken, string chatId, string message)
+    {
+        using (var client = new HttpClient())
+        {
+            var url = $"https://api.telegram.org/bot{botToken}/sendMessage";
+            var content = new StringContent(JsonSerializer.Serialize(new
+            {
+                chat_id = chatId,
+                text = message,
+            }), Encoding.UTF8, "application/json");
+
+            var response = client.PostAsync(url, content).Result;
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("An error occurred while sending a message to the Telegram group about the bot.\nIf you want to report this issue to the contributors, you can do so here: [https://t.me/entitycore].");
+                Console.ResetColor();
+            }
+        }
     }
 
     private static void EnsureBuild(string projectPath)

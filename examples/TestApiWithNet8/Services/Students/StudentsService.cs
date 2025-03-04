@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using TestApiWithNet8.Entities;
+using TestApiWithNet8;
 
 namespace Services.Students
 {
