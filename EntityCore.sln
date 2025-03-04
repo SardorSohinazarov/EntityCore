@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApi004", "examples\Test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApiWithNet8", "examples\TestApiWithNet8\TestApiWithNet8.csproj", "{780A3F16-6267-4735-856F-702CA41C8C23}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApiNet8.Domain", "examples\TestApiNet8.Domain\TestApiNet8.Domain.csproj", "{1D5974C9-3606-456E-B949-896E611016E0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,10 @@ Global
 		{780A3F16-6267-4735-856F-702CA41C8C23}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{780A3F16-6267-4735-856F-702CA41C8C23}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{780A3F16-6267-4735-856F-702CA41C8C23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D5974C9-3606-456E-B949-896E611016E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D5974C9-3606-456E-B949-896E611016E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D5974C9-3606-456E-B949-896E611016E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D5974C9-3606-456E-B949-896E611016E0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -39,5 +45,6 @@ Global
 		{7695406B-216B-46D1-8E5B-B2EDD2EE0137} = {1A1A6644-AB43-404F-8AAD-904E998F089E}
 		{53E32E10-5240-4E71-AC5D-93FE2A3833C4} = {20EF5BC8-C8B2-454A-B5AE-3F48F2604200}
 		{780A3F16-6267-4735-856F-702CA41C8C23} = {20EF5BC8-C8B2-454A-B5AE-3F48F2604200}
+		{1D5974C9-3606-456E-B949-896E611016E0} = {20EF5BC8-C8B2-454A-B5AE-3F48F2604200}
 	EndGlobalSection
 EndGlobal

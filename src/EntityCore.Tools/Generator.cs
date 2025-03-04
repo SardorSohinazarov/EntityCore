@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NuGet.Common;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
@@ -9,14 +8,13 @@ namespace EntityCore.Tools
 {
     public partial class Generator
     {
-        private readonly Assembly _assembly;
         private readonly Dictionary<string, string> _arguments;
         private readonly string _projectRoot;
         public Generator(string projectRoot, Dictionary<string, string> arguments)
         {
             _projectRoot = projectRoot;
             var loader = new AssemblyLoader();
-            _assembly = loader.Load(_projectRoot);
+            loader.Load(_projectRoot);
             _arguments = arguments;
         }
 
@@ -31,13 +29,12 @@ namespace EntityCore.Tools
             bool withView = _arguments.ContainsKey("view") ? bool.TryParse(_arguments["view"], out withView) : false;
             Console.WriteLine("withView:" + withView);
 
-            if(_assembly is null)
-                throw new InvalidOperationException("Assembly not found.");
-
-            var entityType = _assembly.GetTypes().FirstOrDefault(t => t.Name == entityName);
+            var entityType = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == entityName);
 
             if (entityType is null)
-                throw new InvalidOperationException($"Entity with name '{entityName}' not found in the specified _assembly.");
+                throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
 
             var serviceImplementationCode = GenerateServiceImplementationCode(entityType, dbContextName);
             var serviceDeclarationCode = GenerateServiceDeclarationCode(entityType);
@@ -67,25 +64,6 @@ namespace EntityCore.Tools
             Console.WriteLine($"Service for '{entityName}' entity generated successfully.");
             Console.ResetColor();
         }
-
-        #region Hozircha kerak emas lekin qo'shimcha dll lar bilan yuklansa balki kerak bo'ladi
-        private static void LoadAssembly(Assembly assembly)
-        {
-            var references = assembly.GetReferencedAssemblies();
-            foreach (var reference in references)
-            {
-                try
-                {
-                    Assembly.Load(reference);
-                }
-                catch (Exception)
-                {
-                    var path = Path.Combine(NuGetEnvironment.GetFolderPath(NuGetFolderPath.NuGetHome), "packages", reference.Name, reference.Version.ToString(), $"{reference.Name}.dll");
-                    Assembly.LoadFrom(path);
-                }
-            }
-        }
-        #endregion
 
         private CompilationUnitSyntax GenerateControllerUsings(NamespaceDeclarationSyntax namespaceDeclaration, Type entityType)
         {
@@ -183,7 +161,9 @@ namespace EntityCore.Tools
         private Type GetViewModel(string entityName)
         {
             var viewModelName = $"{entityName}ViewModel";
-            return _assembly.GetTypes().FirstOrDefault(t => t.Name == viewModelName);
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == viewModelName);
         }
 
         private string GetCreationDtoTypeName(string entityName)
@@ -195,7 +175,9 @@ namespace EntityCore.Tools
         private Type GetCreationDto(string entityName)
         {
             var creationDtoName = $"{entityName}CreationDto";
-            return _assembly.GetTypes().FirstOrDefault(t => t.Name == creationDtoName);
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == creationDtoName);
         }
 
         private string GetModificationDtoTypeName(string entityName)
@@ -207,7 +189,9 @@ namespace EntityCore.Tools
         private Type GetModificationDto(string entityName)
         {
             var modificationDtoName = $"{entityName}ModificationDto";
-            return _assembly.GetTypes().FirstOrDefault(t => t.Name == modificationDtoName);
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == modificationDtoName);
         }
     }
 }
