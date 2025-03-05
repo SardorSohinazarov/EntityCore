@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TestApiNet8.Domain\TestApiNet8.Domain.csproj" />
+    <ProjectReference Include="..\TestApiNet8.Infrastructure\TestApiNet8.Infrastructure.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="13.0.1" />
+	</ItemGroup>
+
+</Project>

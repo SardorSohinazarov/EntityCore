@@ -16,25 +16,35 @@ namespace EntityCore.Tools
 
             if (dbContextName is not null)
             {
-                dbContextType = _assembly.GetTypes()
-                                        .FirstOrDefault(t => typeof(DbContext).IsAssignableFrom(t)
-                                            && t.IsClass
-                                            && !t.IsAbstract
-                                            && t.Name == dbContextName
-                                        );
+                dbContextType = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(assembly => assembly.GetTypes())
+                    .FirstOrDefault(t => typeof(DbContext).IsAssignableFrom(t)
+                        && t.IsClass
+                        && !t.IsAbstract
+                        && t.Name == dbContextName
+                    );
             }
             else
             {
-                var dbContextTypes = _assembly.GetTypes()
-                                             .Where(t => typeof(DbContext).IsAssignableFrom(t)
-                                                && t.IsClass
-                                                && !t.IsAbstract
-                                             );
+                var dbContextTypes = AppDomain.CurrentDomain.GetAssemblies()
+                    .SelectMany(assembly => assembly.GetTypes())
+                    .Where(t => typeof(DbContext).IsAssignableFrom(t)
+                        && t != typeof(DbContext)
+                        && t.IsClass
+                        && !t.IsAbstract
+                    );
 
                 if (dbContextTypes.Count() == 1)
                     dbContextType = dbContextTypes.First();
                 else if (dbContextTypes.Count() > 1)
-                    throw new InvalidOperationException("Multiple DbContexts found in the specified assembly. Please choose DbContext name. ex: --context <DbContextName>");
+                {
+                    foreach (var type in dbContextTypes)
+                    {
+                        Console.WriteLine(type.Name);
+                    }
+
+                    throw new InvalidOperationException($"Multiple DbContexts({string.Join(", ", dbContextTypes.Select(x => x.Name))}) found in the specified assembly.\nPlease choose DbContext name. ex: --context <DbContextName>");
+                }
             }
 
             if (dbContextType is null)

@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using NuGet.Common;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
@@ -9,14 +8,13 @@ namespace EntityCore.Tools
 {
     public partial class Generator
     {
-        private readonly Assembly _assembly;
         private readonly Dictionary<string, string> _arguments;
         private readonly string _projectRoot;
         public Generator(string projectRoot, Dictionary<string, string> arguments)
         {
             _projectRoot = projectRoot;
-            var dllPath = FindDllPath(_projectRoot);
-            _assembly = Assembly.UnsafeLoadFrom(dllPath);
+            var loader = new AssemblyLoader();
+            loader.Load(_projectRoot);
             _arguments = arguments;
         }
 
@@ -31,28 +29,12 @@ namespace EntityCore.Tools
             bool withView = _arguments.ContainsKey("view") ? bool.TryParse(_arguments["view"], out withView) : false;
             Console.WriteLine("withView:" + withView);
 
-            if(_assembly is null)
-                throw new InvalidOperationException("Assembly not found.");
-
-            var entityType = _assembly.GetTypes().FirstOrDefault(t => t.Name == entityName);
+            var entityType = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == entityName);
 
             if (entityType is null)
-                throw new InvalidOperationException($"Entity with name '{entityName}' not found in the specified _assembly.");
-
-            var serviceImplementationCode = GenerateServiceImplementationCode(entityType, dbContextName);
-            var serviceDeclarationCode = GenerateServiceDeclarationCode(entityType);
-
-            string outputPath = Path.Combine(_projectRoot, "Services");
-            Directory.CreateDirectory(outputPath);
-
-            var servicePath = Path.Combine(outputPath, $"{entityName}s");
-            Directory.CreateDirectory(servicePath);
-
-            string serviceImplementationPath = Path.Combine(servicePath, $"{entityName}sService.cs");
-            File.WriteAllText(serviceImplementationPath, serviceImplementationCode);
-
-            string serviceDeclarationPath = Path.Combine(servicePath, $"I{entityName}sService.cs");
-            File.WriteAllText(serviceDeclarationPath, serviceDeclarationCode);
+                throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
 
             if (withController)
             {
@@ -62,51 +44,29 @@ namespace EntityCore.Tools
                 string controllerFilePath = Path.Combine(controllerPath, $"{entityName}sController.cs");
                 File.WriteAllText(controllerFilePath, controllerCode);
             }
+            else
+            {
+                var serviceImplementationCode = GenerateServiceImplementationCode(entityType, dbContextName);
+                var serviceDeclarationCode = GenerateServiceDeclarationCode(entityType);
+
+                string outputPath = Path.Combine(_projectRoot, "Services");
+                Directory.CreateDirectory(outputPath);
+
+                var servicePath = Path.Combine(outputPath, $"{entityName}s");
+                Directory.CreateDirectory(servicePath);
+
+                string serviceImplementationPath = Path.Combine(servicePath, $"{entityName}sService.cs");
+                File.WriteAllText(serviceImplementationPath, serviceImplementationCode);
+
+                string serviceDeclarationPath = Path.Combine(servicePath, $"I{entityName}sService.cs");
+                File.WriteAllText(serviceDeclarationPath, serviceDeclarationCode);
+            }
 
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Service for '{entityName}' entity generated successfully.");
+            string serviceOrControllerName = withController ? "Controller" : "Service";
+            Console.WriteLine($"{serviceOrControllerName} for '{entityName}' entity generated successfully.");
             Console.ResetColor();
         }
-
-        static string? FindDllPath(string projectRootPath)
-        {
-            string[] versions = { "net7.0", "net8.0", "net9.0" };
-
-            var dllName = Path.GetFileName(projectRootPath.TrimEnd(Path.DirectorySeparatorChar));
-            Console.WriteLine("dllName:" + dllName);
-
-            foreach (var version in versions)
-            {
-                string path = Path.Combine(projectRootPath, "bin", "Debug", version, $"{dllName}.dll");
-
-                if (File.Exists(path))
-                {
-                    Console.WriteLine($"dll-path: {path}");
-                    return path;
-                }
-            }
-
-            throw new InvalidOperationException("Dll file not found.");
-        }
-
-        #region Hozircha kerak emas lekin qo'shimcha dll lar bilan yuklansa balki kerak bo'ladi
-        private static void LoadAssembly(Assembly assembly)
-        {
-            var references = assembly.GetReferencedAssemblies();
-            foreach (var reference in references)
-            {
-                try
-                {
-                    Assembly.Load(reference);
-                }
-                catch (Exception)
-                {
-                    var path = Path.Combine(NuGetEnvironment.GetFolderPath(NuGetFolderPath.NuGetHome), "packages", reference.Name, reference.Version.ToString(), $"{reference.Name}.dll");
-                    Assembly.LoadFrom(path);
-                }
-            }
-        }
-        #endregion
 
         private CompilationUnitSyntax GenerateControllerUsings(NamespaceDeclarationSyntax namespaceDeclaration, Type entityType)
         {
@@ -204,7 +164,9 @@ namespace EntityCore.Tools
         private Type GetViewModel(string entityName)
         {
             var viewModelName = $"{entityName}ViewModel";
-            return _assembly.GetTypes().FirstOrDefault(t => t.Name == viewModelName);
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == viewModelName);
         }
 
         private string GetCreationDtoTypeName(string entityName)
@@ -216,7 +178,9 @@ namespace EntityCore.Tools
         private Type GetCreationDto(string entityName)
         {
             var creationDtoName = $"{entityName}CreationDto";
-            return _assembly.GetTypes().FirstOrDefault(t => t.Name == creationDtoName);
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == creationDtoName);
         }
 
         private string GetModificationDtoTypeName(string entityName)
@@ -228,7 +192,9 @@ namespace EntityCore.Tools
         private Type GetModificationDto(string entityName)
         {
             var modificationDtoName = $"{entityName}ModificationDto";
-            return _assembly.GetTypes().FirstOrDefault(t => t.Name == modificationDtoName);
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == modificationDtoName);
         }
     }
 }

@@ -1,6 +1,0 @@
-@TestApiWithNet8_HostAddress = http://localhost:5114
-
-GET {{TestApiWithNet8_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

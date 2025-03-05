@@ -7,6 +7,7 @@ namespace EntityCore.Tools
 {
     public partial class Generator
     {
+        // TODO: Entity Typedan emas service typedan ko'rib generatsiya qilishi kerak
         private string GenerateControllerCode(Type entityType)
         {
             var entityName = entityType.Name;
