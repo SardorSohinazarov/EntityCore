@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApiNet8.Application", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApiNet8.Infrastructure", "examples\TestApiNet8.Infrastructure\TestApiNet8.Infrastructure.csproj", "{4E576670-BF6A-4779-96A5-4368163985EE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApiNet8.Api", "examples\TestApiNet8.Api\TestApiNet8.Api.csproj", "{0115E672-3928-49F7-A7F8-DD5B532F94EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,6 +39,10 @@ Global
 		{4E576670-BF6A-4779-96A5-4368163985EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E576670-BF6A-4779-96A5-4368163985EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E576670-BF6A-4779-96A5-4368163985EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0115E672-3928-49F7-A7F8-DD5B532F94EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0115E672-3928-49F7-A7F8-DD5B532F94EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0115E672-3928-49F7-A7F8-DD5B532F94EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0115E672-3928-49F7-A7F8-DD5B532F94EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,5 +52,6 @@ Global
 		{1D5974C9-3606-456E-B949-896E611016E0} = {20EF5BC8-C8B2-454A-B5AE-3F48F2604200}
 		{9504EE0F-90F7-49DF-96C7-F06C624EEDC0} = {20EF5BC8-C8B2-454A-B5AE-3F48F2604200}
 		{4E576670-BF6A-4779-96A5-4368163985EE} = {20EF5BC8-C8B2-454A-B5AE-3F48F2604200}
+		{0115E672-3928-49F7-A7F8-DD5B532F94EB} = {20EF5BC8-C8B2-454A-B5AE-3F48F2604200}
 	EndGlobalSection
 EndGlobal
