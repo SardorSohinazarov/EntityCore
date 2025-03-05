@@ -1,6 +1,6 @@
-﻿namespace TestApiWithNet8.Entities
+﻿namespace TestApiNet8.Application.DataTransferObjects.Students
 {
-    public class Student
+    public class StudentViewModel
     {
         public int Id { get; set; }
         public string Name { get; set; }
