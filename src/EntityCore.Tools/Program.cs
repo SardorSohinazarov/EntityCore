@@ -94,11 +94,20 @@ public class Program
                 text = message,
             }), Encoding.UTF8, "application/json");
 
-            var response = client.PostAsync(url, content).Result;
-            if (!response.IsSuccessStatusCode)
+            try
+            {
+                var response = client.PostAsync(url, content).Result;
+                if (!response.IsSuccessStatusCode)
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("An error occurred while sending a message to the Telegram group about this exception.\nIf you want to report this issue to the contributors, you can do so here: [https://t.me/entitycore].");
+                    Console.ResetColor();
+                }
+            }
+            catch
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("An error occurred while sending a message to the Telegram group about the bot.\nIf you want to report this issue to the contributors, you can do so here: [https://t.me/entitycore].");
+                Console.WriteLine("An error occurred while sending a message to the Telegram group about this exception.\nIf you want to report this issue to the contributors, you can do so here: [https://t.me/entitycore].");
                 Console.ResetColor();
             }
         }
@@ -126,7 +135,9 @@ public class Program
         if (process.ExitCode != 0)
             throw new InvalidAsynchronousStateException("Build failed. Please fix the errors and try again.");
 
-        Console.WriteLine("Build successful.");
+        Console.BackgroundColor = ConsoleColor.Green;
+        Console.WriteLine("Build successfully.");
+        Console.ResetColor();
     }
 
     private static Dictionary<string, string> ParseArguments(string[] args)
