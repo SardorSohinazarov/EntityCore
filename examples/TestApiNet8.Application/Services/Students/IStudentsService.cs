@@ -1,5 +1,6 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using TestApiNet8.Application.DataTransferObjects.Students;
 using TestApiWithNet8.Entities;
 
 namespace Services.Students
