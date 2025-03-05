@@ -36,21 +36,6 @@ namespace EntityCore.Tools
             if (entityType is null)
                 throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
 
-            var serviceImplementationCode = GenerateServiceImplementationCode(entityType, dbContextName);
-            var serviceDeclarationCode = GenerateServiceDeclarationCode(entityType);
-
-            string outputPath = Path.Combine(_projectRoot, "Services");
-            Directory.CreateDirectory(outputPath);
-
-            var servicePath = Path.Combine(outputPath, $"{entityName}s");
-            Directory.CreateDirectory(servicePath);
-
-            string serviceImplementationPath = Path.Combine(servicePath, $"{entityName}sService.cs");
-            File.WriteAllText(serviceImplementationPath, serviceImplementationCode);
-
-            string serviceDeclarationPath = Path.Combine(servicePath, $"I{entityName}sService.cs");
-            File.WriteAllText(serviceDeclarationPath, serviceDeclarationCode);
-
             if (withController)
             {
                 var controllerCode = GenerateControllerCode(entityType);
@@ -59,9 +44,27 @@ namespace EntityCore.Tools
                 string controllerFilePath = Path.Combine(controllerPath, $"{entityName}sController.cs");
                 File.WriteAllText(controllerFilePath, controllerCode);
             }
+            else
+            {
+                var serviceImplementationCode = GenerateServiceImplementationCode(entityType, dbContextName);
+                var serviceDeclarationCode = GenerateServiceDeclarationCode(entityType);
+
+                string outputPath = Path.Combine(_projectRoot, "Services");
+                Directory.CreateDirectory(outputPath);
+
+                var servicePath = Path.Combine(outputPath, $"{entityName}s");
+                Directory.CreateDirectory(servicePath);
+
+                string serviceImplementationPath = Path.Combine(servicePath, $"{entityName}sService.cs");
+                File.WriteAllText(serviceImplementationPath, serviceImplementationCode);
+
+                string serviceDeclarationPath = Path.Combine(servicePath, $"I{entityName}sService.cs");
+                File.WriteAllText(serviceDeclarationPath, serviceDeclarationCode);
+            }
 
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"Service for '{entityName}' entity generated successfully.");
+            string serviceOrControllerName = withController ? "Controller" : "Service";
+            Console.WriteLine($"{serviceOrControllerName} for '{entityName}' entity generated successfully.");
             Console.ResetColor();
         }
 
