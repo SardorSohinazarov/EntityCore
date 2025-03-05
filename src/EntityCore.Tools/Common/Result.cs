@@ -2,9 +2,9 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
 
-namespace EntityCore.Tools
+namespace EntityCore.Tools.Common
 {
-    public partial class Generator
+    public class Result
     {
         public string GenerateResultClasses(string namespaceName)
         {

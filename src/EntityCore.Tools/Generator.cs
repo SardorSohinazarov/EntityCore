@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using EntityCore.Tools.Middlewares;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.ComponentModel.DataAnnotations;
@@ -32,6 +33,8 @@ namespace EntityCore.Tools
             Console.WriteLine("withResult:" + withResult);
             bool withService = _arguments.ContainsKey("service") ? bool.TryParse(_arguments["service"], out withService) : false;
             Console.WriteLine("withService:" + withService);
+            bool exceptionM = _arguments.ContainsKey("exceptionM") ? bool.TryParse(_arguments["exceptionM"], out exceptionM) : false;
+            Console.WriteLine("exceptionM:" + exceptionM);
 
             var entityType = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
@@ -40,25 +43,6 @@ namespace EntityCore.Tools
             if (entityType is null)
                 throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
 
-            if(withResult)
-            {
-                var resultClassesCode = GenerateResultClasses("Common");
-                var commonDirectoryPath = Path.Combine(_projectRoot, "Common");
-                Directory.CreateDirectory(commonDirectoryPath);
-                string resultClassesFilePath = Path.Combine(commonDirectoryPath, "Result.cs");
-                File.WriteAllText(resultClassesFilePath, resultClassesCode);
-            }
-
-            if(withController)
-            {
-
-                var controllerCode = GenerateControllerCode(entityType);
-                var controllerPath = Path.Combine(_projectRoot, "Controllers");
-                Directory.CreateDirectory(controllerPath);
-                string controllerFilePath = Path.Combine(controllerPath, $"{entityName}sController.cs");
-                File.WriteAllText(controllerFilePath, controllerCode);
-            }
-            
             if(withService)
             {
                 var serviceImplementationCode = GenerateServiceImplementationCode(entityType, dbContextName);
@@ -75,6 +59,35 @@ namespace EntityCore.Tools
 
                 string serviceDeclarationPath = Path.Combine(servicePath, $"I{entityName}sService.cs");
                 File.WriteAllText(serviceDeclarationPath, serviceDeclarationCode);
+            }
+
+            if(withController)
+            {
+
+                var controllerCode = GenerateControllerCode(entityType);
+                var controllerPath = Path.Combine(_projectRoot, "Controllers");
+                Directory.CreateDirectory(controllerPath);
+                string controllerFilePath = Path.Combine(controllerPath, $"{entityName}sController.cs");
+                File.WriteAllText(controllerFilePath, controllerCode);
+            }
+
+            if (exceptionM)
+            {
+                var exceptionHandlerMiddlewareCode = new ExceptionHandlerMiddleware();
+                var exceptionHandlerMiddlewarePath = Path.Combine(_projectRoot, "Middlewares");
+                Directory.CreateDirectory(exceptionHandlerMiddlewarePath);
+                string exceptionHandlerMiddlewareFilePath = Path.Combine(exceptionHandlerMiddlewarePath, "ExceptionHandlerMiddleware.cs");
+                File.WriteAllText(exceptionHandlerMiddlewareFilePath, exceptionHandlerMiddlewareCode.GenerateExceptionHandlingMiddleware());
+            }
+
+            if (withResult)
+            {
+                var result = new Result();
+                var resultClassesCode = result.GenerateResultClasses("Common");
+                var commonDirectoryPath = Path.Combine(_projectRoot, "Common");
+                Directory.CreateDirectory(commonDirectoryPath);
+                string resultClassesFilePath = Path.Combine(commonDirectoryPath, "Result.cs");
+                File.WriteAllText(resultClassesFilePath, resultClassesCode);
             }
 
             Console.ForegroundColor = ConsoleColor.Green;
