@@ -63,16 +63,19 @@ namespace EntityCore.Tools
                     SyntaxFactory.PropertyDeclaration(SyntaxFactory.IdentifierName("T"), "Data")
                         .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                         .AddAccessorListAccessors(
-                            SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                        )
-                        .WithInitializer(SyntaxFactory.EqualsValueClause(SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression)))
-                        .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                            SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)),
+                            SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
+                                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
+                        ),
 
-                    // Fail() methods
+                    // Fail() and Success() methods
                     GenerateMethod("Fail", "Result<T>", false, isGeneric: true),
                     GenerateMethod("Fail", "Result<T>", false, true, isGeneric: true),
                     GenerateMethod("Success", "Result<T>", true, isGeneric: true),
-                    GenerateMethod("Success", "Result<T>", true, true, isGeneric: true)
+                    GenerateMethod("Success", "Result<T>", true, true, isGeneric: true),
+                    GenerateMethod("Success", "Result<T>", true, hasMessage: false, isGeneric: true, hasData: true),
+                    GenerateMethod("Success", "Result<T>", true, hasMessage: true, isGeneric: true, hasData: true)
                 );
 
             // Namespacega klasslarni qo'shish
@@ -86,11 +89,15 @@ namespace EntityCore.Tools
             return code;
         }
 
-        public MethodDeclarationSyntax GenerateMethod(string methodName, string returnType, bool isSuccess, bool hasMessage = false, bool isGeneric = false)
+        public MethodDeclarationSyntax GenerateMethod(string methodName, string returnType, bool isSuccess, bool hasMessage = false, bool isGeneric = false, bool hasData = false)
         {
-            var parameters = hasMessage
-                ? new[] { SyntaxFactory.Parameter(SyntaxFactory.Identifier("message")).WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))) }
-                : Array.Empty<ParameterSyntax>();
+            var parameters = new List<ParameterSyntax>();
+
+            if (hasData)
+                parameters.Add(SyntaxFactory.Parameter(SyntaxFactory.Identifier("data")).WithType(SyntaxFactory.IdentifierName("T")));
+
+            if (hasMessage)
+                parameters.Add(SyntaxFactory.Parameter(SyntaxFactory.Identifier("message")).WithType(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))));
 
             var expressions = new List<ExpressionSyntax>
             {
@@ -106,13 +113,20 @@ namespace EntityCore.Tools
                     SyntaxFactory.IdentifierName("message")));
             }
 
+            if (hasData)
+            {
+                expressions.Add(SyntaxFactory.AssignmentExpression(SyntaxKind.SimpleAssignmentExpression,
+                    SyntaxFactory.IdentifierName("Data"),
+                    SyntaxFactory.IdentifierName("data")));
+            }
+
             var returnExpression = SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(returnType))
                 .WithInitializer(SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression)
                     .AddExpressions(expressions.ToArray()));
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.ParseTypeName(returnType), methodName)
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword))
-                .AddParameterListParameters(parameters)
+                .AddParameterListParameters(parameters.ToArray())
                 .WithBody(SyntaxFactory.Block(SyntaxFactory.ReturnStatement(returnExpression)));
         }
     }

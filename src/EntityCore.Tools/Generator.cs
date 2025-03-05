@@ -28,6 +28,10 @@ namespace EntityCore.Tools
             Console.WriteLine("withcontroller:" + withController);
             bool withView = _arguments.ContainsKey("view") ? bool.TryParse(_arguments["view"], out withView) : false;
             Console.WriteLine("withView:" + withView);
+            bool withResult = _arguments.ContainsKey("result") ? bool.TryParse(_arguments["result"], out withResult) : false;
+            Console.WriteLine("withResult:" + withResult);
+            bool withService = _arguments.ContainsKey("service") ? bool.TryParse(_arguments["service"], out withService) : false;
+            Console.WriteLine("withService:" + withService);
 
             var entityType = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
@@ -36,15 +40,26 @@ namespace EntityCore.Tools
             if (entityType is null)
                 throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
 
-            if (withController)
+            if(withResult)
             {
+                var resultClassesCode = GenerateResultClasses("Common");
+                var commonDirectoryPath = Path.Combine(_projectRoot, "Common");
+                Directory.CreateDirectory(commonDirectoryPath);
+                string resultClassesFilePath = Path.Combine(commonDirectoryPath, "Result.cs");
+                File.WriteAllText(resultClassesFilePath, resultClassesCode);
+            }
+
+            if(withController)
+            {
+
                 var controllerCode = GenerateControllerCode(entityType);
                 var controllerPath = Path.Combine(_projectRoot, "Controllers");
                 Directory.CreateDirectory(controllerPath);
                 string controllerFilePath = Path.Combine(controllerPath, $"{entityName}sController.cs");
                 File.WriteAllText(controllerFilePath, controllerCode);
             }
-            else
+            
+            if(withService)
             {
                 var serviceImplementationCode = GenerateServiceImplementationCode(entityType, dbContextName);
                 var serviceDeclarationCode = GenerateServiceDeclarationCode(entityType);
