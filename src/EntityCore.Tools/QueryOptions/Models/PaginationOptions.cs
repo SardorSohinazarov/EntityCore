@@ -7,7 +7,7 @@ namespace EntityCore.Tools.QueryOptions.Models
     {
         public string GeneratePaginationOptionsClass()
         {
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("QueryOptions.Models.PaginationOptions"))
+            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("QueryOptions.Models"))
                 .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")));
 
             var classDeclaration = SyntaxFactory.ClassDeclaration("PaginationOptions")
