@@ -1,8 +1,8 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using Microsoft.CodeAnalysis;
 
 namespace EntityCore.Tools
 {
@@ -53,15 +53,15 @@ namespace EntityCore.Tools
             var primaryKey = FindKeyProperty(entityType);
 
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName($"Services.{entityName}s"));
-            
+
             var classDeclaration = GetClassDeclaration(entityName, primaryKey, dbContextType);
 
-            if(classDeclaration is not null)
+            if (classDeclaration is not null)
                 namespaceDeclaration = namespaceDeclaration.AddMembers(classDeclaration);
 
             var mappingProfile = GenerateMappingProfile(entityName);
 
-            if(mappingProfile is not null)
+            if (mappingProfile is not null)
                 namespaceDeclaration = namespaceDeclaration.AddMembers(mappingProfile);
 
             CompilationUnitSyntax syntaxTree = GenerateUsings(namespaceDeclaration, dbContextType, entityType);
@@ -93,7 +93,7 @@ namespace EntityCore.Tools
                                 .AddModifiers(
                                     SyntaxFactory.Token(SyntaxKind.PrivateKeyword),   // private 
                                     SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)), // readonly
-                            // constructor
+                                                                                      // constructor
                             SyntaxFactory.ConstructorDeclaration($"{entityName}sService")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(dbContextType.Name.GenerateFieldName()))
@@ -218,7 +218,7 @@ namespace EntityCore.Tools
         {
             var viewModel = GetViewModel(entityName);
 
-            if(viewModel is null)
+            if (viewModel is null)
                 return "entry.Entity";
 
             return $"_mapper.Map<{viewModel.Name}>(entry.Entity)";

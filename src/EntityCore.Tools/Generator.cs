@@ -43,7 +43,7 @@ namespace EntityCore.Tools
             if (entityType is null)
                 throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
 
-            if(withService)
+            if (withService)
             {
                 var serviceImplementationCode = GenerateServiceImplementationCode(entityType, dbContextName);
                 var serviceDeclarationCode = GenerateServiceDeclarationCode(entityType);
@@ -61,7 +61,7 @@ namespace EntityCore.Tools
                 File.WriteAllText(serviceDeclarationPath, serviceDeclarationCode);
             }
 
-            if(withController)
+            if (withController)
             {
 
                 var controllerCode = GenerateControllerCode(entityType);
@@ -138,11 +138,11 @@ namespace EntityCore.Tools
             };
 
             var viewModelType = GetViewModel(entityType.Name);
-            if(!string.IsNullOrEmpty(viewModelType?.Namespace))
+            if (!string.IsNullOrEmpty(viewModelType?.Namespace))
                 usings.Add(viewModelType.Namespace);
 
             var creationDtoType = GetCreationDto(entityType.Name);
-            if(!string.IsNullOrEmpty(creationDtoType?.Namespace))
+            if (!string.IsNullOrEmpty(creationDtoType?.Namespace))
                 usings.Add(creationDtoType.Namespace);
 
             var modificationDtoType = GetModificationDto(entityType.Name);

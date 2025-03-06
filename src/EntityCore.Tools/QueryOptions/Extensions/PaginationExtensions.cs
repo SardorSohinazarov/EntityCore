@@ -1,6 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EntityCore.Tools.QueryOptions.Extensions
 {
@@ -15,7 +15,7 @@ namespace EntityCore.Tools.QueryOptions.Extensions
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Linq")),
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Text.Json")),
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Microsoft.AspNetCore.Http")),
-                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("QOptions.Core.Models.Query"))
+                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("QOptions.Core.Models"))
             };
 
             // ApplyPagination metodini yaratish
