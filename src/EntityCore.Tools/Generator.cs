@@ -1,4 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using EntityCore.Tools.Common;
+using EntityCore.Tools.Common.Paginations.Extensions;
+using EntityCore.Tools.Common.Paginations.Models;
+using EntityCore.Tools.Middlewares;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.ComponentModel.DataAnnotations;
@@ -28,6 +32,12 @@ namespace EntityCore.Tools
             Console.WriteLine("withcontroller:" + withController);
             bool withView = _arguments.ContainsKey("view") ? bool.TryParse(_arguments["view"], out withView) : false;
             Console.WriteLine("withView:" + withView);
+            bool withResult = _arguments.ContainsKey("result") ? bool.TryParse(_arguments["result"], out withResult) : false;
+            Console.WriteLine("withResult:" + withResult);
+            bool withService = _arguments.ContainsKey("service") ? bool.TryParse(_arguments["service"], out withService) : false;
+            Console.WriteLine("withService:" + withService);
+            bool exceptionM = _arguments.ContainsKey("exceptionM") ? bool.TryParse(_arguments["exceptionM"], out exceptionM) : false;
+            Console.WriteLine("exceptionM:" + exceptionM);
 
             var entityType = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
@@ -36,16 +46,25 @@ namespace EntityCore.Tools
             if (entityType is null)
                 throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
 
-            if (withController)
+            if (withService)
             {
-                var controllerCode = GenerateControllerCode(entityType);
-                var controllerPath = Path.Combine(_projectRoot, "Controllers");
-                Directory.CreateDirectory(controllerPath);
-                string controllerFilePath = Path.Combine(controllerPath, $"{entityName}sController.cs");
-                File.WriteAllText(controllerFilePath, controllerCode);
-            }
-            else
-            {
+                PaginationOptions paginationOptions = new PaginationOptions();
+                string paginationOptionsCode = paginationOptions.GeneratePaginationOptionsClass();
+                string commonDirectoryPath = Path.Combine(_projectRoot, "Common", "Pagination");
+                Directory.CreateDirectory(commonDirectoryPath);
+                var paginationOptionsPath = Path.Combine(commonDirectoryPath, "PaginationOptions.cs");
+                File.WriteAllText(paginationOptionsPath, paginationOptionsCode);
+
+                PaginationExtensions paginationExtensions = new PaginationExtensions();
+                string paginationExtensionsCode = paginationExtensions.GeneratePaginationExtensions();
+                var paginationExtensionsPath = Path.Combine(commonDirectoryPath, "PaginationExtensions.cs");
+                File.WriteAllText(paginationExtensionsPath, paginationExtensionsCode);
+
+                PaginationMetadata paginationMetadata = new PaginationMetadata();
+                string paginationMetadataCode = paginationMetadata.GeneratePaginationMetadataClass();
+                var paginationMetadataPath = Path.Combine(commonDirectoryPath, "PaginationMetadata.cs");
+                File.WriteAllText(paginationMetadataPath, paginationMetadataCode);
+
                 var serviceImplementationCode = GenerateServiceImplementationCode(entityType, dbContextName);
                 var serviceDeclarationCode = GenerateServiceDeclarationCode(entityType);
 
@@ -62,6 +81,34 @@ namespace EntityCore.Tools
                 File.WriteAllText(serviceDeclarationPath, serviceDeclarationCode);
             }
 
+            if (withController)
+            {
+                var controllerCode = GenerateControllerCode(entityType);
+                var controllerPath = Path.Combine(_projectRoot, "Controllers");
+                Directory.CreateDirectory(controllerPath);
+                string controllerFilePath = Path.Combine(controllerPath, $"{entityName}sController.cs");
+                File.WriteAllText(controllerFilePath, controllerCode);
+            }
+
+            if (exceptionM)
+            {
+                var exceptionHandlerMiddlewareCode = new ExceptionHandlerMiddleware();
+                var exceptionHandlerMiddlewarePath = Path.Combine(_projectRoot, "Middlewares");
+                Directory.CreateDirectory(exceptionHandlerMiddlewarePath);
+                string exceptionHandlerMiddlewareFilePath = Path.Combine(exceptionHandlerMiddlewarePath, "ExceptionHandlerMiddleware.cs");
+                File.WriteAllText(exceptionHandlerMiddlewareFilePath, exceptionHandlerMiddlewareCode.GenerateExceptionHandlingMiddleware());
+            }
+
+            if (withResult)
+            {
+                var result = new Result();
+                var resultClassesCode = result.GenerateResultClasses("Common");
+                var commonDirectoryPath = Path.Combine(_projectRoot, "Common");
+                Directory.CreateDirectory(commonDirectoryPath);
+                string resultClassesFilePath = Path.Combine(commonDirectoryPath, "Result.cs");
+                File.WriteAllText(resultClassesFilePath, resultClassesCode);
+            }
+
             Console.ForegroundColor = ConsoleColor.Green;
             string serviceOrControllerName = withController ? "Controller" : "Service";
             Console.WriteLine($"{serviceOrControllerName} for '{entityName}' entity generated successfully.");
@@ -73,7 +120,8 @@ namespace EntityCore.Tools
             var usings = new List<string>
             {
                 "Microsoft.AspNetCore.Mvc",
-                $"Services.{entityType.Name}s"
+                $"Services.{entityType.Name}s",
+                "Common.Paginations.Models"
             };
 
             var viewModelType = GetViewModel(entityType.Name);
@@ -106,15 +154,18 @@ namespace EntityCore.Tools
             var usings = new List<string>
             {
                 "AutoMapper",
-                "Microsoft.EntityFrameworkCore"
+                "Microsoft.EntityFrameworkCore",
+                "Microsoft.AspNetCore.Http",
+                "Common.Paginations.Models",
+                "Common.Paginations.Extensions"
             };
 
             var viewModelType = GetViewModel(entityType.Name);
-            if(!string.IsNullOrEmpty(viewModelType?.Namespace))
+            if (!string.IsNullOrEmpty(viewModelType?.Namespace))
                 usings.Add(viewModelType.Namespace);
 
             var creationDtoType = GetCreationDto(entityType.Name);
-            if(!string.IsNullOrEmpty(creationDtoType?.Namespace))
+            if (!string.IsNullOrEmpty(creationDtoType?.Namespace))
                 usings.Add(creationDtoType.Namespace);
 
             var modificationDtoType = GetModificationDto(entityType.Name);

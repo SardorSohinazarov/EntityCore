@@ -21,7 +21,7 @@
             return TypeMap.TryGetValue(type, out var alias) ? alias : type.Name;
         }
 
-        public static string GenerateFieldName(this string str) 
+        public static string GenerateFieldName(this string str)
             => $"{char.ToLower(str[0])}{str.Substring(1)}";
 
         public static string GenerateFieldNameWithUnderscore(this string str)

@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace EntityCore.Tools;
 public class Program
@@ -26,7 +25,7 @@ public class Program
             Generator generator = new Generator(currentDirectory, arguments);
             generator.Generate();
         }
-        catch(InvalidOperationException ex)
+        catch (InvalidOperationException ex)
         {
             Console.WriteLine("Invalid operation exception 400 😁");
             HandleException(ex);
@@ -138,6 +137,7 @@ public class Program
         Console.BackgroundColor = ConsoleColor.Green;
         Console.WriteLine("Build successfully.");
         Console.ResetColor();
+        Console.WriteLine();
     }
 
     private static Dictionary<string, string> ParseArguments(string[] args)
@@ -151,7 +151,7 @@ public class Program
 
         for (int i = 1; i < args.Length; i++)
         {
-            if(args[i].StartsWith("--") && i + 1 < args.Length)
+            if (args[i].StartsWith("--") && i + 1 < args.Length)
             {
                 arguments[args[i].Substring(2)] = args[i + 1];
                 i++;
@@ -162,7 +162,7 @@ public class Program
             }
         }
 
-        Console.WriteLine("Arguments:" +JsonSerializer.Serialize(arguments));
+        Console.WriteLine("Arguments:" + JsonSerializer.Serialize(arguments));
 
         return arguments;
     }

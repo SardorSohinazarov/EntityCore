@@ -1,3 +1,6 @@
+
+using Middlewares;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -18,6 +21,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseExceptionHandlingMiddleware();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -37,7 +37,7 @@ namespace EntityCore.Tools
             Assembly mainAssembly = Assembly.LoadFrom(dllPath);
             AssemblyName[] references = mainAssembly.GetReferencedAssemblies();
 
-            if(references.Length != 0)
+            if (references.Length != 0)
                 Console.WriteLine("Referenced assemblies");
 
             LoadReferencedAssemblies(references);

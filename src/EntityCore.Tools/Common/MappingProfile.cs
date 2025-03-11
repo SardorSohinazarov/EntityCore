@@ -1,6 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EntityCore.Tools
 {
@@ -12,7 +12,7 @@ namespace EntityCore.Tools
             var creationDto = GetCreationDto(entityName);
             var modificationDto = GetModificationDto(entityName);
 
-            if(viewModel == null && creationDto == null && modificationDto == null)
+            if (viewModel == null && creationDto == null && modificationDto == null)
             {
                 Console.WriteLine($"Data transfer objects not found for this entity -> {entityName}");
                 return null;

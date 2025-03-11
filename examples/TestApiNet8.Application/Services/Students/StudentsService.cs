@@ -1,5 +1,8 @@
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Common.Paginations.Models;
+using Common.Paginations.Extensions;
 using TestApiNet8.Application.DataTransferObjects.Students;
 using TestApiWithNet8;
 using TestApiWithNet8.Entities;
@@ -10,10 +13,12 @@ namespace Services.Students
     {
         private readonly ApplicationDbContext _applicationDbContext;
         private readonly IMapper _mapper;
-        public StudentsService(ApplicationDbContext applicationDbContext, IMapper mapper)
+        private readonly IHttpContextAccessor _httpContext;
+        public StudentsService(ApplicationDbContext applicationDbContext, IMapper mapper, IHttpContextAccessor httpContext)
         {
             _applicationDbContext = applicationDbContext;
             _mapper = mapper;
+            _httpContext = httpContext;
         }
 
         public async Task<StudentViewModel> AddAsync(StudentCreationDto studentCreationDto)
@@ -27,6 +32,13 @@ namespace Services.Students
         public async Task<List<StudentViewModel>> GetAllAsync()
         {
             var entities = await _applicationDbContext.Set<Student>().ToListAsync();
+            return _mapper.Map<List<StudentViewModel>>(entities);
+        }
+
+        public async Task<List<StudentViewModel>> FilterAsync(PaginationOptions filter)
+        {
+            var httpContext = _httpContext.HttpContext;
+            var entities = await _applicationDbContext.Set<Student>().ApplyPagination(filter, httpContext).ToListAsync();
             return _mapper.Map<List<StudentViewModel>>(entities);
         }
 

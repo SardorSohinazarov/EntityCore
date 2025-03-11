@@ -1,7 +1,8 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Reflection;
+﻿using EntityCore.Tools.Common.Paginations.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Reflection;
 
 namespace EntityCore.Tools
 {
@@ -65,6 +66,7 @@ namespace EntityCore.Tools
                             // methods
                             GenerateAddActionImplementation(entityName, serviceVariableName),
                             GenerateGetAllActionImplementation(entityName, serviceVariableName),
+                            GenerateFilterActionImplementation(entityName, serviceVariableName),
                             GenerateGetByIdActionImplementation(entityName, serviceVariableName, primaryKey),
                             GenerateUpdateActionImplementation(entityName, serviceVariableName, primaryKey),
                             GenerateDeleteActionImplementation(entityName, serviceVariableName, primaryKey)
@@ -115,13 +117,45 @@ namespace EntityCore.Tools
                                 );
         }
 
+        private MethodDeclarationSyntax GenerateFilterActionImplementation(string entityName, string serviceVariableName)
+        {
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "FilterAsync")
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
+                                .AddAttributeLists(
+                                    SyntaxFactory.AttributeList(
+                                        SyntaxFactory.SingletonSeparatedList(
+                                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpPost"))
+                                                .WithArgumentList(
+                                                        SyntaxFactory.AttributeArgumentList(
+                                                            SyntaxFactory.SingletonSeparatedList(
+                                                                SyntaxFactory.AttributeArgument(
+                                                                    SyntaxFactory.LiteralExpression(
+                                                                        SyntaxKind.StringLiteralExpression,
+                                                                        SyntaxFactory.Literal("filter")
+                                                                    )
+                                                                )
+                                                            )
+                                                        )
+                                                    )
+                                        )
+                                    )
+                                )
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("filter"))
+                                   .WithType(SyntaxFactory.ParseTypeName(typeof(PaginationOptions).Name)))
+                                .WithBody(SyntaxFactory.Block(
+                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.FilterAsync(filter));"))
+                                );
+        }
+
         private MethodDeclarationSyntax GenerateGetByIdActionImplementation(string entityName, string serviceVariableName, PropertyInfo primaryKey)
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                               .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "GetByIdAsync")
-                               .AddModifiers(
-                                   SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
-                                   SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "GetByIdAsync")
+                                .AddModifiers(
+                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
+                                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .AddAttributeLists(
                                     SyntaxFactory.AttributeList(
                                         SyntaxFactory.SingletonSeparatedList(
