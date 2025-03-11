@@ -1,14 +1,13 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace EntityCore.Tools.QueryOptions.Models
+namespace EntityCore.Tools.Common.Paginations.Models
 {
     public class PaginationOptions
     {
         public string GeneratePaginationOptionsClass()
         {
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("QueryOptions.Models"))
-                .AddUsings(SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")));
+            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Common.Paginations.Models"));
 
             var classDeclaration = SyntaxFactory.ClassDeclaration("PaginationOptions")
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))

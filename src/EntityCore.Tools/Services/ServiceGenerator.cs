@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using EntityCore.Tools.Common.Paginations.Models;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
@@ -94,19 +95,31 @@ namespace EntityCore.Tools
                                     SyntaxFactory.Token(SyntaxKind.PrivateKeyword),   // private 
                                     SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)), // readonly
                                                                                       // constructor
+                            SyntaxFactory.FieldDeclaration(
+                                SyntaxFactory.VariableDeclaration(
+                                    SyntaxFactory.ParseTypeName("IHttpContextAccessor"))
+                                .AddVariables(SyntaxFactory.VariableDeclarator("_httpContext")))
+                                .AddModifiers(
+                                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),   // private 
+                                    SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)), // readonly
+                                                                                      // constructor
                             SyntaxFactory.ConstructorDeclaration($"{entityName}sService")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(dbContextType.Name.GenerateFieldName()))
                                     .WithType(SyntaxFactory.ParseTypeName(dbContextType.Name)))
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("mapper"))
                                     .WithType(SyntaxFactory.ParseTypeName("IMapper")))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("httpContext"))
+                                    .WithType(SyntaxFactory.ParseTypeName("IHttpContextAccessor")))
                                 .WithBody(SyntaxFactory.Block(
                                     SyntaxFactory.ParseStatement($"{dbContextVariableName} = {dbContextType.Name.GenerateFieldName()};"),
-                                    SyntaxFactory.ParseStatement($"_mapper = mapper;")
+                                    SyntaxFactory.ParseStatement($"_mapper = mapper;"),
+                                    SyntaxFactory.ParseStatement($"_httpContext = httpContext;")
                                 )),
                             // methods
                             GenerateAddMethodImplementation(entityName, dbContextVariableName),
                             GenerateGetAllMethodImplementation(entityName, dbContextVariableName),
+                            GenerateFilterMethodImplementation(entityName, dbContextVariableName),
                             GenerateGetByIdMethodImplementation(entityName, dbContextVariableName, primaryKey),
                             GenerateUpdateMethodImplementation(entityName, dbContextVariableName, primaryKey),
                             GenerateDeleteMethodImplementation(entityName, dbContextVariableName, primaryKey)
@@ -147,6 +160,24 @@ namespace EntityCore.Tools
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .WithBody(SyntaxFactory.Block(
                                     SyntaxFactory.ParseStatement($"var entities = await {dbContextVariableName}.Set<{entityName}>().ToListAsync();"),
+                                    SyntaxFactory.ParseStatement($"return {GenerateRuturnForGetAll(entityName)};")
+                                ));
+        }
+
+        private MethodDeclarationSyntax GenerateFilterMethodImplementation(string entityName, string dbContextVariableName)
+        {
+            var returnTypeName = GetReturnTypeName(entityName);
+
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier(nameof(Task)))
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{returnTypeName}>")), "FilterAsync")
+                                .AddModifiers(
+                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
+                                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("filter"))
+                                    .WithType(SyntaxFactory.ParseTypeName(typeof(PaginationOptions).Name)))
+                                .WithBody(SyntaxFactory.Block(
+                                    SyntaxFactory.ParseStatement($"var httpContext = _httpContext.HttpContext;"),
+                                    SyntaxFactory.ParseStatement($"var entities = await {dbContextVariableName}.Set<{entityName}>().ApplyPagination(filter,httpContext).ToListAsync();"),
                                     SyntaxFactory.ParseStatement($"return {GenerateRuturnForGetAll(entityName)};")
                                 ));
         }

@@ -137,6 +137,7 @@ public class Program
         Console.BackgroundColor = ConsoleColor.Green;
         Console.WriteLine("Build successfully.");
         Console.ResetColor();
+        Console.WriteLine();
     }
 
     private static Dictionary<string, string> ParseArguments(string[] args)

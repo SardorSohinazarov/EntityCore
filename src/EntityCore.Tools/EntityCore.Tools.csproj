@@ -40,4 +40,8 @@
   <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="9.0.0" />
 </ItemGroup>
 
+<ItemGroup>
+  <Folder Include="QueryOptions\" />
+</ItemGroup>
+
 </Project>

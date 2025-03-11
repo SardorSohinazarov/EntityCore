@@ -2,11 +2,11 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace EntityCore.Tools.QueryOptions.Extensions
+namespace EntityCore.Tools.Common.Paginations.Extensions
 {
     public class PaginationExtensions
     {
-        public static string GeneratePaginationExtensions()
+        public string GeneratePaginationExtensions()
         {
             // using'larni yaratish
             var usings = new[]
@@ -15,7 +15,7 @@ namespace EntityCore.Tools.QueryOptions.Extensions
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Linq")),
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Text.Json")),
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Microsoft.AspNetCore.Http")),
-                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("QOptions.Core.Models"))
+                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Common.Paginations.Models"))
             };
 
             // ApplyPagination metodini yaratish
@@ -62,7 +62,7 @@ namespace EntityCore.Tools.QueryOptions.Extensions
                 .AddMembers(method);
 
             // namespace yaratish
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("QOptions.Extensions"))
+            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Common.Paginations.Extensions"))
                 .AddMembers(classDeclaration);
 
             // using'lar va namespace'ni birlashtirish

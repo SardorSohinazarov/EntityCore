@@ -1,4 +1,7 @@
-﻿using EntityCore.Tools.Middlewares;
+﻿using EntityCore.Tools.Common;
+using EntityCore.Tools.Common.Paginations.Extensions;
+using EntityCore.Tools.Common.Paginations.Models;
+using EntityCore.Tools.Middlewares;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -45,6 +48,23 @@ namespace EntityCore.Tools
 
             if (withService)
             {
+                PaginationOptions paginationOptions = new PaginationOptions();
+                string paginationOptionsCode = paginationOptions.GeneratePaginationOptionsClass();
+                string commonDirectoryPath = Path.Combine(_projectRoot, "Common", "Pagination");
+                Directory.CreateDirectory(commonDirectoryPath);
+                var paginationOptionsPath = Path.Combine(commonDirectoryPath, "PaginationOptions.cs");
+                File.WriteAllText(paginationOptionsPath, paginationOptionsCode);
+
+                PaginationExtensions paginationExtensions = new PaginationExtensions();
+                string paginationExtensionsCode = paginationExtensions.GeneratePaginationExtensions();
+                var paginationExtensionsPath = Path.Combine(commonDirectoryPath, "PaginationExtensions.cs");
+                File.WriteAllText(paginationExtensionsPath, paginationExtensionsCode);
+
+                PaginationMetadata paginationMetadata = new PaginationMetadata();
+                string paginationMetadataCode = paginationMetadata.GeneratePaginationMetadataClass();
+                var paginationMetadataPath = Path.Combine(commonDirectoryPath, "PaginationMetadata.cs");
+                File.WriteAllText(paginationMetadataPath, paginationMetadataCode);
+
                 var serviceImplementationCode = GenerateServiceImplementationCode(entityType, dbContextName);
                 var serviceDeclarationCode = GenerateServiceDeclarationCode(entityType);
 
@@ -63,7 +83,6 @@ namespace EntityCore.Tools
 
             if (withController)
             {
-
                 var controllerCode = GenerateControllerCode(entityType);
                 var controllerPath = Path.Combine(_projectRoot, "Controllers");
                 Directory.CreateDirectory(controllerPath);
@@ -101,7 +120,8 @@ namespace EntityCore.Tools
             var usings = new List<string>
             {
                 "Microsoft.AspNetCore.Mvc",
-                $"Services.{entityType.Name}s"
+                $"Services.{entityType.Name}s",
+                "Common.Paginations.Models"
             };
 
             var viewModelType = GetViewModel(entityType.Name);
@@ -134,7 +154,10 @@ namespace EntityCore.Tools
             var usings = new List<string>
             {
                 "AutoMapper",
-                "Microsoft.EntityFrameworkCore"
+                "Microsoft.EntityFrameworkCore",
+                "Microsoft.AspNetCore.Http",
+                "Common.Paginations.Models",
+                "Common.Paginations.Extensions"
             };
 
             var viewModelType = GetViewModel(entityType.Name);

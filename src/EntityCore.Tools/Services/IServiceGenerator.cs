@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using EntityCore.Tools.Common.Paginations.Models;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Reflection;
@@ -31,6 +32,7 @@ namespace EntityCore.Tools
                                 .AddMembers(
                                     GenerateAddMethodDecleration(entityName),
                                     GenerateGetAllMethodDeclaration(entityName),
+                                    GenerateFilterMethodDeclaration(entityName),
                                     GenerateGetByIdMethodDeclaration(entityName, primaryKey),
                                     GenerateUpdateMethodDeclaration(entityName, primaryKey),
                                     GenerateDeleteMethodDeclaration(entityName, primaryKey)
@@ -55,6 +57,18 @@ namespace EntityCore.Tools
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{returnTypeName}>")), "GetAllAsync")
+                                .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)
+                                );
+        }
+
+        private MethodDeclarationSyntax GenerateFilterMethodDeclaration(string entityName)
+        {
+            var returnTypeName = GetReturnTypeName(entityName);
+
+            return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{returnTypeName}>")), "FilterAsync")
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("filter"))
+                                                    .WithType(SyntaxFactory.ParseTypeName(typeof(PaginationOptions).Name)))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)
                                 );
         }

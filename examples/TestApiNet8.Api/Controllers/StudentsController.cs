@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Services.Students;
+using Common.Paginations.Models;
 using TestApiNet8.Application.DataTransferObjects.Students;
 using TestApiWithNet8.Entities;
 
@@ -25,6 +26,12 @@ namespace Controllers
         public async Task<IActionResult> GetAllAsync()
         {
             return Ok(await _studentsService.GetAllAsync());
+        }
+
+        [HttpPost("filter")]
+        public async Task<IActionResult> FilterAsync(PaginationOptions filter)
+        {
+            return Ok(await _studentsService.FilterAsync(filter));
         }
 
         [HttpGet("{id}")]
