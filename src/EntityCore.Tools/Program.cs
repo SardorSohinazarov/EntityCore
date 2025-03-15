@@ -64,7 +64,7 @@ public class Program
         Console.ResetColor();
 
         string botToken = "7690233025:AAH_cRCVNgGz39Q1d9I1_PcHSIzl8W2Hg6U";
-        string chatId = "-4717465932";
+        string chatId = "-1002320575814";
 
         var message = $"❗️ Xatolik yuz berdi\n\n{ex.Message} \n\n{ex.StackTrace}";
 
@@ -135,7 +135,7 @@ public class Program
             throw new InvalidAsynchronousStateException("Build failed. Please fix the errors and try again.");
 
         Console.BackgroundColor = ConsoleColor.Green;
-        Console.WriteLine("Build successfully.");
+        Console.Write("Build successfully.");
         Console.ResetColor();
         Console.WriteLine();
     }
