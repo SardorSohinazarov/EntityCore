@@ -1,6 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-
-namespace EntityCore.Tools.Common.ServiceAttribute
+﻿namespace EntityCore.Tools.Common.ServiceAttribute
 {
     public class ServiceAttributes
     {
