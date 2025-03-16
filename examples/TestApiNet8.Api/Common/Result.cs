@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Common
 {
     public class Result
@@ -6,7 +8,10 @@ namespace Common
         {
         }
 
+        [JsonPropertyName("message")]
         public string Message { get; protected set; }
+
+        [JsonPropertyName("succeeded")]
         public bool Succeeded { get; protected set; }
 
         public static Result Fail()
@@ -50,6 +55,7 @@ namespace Common
         {
         }
 
+        [JsonPropertyName("data")]
         public T Data { get; private init; }
 
         public static Result<T> Fail()

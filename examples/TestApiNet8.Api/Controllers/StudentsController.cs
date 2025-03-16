@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Services.Students;
 using Common.Paginations.Models;
+using Common;
 using TestApiNet8.Application.DataTransferObjects.Students;
 using TestApiWithNet8.Entities;
 
@@ -17,39 +18,39 @@ namespace Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddAsync(StudentCreationDto studentCreationDto)
+        public async Task<Result<StudentViewModel>> AddAsync(StudentCreationDto studentCreationDto)
         {
-            return Ok(await _studentsService.AddAsync(studentCreationDto));
+            return Result<StudentViewModel>.Success(await _studentsService.AddAsync(studentCreationDto));
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllAsync()
+        public async Task<Result<List<StudentViewModel>>> GetAllAsync()
         {
-            return Ok(await _studentsService.GetAllAsync());
+            return Result<List<StudentViewModel>>.Success(await _studentsService.GetAllAsync());
         }
 
         [HttpPost("filter")]
-        public async Task<IActionResult> FilterAsync(PaginationOptions filter)
+        public async Task<Result<List<StudentViewModel>>> FilterAsync(PaginationOptions filter)
         {
-            return Ok(await _studentsService.FilterAsync(filter));
+            return Result<List<StudentViewModel>>.Success(await _studentsService.FilterAsync(filter));
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetByIdAsync(int id)
+        public async Task<Result<StudentViewModel>> GetByIdAsync(int id)
         {
-            return Ok(await _studentsService.GetByIdAsync(id));
+            return Result<StudentViewModel>.Success(await _studentsService.GetByIdAsync(id));
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateAsync(int id, StudentModificationDto studentModificationDto)
+        public async Task<Result<StudentViewModel>> UpdateAsync(int id, StudentModificationDto studentModificationDto)
         {
-            return Ok(await _studentsService.UpdateAsync(id, studentModificationDto));
+            return Result<StudentViewModel>.Success(await _studentsService.UpdateAsync(id, studentModificationDto));
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAsync(int id)
+        public async Task<Result<StudentViewModel>> DeleteAsync(int id)
         {
-            return Ok(await _studentsService.DeleteAsync(id));
+            return Result<StudentViewModel>.Success(await _studentsService.DeleteAsync(id));
         }
     }
 }
