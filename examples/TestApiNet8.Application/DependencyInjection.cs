@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Services.Students;
+﻿using Common.ServiceAttribute;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace TestApiNet8.Application
 {
@@ -8,8 +8,7 @@ namespace TestApiNet8.Application
         public static void AddApplication(this IServiceCollection services)
         {
             services.AddAutoMapper(typeof(DependencyInjection).Assembly);
-
-            services.AddScoped<IStudentsService, StudentsService>();
+            services.AddCustomServices();
         }
     }
 }

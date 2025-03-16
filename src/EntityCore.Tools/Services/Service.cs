@@ -84,6 +84,7 @@ namespace EntityCore.Tools.Services
             var classDeclaration = SyntaxFactory.ClassDeclaration($"{_entityName}sService")
                         .AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName($"I{_entityName}sService")))
                         .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                        .AddAttribute("ScopedService")
                         .AddMembers(
                             // fields
                             SyntaxFactory.FieldDeclaration(
@@ -262,7 +263,8 @@ namespace EntityCore.Tools.Services
                 "Microsoft.EntityFrameworkCore",
                 "Microsoft.AspNetCore.Http",
                 "Common.Paginations.Models",
-                "Common.Paginations.Extensions"
+                "Common.Paginations.Extensions",
+                "Common.ServiceAttribute"
             };
 
             var viewModelType = GetViewModel(entityType.Name);

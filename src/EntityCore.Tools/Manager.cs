@@ -1,6 +1,7 @@
 ﻿using EntityCore.Tools.Common;
 using EntityCore.Tools.Common.Paginations.Extensions;
 using EntityCore.Tools.Common.Paginations.Models;
+using EntityCore.Tools.Common.ServiceAttribute;
 using EntityCore.Tools.Controllers;
 using EntityCore.Tools.Middlewares;
 using EntityCore.Tools.Services;
@@ -36,6 +37,8 @@ namespace EntityCore.Tools
             Console.WriteLine("withService:" + withService);
             bool exceptionM = _arguments.ContainsKey("exceptionM") ? bool.TryParse(_arguments["exceptionM"], out exceptionM) : false;
             Console.WriteLine("exceptionM:" + exceptionM);
+            bool serviceAttribute = _arguments.ContainsKey("serviceAttribute") ? bool.TryParse(_arguments["serviceAttribute"], out serviceAttribute) : false;
+            Console.WriteLine("serviceAttribute:" + serviceAttribute);
 
             var entityType = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(assembly => assembly.GetTypes())
@@ -113,10 +116,18 @@ namespace EntityCore.Tools
                 File.WriteAllText(resultClassesFilePath, resultClassesCode);
             }
 
-            Console.ForegroundColor = ConsoleColor.Green;
-            string serviceOrControllerName = withController ? "Controller" : "Service";
-            Console.WriteLine($"{serviceOrControllerName} for '{entityName}' entity generated successfully.");
-            Console.ResetColor();
+            if(serviceAttribute)
+            {
+                var serviceAttributeCode = new ServiceAttributes();
+                var serviceAttributePath = Path.Combine(_projectRoot, "Common", "ServiceAttributes");
+                Directory.CreateDirectory(serviceAttributePath);
+                string serviceAttributeFilePath = Path.Combine(serviceAttributePath, "ServiceAttribute.cs");
+                File.WriteAllText(serviceAttributeFilePath, serviceAttributeCode.Generate());
+
+                var serviceAttributeCollectionExtension = new ServiceAttributeCollectionExtensions();
+                var serviceAttributeCollectionExtensionPath = Path.Combine(serviceAttributePath, "ServiceAttributeCollectionExtension.cs");
+                File.WriteAllText(serviceAttributeCollectionExtensionPath, serviceAttributeCollectionExtension.Generate());
+            }
         }
     }
 }

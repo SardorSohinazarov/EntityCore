@@ -3,12 +3,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Common.Paginations.Models;
 using Common.Paginations.Extensions;
+using Common.ServiceAttribute;
 using TestApiNet8.Application.DataTransferObjects.Students;
 using TestApiWithNet8;
 using TestApiWithNet8.Entities;
 
 namespace Services.Students
 {
+    [ScopedService]
     public class StudentsService : IStudentsService
     {
         private readonly ApplicationDbContext _applicationDbContext;
