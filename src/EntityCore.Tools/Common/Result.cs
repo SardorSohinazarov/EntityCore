@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using EntityCore.Tools.Extensions;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -33,26 +34,7 @@ namespace EntityCore.Tools.Common
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                         )
-                        .AddAttributeLists(
-                            SyntaxFactory.AttributeList(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.Attribute(
-                                        SyntaxFactory.IdentifierName("JsonPropertyName"))
-                                    .WithArgumentList(
-                                        SyntaxFactory.AttributeArgumentList(
-                                            SyntaxFactory.SingletonSeparatedList(
-                                                SyntaxFactory.AttributeArgument(
-                                                    SyntaxFactory.LiteralExpression(
-                                                        SyntaxKind.StringLiteralExpression,
-                                                        SyntaxFactory.Literal("message")
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        ),
+                        .AddAttribute("JsonPropertyName", "message"),
 
                     // Succeeded property
                     SyntaxFactory.PropertyDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)), "Succeeded")
@@ -63,26 +45,7 @@ namespace EntityCore.Tools.Common
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                         )
-                        .AddAttributeLists(
-                            SyntaxFactory.AttributeList(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.Attribute(
-                                        SyntaxFactory.IdentifierName("JsonPropertyName"))
-                                    .WithArgumentList(
-                                        SyntaxFactory.AttributeArgumentList(
-                                            SyntaxFactory.SingletonSeparatedList(
-                                                SyntaxFactory.AttributeArgument(
-                                                    SyntaxFactory.LiteralExpression(
-                                                        SyntaxKind.StringLiteralExpression,
-                                                        SyntaxFactory.Literal("succeeded")
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        ),
+                        .AddAttribute("JsonPropertyName", "succeeded"),
 
                     // Fail() methods
                     GenerateMethod("Fail", "Result", false),
@@ -111,26 +74,7 @@ namespace EntityCore.Tools.Common
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                         )
-                        .AddAttributeLists(
-                            SyntaxFactory.AttributeList(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.Attribute(
-                                        SyntaxFactory.IdentifierName("JsonPropertyName"))
-                                    .WithArgumentList(
-                                        SyntaxFactory.AttributeArgumentList(
-                                            SyntaxFactory.SingletonSeparatedList(
-                                                SyntaxFactory.AttributeArgument(
-                                                    SyntaxFactory.LiteralExpression(
-                                                        SyntaxKind.StringLiteralExpression,
-                                                        SyntaxFactory.Literal("data")
-                                                    )
-                                                )
-                                            )
-                                        )
-                                    )
-                                )
-                            )
-                        ),
+                        .AddAttribute("JsonPropertyName","data"),
 
                     // Fail() and Success() methods
                     GenerateMethod("Fail", "Result<T>", false, isGeneric: true),

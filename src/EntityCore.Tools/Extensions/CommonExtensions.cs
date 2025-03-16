@@ -1,6 +1,6 @@
-﻿namespace EntityCore.Tools
+﻿namespace EntityCore.Tools.Extensions
 {
-    public static class Extentions
+    public static class CommonExtensions
     {
         private static readonly Dictionary<Type, string> TypeMap = new()
         {

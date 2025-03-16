@@ -1,5 +1,5 @@
 ﻿using EntityCore.Tools.Common.Paginations.Models;
-using EntityCore.Tools.DbContexts;
+using EntityCore.Tools.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,7 +9,6 @@ namespace EntityCore.Tools
 {
     public partial class Generator
     {
-        // TODO: Entity Typedan emas service typedan ko'rib generatsiya qilishi kerak
         private string GenerateControllerCode(Type entityType)
         {
             var entityName = entityType.Name;
@@ -33,20 +32,8 @@ namespace EntityCore.Tools
             var classDeclaration = SyntaxFactory.ClassDeclaration($"{entityName}sController")
                         .AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName($"ControllerBase")))
                         .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                        .AddAttributeLists(
-                            SyntaxFactory.AttributeList(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.Attribute(SyntaxFactory.ParseName("Route"))
-                                        .WithArgumentList(SyntaxFactory.AttributeArgumentList(
-                                            SyntaxFactory.SingletonSeparatedList(
-                                                SyntaxFactory.AttributeArgument(
-                                                    SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("api/[controller]"))
-                                                )))))),
-
-                            SyntaxFactory.AttributeList(
-                                SyntaxFactory.SingletonSeparatedList(
-                                    SyntaxFactory.Attribute(SyntaxFactory.ParseName("ApiController"))))
-                        )
+                        .AddAttribute("ApiController")
+                        .AddAttribute("Route", "api/[controller]")
                         .AddMembers(
                             // fields
                             SyntaxFactory.FieldDeclaration(
@@ -86,13 +73,7 @@ namespace EntityCore.Tools
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "AddAsync")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
-                                .AddAttributeLists(
-                                    SyntaxFactory.AttributeList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpPost"))
-                                        )
-                                    )
-                                )
+                                .AddAttribute("HttpPost")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(creationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
@@ -106,13 +87,7 @@ namespace EntityCore.Tools
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "GetAllAsync")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
-                                .AddAttributeLists(
-                                    SyntaxFactory.AttributeList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpGet"))
-                                        )
-                                    )
-                                )
+                                .AddAttribute("HttpGet")
                                 .WithBody(SyntaxFactory.Block(
                                     SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.GetAllAsync());"))
                                 );
@@ -124,25 +99,7 @@ namespace EntityCore.Tools
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "FilterAsync")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
-                                .AddAttributeLists(
-                                    SyntaxFactory.AttributeList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpPost"))
-                                                .WithArgumentList(
-                                                        SyntaxFactory.AttributeArgumentList(
-                                                            SyntaxFactory.SingletonSeparatedList(
-                                                                SyntaxFactory.AttributeArgument(
-                                                                    SyntaxFactory.LiteralExpression(
-                                                                        SyntaxKind.StringLiteralExpression,
-                                                                        SyntaxFactory.Literal("filter")
-                                                                    )
-                                                                )
-                                                            )
-                                                        )
-                                                    )
-                                        )
-                                    )
-                                )
+                                .AddAttribute("HttpPost", "filter")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("filter"))
                                    .WithType(SyntaxFactory.ParseTypeName(typeof(PaginationOptions).Name)))
                                 .WithBody(SyntaxFactory.Block(
@@ -157,25 +114,7 @@ namespace EntityCore.Tools
                                 .AddModifiers(
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
-                                .AddAttributeLists(
-                                    SyntaxFactory.AttributeList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpGet"))
-                                                .WithArgumentList(
-                                                    SyntaxFactory.AttributeArgumentList(
-                                                        SyntaxFactory.SingletonSeparatedList(
-                                                            SyntaxFactory.AttributeArgument(
-                                                                SyntaxFactory.LiteralExpression(
-                                                                    SyntaxKind.StringLiteralExpression,
-                                                                    SyntaxFactory.Literal("{id}")
-                                                                )
-                                                            )
-                                                        )
-                                                    )
-                                                )
-                                        )
-                                    )
-                                )
+                               .AddAttribute("HttpGet", "{id}")
                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                    .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
                                .WithBody(SyntaxFactory.Block(
@@ -194,25 +133,7 @@ namespace EntityCore.Tools
                                 .AddModifiers(
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
-                                .AddAttributeLists(
-                                    SyntaxFactory.AttributeList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpPut"))
-                                                .WithArgumentList(
-                                                    SyntaxFactory.AttributeArgumentList(
-                                                        SyntaxFactory.SingletonSeparatedList(
-                                                            SyntaxFactory.AttributeArgument(
-                                                                SyntaxFactory.LiteralExpression(
-                                                                    SyntaxKind.StringLiteralExpression,
-                                                                    SyntaxFactory.Literal("{id}")
-                                                                )
-                                                            )
-                                                        )
-                                                    )
-                                                )
-                                        )
-                                    )
-                                )
+                                .AddAttribute("HttpPut", "{id}")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                     .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
@@ -229,25 +150,7 @@ namespace EntityCore.Tools
                                 .AddModifiers(
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
-                                .AddAttributeLists(
-                                    SyntaxFactory.AttributeList(
-                                        SyntaxFactory.SingletonSeparatedList(
-                                            SyntaxFactory.Attribute(SyntaxFactory.ParseName("HttpDelete"))
-                                                .WithArgumentList(
-                                                    SyntaxFactory.AttributeArgumentList(
-                                                        SyntaxFactory.SingletonSeparatedList(
-                                                            SyntaxFactory.AttributeArgument(
-                                                                SyntaxFactory.LiteralExpression(
-                                                                    SyntaxKind.StringLiteralExpression,
-                                                                    SyntaxFactory.Literal("{id}")
-                                                                )
-                                                            )
-                                                        )
-                                                    )
-                                                )
-                                        )
-                                    )
-                                )
+                                .AddAttribute("HttpDelete", "{id}")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                 .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
                                 .WithBody(SyntaxFactory.Block(
