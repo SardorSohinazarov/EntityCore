@@ -1,15 +1,19 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using EntityCore.Tools.Extensions;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EntityCore.Tools.Common
 {
+    /// <summary>
+    /// Generic `Result` class generator
+    /// </summary>
     public class Result
     {
-        public string GenerateResultClasses(string namespaceName)
+        public string GenerateResultClasses()
         {
             // Namespace yaratish
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName(namespaceName))
+            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Common"))
                 .NormalizeWhitespace();
 
             // Result klassini yaratish
@@ -29,7 +33,8 @@ namespace EntityCore.Tools.Common
                             SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                        ),
+                        )
+                        .AddAttribute("JsonPropertyName", "message"),
 
                     // Succeeded property
                     SyntaxFactory.PropertyDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BoolKeyword)), "Succeeded")
@@ -39,7 +44,8 @@ namespace EntityCore.Tools.Common
                             SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                        ),
+                        )
+                        .AddAttribute("JsonPropertyName", "succeeded"),
 
                     // Fail() methods
                     GenerateMethod("Fail", "Result", false),
@@ -67,7 +73,8 @@ namespace EntityCore.Tools.Common
                             SyntaxFactory.AccessorDeclaration(SyntaxKind.InitAccessorDeclaration).WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
-                        ),
+                        )
+                        .AddAttribute("JsonPropertyName","data"),
 
                     // Fail() and Success() methods
                     GenerateMethod("Fail", "Result<T>", false, isGeneric: true),
@@ -81,8 +88,15 @@ namespace EntityCore.Tools.Common
             // Namespacega klasslarni qo'shish
             namespaceDeclaration = namespaceDeclaration.AddMembers(resultClass, genericResultClass);
 
-            // Kodni chiroyli qilish
-            var code = namespaceDeclaration
+            // usings
+            var usings = new[]
+            {
+                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Text.Json.Serialization"))
+            };
+
+            var code = SyntaxFactory.CompilationUnit()
+                .AddUsings(usings)
+                .AddMembers(namespaceDeclaration)
                 .NormalizeWhitespace()
                 .ToFullString();
 

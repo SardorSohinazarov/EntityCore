@@ -3,6 +3,10 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace EntityCore.Tools.Common.Paginations.Models
 {
+    /// <summary>
+    /// Pagination metadata generator for writing response header
+    /// x-pagination : {"size":20, "page":1, "total":123}
+    /// </summary>
     public class PaginationMetadata
     {
         public string GeneratePaginationMetadataClass()

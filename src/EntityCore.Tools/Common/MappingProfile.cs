@@ -4,9 +4,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EntityCore.Tools
 {
-    public partial class Generator
+    /// <summary>
+    /// Automapper Mapping profiler generator
+    /// </summary>
+    public class MappingProfile : Generator
     {
-        private ClassDeclarationSyntax GenerateMappingProfile(string entityName)
+        public ClassDeclarationSyntax GenerateMappingProfile(Type entityType) 
+            => GenerateMappingProfile(entityType.Name);
+
+        public ClassDeclarationSyntax GenerateMappingProfile(string entityName)
         {
             var viewModel = GetViewModel(entityName);
             var creationDto = GetCreationDto(entityName);

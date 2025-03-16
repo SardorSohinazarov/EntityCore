@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Common.ServiceAttribute;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace TestApiNet8.Application
 {
@@ -7,6 +8,7 @@ namespace TestApiNet8.Application
         public static void AddApplication(this IServiceCollection services)
         {
             services.AddAutoMapper(typeof(DependencyInjection).Assembly);
+            services.AddCustomServices();
         }
     }
 }

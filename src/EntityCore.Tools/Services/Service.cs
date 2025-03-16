@@ -1,18 +1,27 @@
-﻿using EntityCore.Tools.Common.Paginations.Models;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+﻿using EntityCore.Tools.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.CodeAnalysis.CSharp;
 using System.Reflection;
+using Microsoft.EntityFrameworkCore;
+using EntityCore.Tools.Common.Paginations.Models;
+using Microsoft.CodeAnalysis;
 
-namespace EntityCore.Tools
+namespace EntityCore.Tools.Services
 {
-    public partial class Generator
+    public class Service : Generator
     {
-        private string GenerateServiceImplementationCode(Type entityType, string? dbContextName)
+        private readonly string _entityName;
+        private readonly Type _entityType;
+        private readonly PropertyInfo _primaryKey;
+        public Service(Type entityType)
         {
-            string entityName = entityType.Name;
+            _entityType = entityType;
+            _entityName = _entityType.Name;
+            _primaryKey = FindKeyProperty(entityType);
+        }
 
+        public string Generate(string dbContextName = null)
+        {
             Type? dbContextType = null;
 
             if (dbContextName is not null)
@@ -38,46 +47,44 @@ namespace EntityCore.Tools
                 if (dbContextTypes.Count() == 1)
                     dbContextType = dbContextTypes.First();
                 else if (dbContextTypes.Count() > 1)
-                {
-                    foreach (var type in dbContextTypes)
-                    {
-                        Console.WriteLine(type.Name);
-                    }
-
-                    throw new InvalidOperationException($"Multiple DbContexts({string.Join(", ", dbContextTypes.Select(x => x.Name))}) found in the specified assembly.\nPlease choose DbContext name. ex: --context <DbContextName>");
-                }
+                    throw new InvalidOperationException(
+                        $"Multiple DbContexts({string.Join(", ", dbContextTypes.Select(x => x.Name))}) found in the specified assembly." +
+                        $"\nPlease choose DbContext name. ex: --context <DbContextName>");
             }
 
             if (dbContextType is null)
                 throw new InvalidOperationException("DbContext not found in the specified assembly.");
 
-            var primaryKey = FindKeyProperty(entityType);
+            var primaryKey = FindKeyProperty(_entityType);
 
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName($"Services.{entityName}s"));
+            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName($"Services.{_entityName}s"));
 
-            var classDeclaration = GetClassDeclaration(entityName, primaryKey, dbContextType);
+            var classDeclaration = GetClassDeclaration(dbContextType);
 
             if (classDeclaration is not null)
                 namespaceDeclaration = namespaceDeclaration.AddMembers(classDeclaration);
 
-            var mappingProfile = GenerateMappingProfile(entityName);
+            var mappingProfile = new MappingProfile();
+            var mappingProfileCode = mappingProfile.GenerateMappingProfile(_entityName);
 
-            if (mappingProfile is not null)
-                namespaceDeclaration = namespaceDeclaration.AddMembers(mappingProfile);
+            if (mappingProfileCode is not null)
+                namespaceDeclaration = namespaceDeclaration.AddMembers(mappingProfileCode);
 
-            CompilationUnitSyntax syntaxTree = GenerateUsings(namespaceDeclaration, dbContextType, entityType);
+            var syntaxTree = GenerateUsings(namespaceDeclaration, dbContextType, _entityType);
 
-            return syntaxTree.NormalizeWhitespace()
+            return syntaxTree
+                .NormalizeWhitespace()
                 .ToFullString();
         }
 
-        private ClassDeclarationSyntax GetClassDeclaration(string entityName, PropertyInfo primaryKey, Type dbContextType)
+        private ClassDeclarationSyntax GetClassDeclaration(Type dbContextType)
         {
             var dbContextVariableName = dbContextType.Name.GenerateFieldNameWithUnderscore();
 
-            var classDeclaration = SyntaxFactory.ClassDeclaration($"{entityName}sService")
-                        .AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName($"I{entityName}sService")))
+            var classDeclaration = SyntaxFactory.ClassDeclaration($"{_entityName}sService")
+                        .AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName($"I{_entityName}sService")))
                         .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                        .AddAttribute("ScopedService")
                         .AddMembers(
                             // fields
                             SyntaxFactory.FieldDeclaration(
@@ -103,7 +110,7 @@ namespace EntityCore.Tools
                                     SyntaxFactory.Token(SyntaxKind.PrivateKeyword),   // private 
                                     SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)), // readonly
                                                                                       // constructor
-                            SyntaxFactory.ConstructorDeclaration($"{entityName}sService")
+                            SyntaxFactory.ConstructorDeclaration($"{_entityName}sService")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(dbContextType.Name.GenerateFieldName()))
                                     .WithType(SyntaxFactory.ParseTypeName(dbContextType.Name)))
@@ -117,22 +124,22 @@ namespace EntityCore.Tools
                                     SyntaxFactory.ParseStatement($"_httpContext = httpContext;")
                                 )),
                             // methods
-                            GenerateAddMethodImplementation(entityName, dbContextVariableName),
-                            GenerateGetAllMethodImplementation(entityName, dbContextVariableName),
-                            GenerateFilterMethodImplementation(entityName, dbContextVariableName),
-                            GenerateGetByIdMethodImplementation(entityName, dbContextVariableName, primaryKey),
-                            GenerateUpdateMethodImplementation(entityName, dbContextVariableName, primaryKey),
-                            GenerateDeleteMethodImplementation(entityName, dbContextVariableName, primaryKey)
+                            GenerateAddMethodImplementation(dbContextVariableName),
+                            GenerateGetAllMethodImplementation(dbContextVariableName),
+                            GenerateFilterMethodImplementation(dbContextVariableName),
+                            GenerateGetByIdMethodImplementation(dbContextVariableName),
+                            GenerateUpdateMethodImplementation(dbContextVariableName),
+                            GenerateDeleteMethodImplementation(dbContextVariableName)
                         );
 
             return classDeclaration;
         }
 
-        private MethodDeclarationSyntax GenerateAddMethodImplementation(string entityName, string dbContextVariableName)
+        private MethodDeclarationSyntax GenerateAddMethodImplementation(string dbContextVariableName)
         {
-            var creationDtoTypeName = GetCreationDtoTypeName(entityName);
+            var creationDtoTypeName = GetCreationDtoTypeName(_entityName);
             var parametrName = creationDtoTypeName.GenerateFieldName();
-            var returnTypeName = GetReturnTypeName(entityName);
+            var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "AddAsync")
@@ -142,16 +149,16 @@ namespace EntityCore.Tools
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(creationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entity = _mapper.Map<{entityName}>({parametrName});"),
-                                    SyntaxFactory.ParseStatement($"var entry = await {dbContextVariableName}.Set<{entityName}>().AddAsync(entity);"),
+                                    SyntaxFactory.ParseStatement($"var entity = _mapper.Map<{_entityName}>({parametrName});"),
+                                    SyntaxFactory.ParseStatement($"var entry = await {dbContextVariableName}.Set<{_entityName}>().AddAsync(entity);"),
                                     SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"),
-                                    SyntaxFactory.ParseStatement($"return {GenerateReturn(entityName)};")
+                                    SyntaxFactory.ParseStatement($"return {GenerateReturn()};")
                                 ));
         }
 
-        private MethodDeclarationSyntax GenerateGetAllMethodImplementation(string entityName, string dbContextVariableName)
+        private MethodDeclarationSyntax GenerateGetAllMethodImplementation(string dbContextVariableName)
         {
-            var returnTypeName = GetReturnTypeName(entityName);
+            var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{returnTypeName}>")), "GetAllAsync")
@@ -159,14 +166,14 @@ namespace EntityCore.Tools
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entities = await {dbContextVariableName}.Set<{entityName}>().ToListAsync();"),
-                                    SyntaxFactory.ParseStatement($"return {GenerateRuturnForGetAll(entityName)};")
+                                    SyntaxFactory.ParseStatement($"var entities = await {dbContextVariableName}.Set<{_entityName}>().ToListAsync();"),
+                                    SyntaxFactory.ParseStatement($"return {GenerateRuturnForGetAll()};")
                                 ));
         }
 
-        private MethodDeclarationSyntax GenerateFilterMethodImplementation(string entityName, string dbContextVariableName)
+        private MethodDeclarationSyntax GenerateFilterMethodImplementation(string dbContextVariableName)
         {
-            var returnTypeName = GetReturnTypeName(entityName);
+            var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier(nameof(Task)))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{returnTypeName}>")), "FilterAsync")
@@ -177,14 +184,14 @@ namespace EntityCore.Tools
                                     .WithType(SyntaxFactory.ParseTypeName(typeof(PaginationOptions).Name)))
                                 .WithBody(SyntaxFactory.Block(
                                     SyntaxFactory.ParseStatement($"var httpContext = _httpContext.HttpContext;"),
-                                    SyntaxFactory.ParseStatement($"var entities = await {dbContextVariableName}.Set<{entityName}>().ApplyPagination(filter,httpContext).ToListAsync();"),
-                                    SyntaxFactory.ParseStatement($"return {GenerateRuturnForGetAll(entityName)};")
+                                    SyntaxFactory.ParseStatement($"var entities = await {dbContextVariableName}.Set<{_entityName}>().ApplyPagination(filter,httpContext).ToListAsync();"),
+                                    SyntaxFactory.ParseStatement($"return {GenerateRuturnForGetAll()};")
                                 ));
         }
 
-        private MethodDeclarationSyntax GenerateGetByIdMethodImplementation(string entityName, string dbContextVariableName, PropertyInfo primaryKey)
+        private MethodDeclarationSyntax GenerateGetByIdMethodImplementation(string dbContextVariableName)
         {
-            var returnTypeName = GetReturnTypeName(entityName);
+            var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "GetByIdAsync")
@@ -192,19 +199,19 @@ namespace EntityCore.Tools
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
-                                    .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
+                                    .WithType(SyntaxFactory.ParseTypeName(_primaryKey.PropertyType.ToCSharpTypeName())))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{entityName}>().FirstOrDefaultAsync(x => x.{primaryKey.Name} == id);"),
-                                    SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{entityName} with Id {{id}} not found.\");"),
-                                    SyntaxFactory.ParseStatement($"return {GenerateReturnForGet(entityName)};")
+                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{_entityName}>().FirstOrDefaultAsync(x => x.{_primaryKey.Name} == id);"),
+                                    SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{_entityName} with Id {{id}} not found.\");"),
+                                    SyntaxFactory.ParseStatement($"return {GenerateReturnForGet()};")
                                 ));
         }
 
-        private MethodDeclarationSyntax GenerateUpdateMethodImplementation(string entityName, string dbContextVariableName, PropertyInfo primaryKey)
+        private MethodDeclarationSyntax GenerateUpdateMethodImplementation(string dbContextVariableName)
         {
-            var modificationDtoTypeName = GetModificationDtoTypeName(entityName);
+            var modificationDtoTypeName = GetModificationDtoTypeName(_entityName);
             var parametrName = modificationDtoTypeName.GenerateFieldName();
-            var returnTypeName = GetReturnTypeName(entityName);
+            var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "UpdateAsync")
@@ -212,22 +219,22 @@ namespace EntityCore.Tools
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
-                                    .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
+                                    .WithType(SyntaxFactory.ParseTypeName(_primaryKey.PropertyType.ToCSharpTypeName())))
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(modificationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{entityName}>().FirstOrDefaultAsync(x => x.Id == id);"),
-                                    SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{entityName} with {{id}} not found.\");"),
+                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{_entityName}>().FirstOrDefaultAsync(x => x.Id == id);"),
+                                    SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{_entityName} with {{id}} not found.\");"),
                                     SyntaxFactory.ParseStatement($"_mapper.Map({parametrName}, entity);"),
-                                    SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{entityName}>().Update(entity);"),
+                                    SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{_entityName}>().Update(entity);"),
                                     SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"),
-                                    SyntaxFactory.ParseStatement($"return {GenerateReturn(entityName)};")
+                                    SyntaxFactory.ParseStatement($"return {GenerateReturn()};")
                                 ));
         }
 
-        private MethodDeclarationSyntax GenerateDeleteMethodImplementation(string entityName, string dbContextVariableName, PropertyInfo primaryKey)
+        private MethodDeclarationSyntax GenerateDeleteMethodImplementation(string dbContextVariableName)
         {
-            var returnTypeName = GetReturnTypeName(entityName);
+            var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "DeleteAsync")
@@ -235,19 +242,59 @@ namespace EntityCore.Tools
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
-                                    .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
+                                    .WithType(SyntaxFactory.ParseTypeName(_primaryKey.PropertyType.ToCSharpTypeName())))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{entityName}>().FirstOrDefaultAsync(x => x.{primaryKey.Name} == id);"),
-                                    SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{entityName} with {{id}} not found.\");"),
-                                    SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{entityName}>().Remove(entity);"),
+                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{_entityName}>().FirstOrDefaultAsync(x => x.{_primaryKey.Name} == id);"),
+                                    SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{_entityName} with {{id}} not found.\");"),
+                                    SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{_entityName}>().Remove(entity);"),
                                     SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"),
-                                    SyntaxFactory.ParseStatement($"return {GenerateReturn(entityName)};")
+                                    SyntaxFactory.ParseStatement($"return {GenerateReturn()};")
                                 ));
         }
 
-        private string GenerateReturn(string entityName)
+        private CompilationUnitSyntax GenerateUsings(
+            NamespaceDeclarationSyntax namespaceDeclaration,
+            Type? dbContextType,
+            Type? entityType)
         {
-            var viewModel = GetViewModel(entityName);
+            var usings = new List<string>
+            {
+                "AutoMapper",
+                "Microsoft.EntityFrameworkCore",
+                "Microsoft.AspNetCore.Http",
+                "Common.Paginations.Models",
+                "Common.Paginations.Extensions",
+                "Common.ServiceAttribute"
+            };
+
+            var viewModelType = GetViewModel(entityType.Name);
+            if (!string.IsNullOrEmpty(viewModelType?.Namespace))
+                usings.Add(viewModelType.Namespace);
+
+            var creationDtoType = GetCreationDto(entityType.Name);
+            if (!string.IsNullOrEmpty(creationDtoType?.Namespace))
+                usings.Add(creationDtoType.Namespace);
+
+            var modificationDtoType = GetModificationDto(entityType.Name);
+            if (!string.IsNullOrEmpty(modificationDtoType?.Namespace))
+                usings.Add(modificationDtoType.Namespace);
+
+            if (!string.IsNullOrEmpty(dbContextType?.Namespace))
+                usings.Add(dbContextType.Namespace);
+
+            if (!string.IsNullOrEmpty(entityType?.Namespace))
+                usings.Add(entityType.Namespace);
+
+            var syntaxTree = SyntaxFactory.CompilationUnit()
+                .AddUsings(usings.Distinct().Select(u => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(u))).ToArray())
+                .AddMembers(namespaceDeclaration);
+
+            return syntaxTree;
+        }
+
+        protected string GenerateReturn()
+        {
+            var viewModel = GetViewModel(_entityName);
 
             if (viewModel is null)
                 return "entry.Entity";
@@ -255,17 +302,17 @@ namespace EntityCore.Tools
             return $"_mapper.Map<{viewModel.Name}>(entry.Entity)";
         }
 
-        private string GenerateRuturnForGetAll(string entityName)
+        protected string GenerateRuturnForGetAll()
         {
-            var viewModel = GetViewModel(entityName);
+            var viewModel = GetViewModel(_entityName);
             if (viewModel is null)
                 return "entities";
             return $"_mapper.Map<List<{viewModel.Name}>>(entities)";
         }
 
-        private string GenerateReturnForGet(string entityName)
+        protected string GenerateReturnForGet()
         {
-            var viewModel = GetViewModel(entityName);
+            var viewModel = GetViewModel(_entityName);
             if (viewModel is null)
                 return "entity";
             return $"_mapper.Map<{viewModel.Name}>(entity)";

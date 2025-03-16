@@ -4,6 +4,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EntityCore.Tools.Common.Paginations.Extensions
 {
+    /// <summary>
+    /// IQueryable Extensions for Paginations
+    /// </summary>
     public class PaginationExtensions
     {
         public string GeneratePaginationExtensions()
