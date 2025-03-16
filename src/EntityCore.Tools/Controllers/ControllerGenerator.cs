@@ -7,7 +7,7 @@ using System.Reflection;
 
 namespace EntityCore.Tools
 {
-    public partial class Generator
+    public partial class Manager : Generator
     {
         private string GenerateControllerCode(Type entityType)
         {
@@ -156,6 +156,37 @@ namespace EntityCore.Tools
                                 .WithBody(SyntaxFactory.Block(
                                     SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.DeleteAsync(id));")
                                 ));
+        }
+
+        private CompilationUnitSyntax GenerateControllerUsings(NamespaceDeclarationSyntax namespaceDeclaration, Type entityType)
+        {
+            var usings = new List<string>
+            {
+                "Microsoft.AspNetCore.Mvc",
+                $"Services.{entityType.Name}s",
+                "Common.Paginations.Models"
+            };
+
+            var viewModelType = GetViewModel(entityType.Name);
+            if (!string.IsNullOrEmpty(viewModelType?.Namespace))
+                usings.Add(viewModelType.Namespace);
+
+            var creationDtoType = GetCreationDto(entityType.Name);
+            if (!string.IsNullOrEmpty(creationDtoType?.Namespace))
+                usings.Add(creationDtoType.Namespace);
+
+            var modificationDtoType = GetModificationDto(entityType.Name);
+            if (!string.IsNullOrEmpty(modificationDtoType?.Namespace))
+                usings.Add(modificationDtoType.Namespace);
+
+            if (!string.IsNullOrEmpty(entityType?.Namespace))
+                usings.Add(entityType.Namespace);
+
+            var syntaxTree = SyntaxFactory.CompilationUnit()
+                .AddUsings(usings.Distinct().Select(u => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(u))).ToArray())
+                .AddMembers(namespaceDeclaration);
+
+            return syntaxTree;
         }
     }
 }

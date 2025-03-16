@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Reflection;
-using System.ComponentModel.DataAnnotations;
 using Microsoft.CodeAnalysis;
 using EntityCore.Tools.Common.Paginations.Models;
 using EntityCore.Tools.Extensions;
@@ -203,72 +202,6 @@ namespace EntityCore.Tools.Controllers
                 .AddMembers(namespaceDeclaration);
 
             return syntaxTree;
-        }
-
-        private PropertyInfo FindKeyProperty(Type entityType)
-        {
-            // 1. [Key] atributi bilan belgilangan propertyni topish
-            var keyProperty = entityType
-                .GetProperties()
-                .FirstOrDefault(prop => prop.GetCustomAttribute<KeyAttribute>() != null);
-
-            if (keyProperty is not null)
-                return keyProperty;
-
-            // 2. Agar [Key] topilmasa, "Id" nomli propertyni qidirish
-            keyProperty = entityType
-                .GetProperties()
-                .FirstOrDefault(prop => string.Equals(prop.Name, "Id", StringComparison.OrdinalIgnoreCase));
-
-            if (keyProperty is null)
-                throw new InvalidOperationException("Entity must have a key property.");
-
-            return keyProperty;
-        }
-
-        private string GetReturnTypeName(Type entityType)
-            => GetReturnTypeName(entityType.Name);
-
-        private string GetReturnTypeName(string entityName)
-        {
-            var viewModelType = GetViewModel(entityName);
-            return viewModelType is null ? entityName : viewModelType.Name;
-        }
-
-        private Type GetViewModel(string entityName)
-        {
-            var viewModelName = $"{entityName}ViewModel";
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == viewModelName);
-        }
-
-        private string GetCreationDtoTypeName(string entityName)
-        {
-            var creationDtoType = GetCreationDto(entityName);
-            return creationDtoType is null ? entityName : creationDtoType.Name;
-        }
-
-        private Type GetCreationDto(string entityName)
-        {
-            var creationDtoName = $"{entityName}CreationDto";
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == creationDtoName);
-        }
-
-        private string GetModificationDtoTypeName(string entityName)
-        {
-            var modificationDtoType = GetModificationDto(entityName);
-            return modificationDtoType is null ? entityName : modificationDtoType.Name;
-        }
-
-        private Type GetModificationDto(string entityName)
-        {
-            var modificationDtoName = $"{entityName}ModificationDto";
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == modificationDtoName);
         }
     }
 }

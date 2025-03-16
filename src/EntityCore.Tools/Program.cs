@@ -22,7 +22,7 @@ public class Program
 
             EnsureBuild(currentDirectory);
 
-            Generator generator = new Generator(currentDirectory, arguments);
+            Manager generator = new Manager(currentDirectory, arguments);
             generator.Generate();
         }
         catch (InvalidOperationException ex)

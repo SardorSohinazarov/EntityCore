@@ -7,9 +7,12 @@ namespace EntityCore.Tools
     /// <summary>
     /// Automapper Mapping profiler generator
     /// </summary>
-    public partial class Generator
+    public class MappingProfile : Generator
     {
-        private ClassDeclarationSyntax GenerateMappingProfile(string entityName)
+        public ClassDeclarationSyntax GenerateMappingProfile(Type entityType) 
+            => GenerateMappingProfile(entityType.Name);
+
+        public ClassDeclarationSyntax GenerateMappingProfile(string entityName)
         {
             var viewModel = GetViewModel(entityName);
             var creationDto = GetCreationDto(entityName);
