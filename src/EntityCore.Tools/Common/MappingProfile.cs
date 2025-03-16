@@ -4,6 +4,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EntityCore.Tools
 {
+    /// <summary>
+    /// Automapper Mapping profiler generator
+    /// </summary>
     public partial class Generator
     {
         private ClassDeclarationSyntax GenerateMappingProfile(string entityName)

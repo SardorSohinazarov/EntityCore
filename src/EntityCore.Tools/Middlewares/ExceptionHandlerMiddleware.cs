@@ -4,6 +4,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EntityCore.Tools.Middlewares
 {
+    /// <summary>
+    /// Exception handler middleware generator
+    /// </summary>
     public class ExceptionHandlerMiddleware
     {
         public string GenerateExceptionHandlingMiddleware()

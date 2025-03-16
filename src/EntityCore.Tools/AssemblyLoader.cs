@@ -4,6 +4,9 @@ using System.Runtime.Loader;
 
 namespace EntityCore.Tools
 {
+    /// <summary>
+    /// Assembly loader from current project
+    /// </summary>
     public class AssemblyLoader
     {
         private readonly string _nugetPath;
@@ -21,6 +24,16 @@ namespace EntityCore.Tools
                 var dllFiles = Directory.GetFiles(binPath, "*.dll", SearchOption.AllDirectories);
                 foreach (var dll in dllFiles)
                 {
+                    string dllName = Path.GetFileName(dll);
+
+                    // Filter out Microsoft.EntityFrameworkCore.Design and Roslyn-related assemblies
+                    if (dllName.StartsWith("Microsoft.EntityFrameworkCore.Design", StringComparison.OrdinalIgnoreCase) ||
+                        dllName.StartsWith("Microsoft.CodeAnalysis", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine($"Skipping DLL: {dllName}");
+                        continue;
+                    }
+
                     try
                     {
                         Assembly.LoadFrom(dll);
@@ -28,7 +41,7 @@ namespace EntityCore.Tools
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Failed to load DLL from bin: {Path.GetFileName(dll)} - {ex.Message}");
+                        Console.WriteLine($"Failed to load DLL from bin: {Path.GetFileName(dll)} - exception message: {ex.Message}");
                     }
                 }
             }
@@ -45,8 +58,16 @@ namespace EntityCore.Tools
 
         private void LoadReferencedAssemblies(AssemblyName[] references)
         {
+
             foreach (var reference in references)
             {
+                if (reference.Name.StartsWith("Microsoft.CodeAnalysis", StringComparison.OrdinalIgnoreCase)
+                    || reference.Name.StartsWith("Microsoft.EntityFrameworkCore.Design", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine($"Skipping: {reference.Name}");
+                    continue;
+                }
+
                 try
                 {
                     Assembly.Load(reference);
@@ -71,6 +92,12 @@ namespace EntityCore.Tools
 
         private void LoadFromNuGet(AssemblyName reference)
         {
+            if (reference.Name.StartsWith("Microsoft.EntityFrameworkCore.Design", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"Skipping NuGet load: {reference.Name}");
+                return;
+            }
+
             string assemblyPath = Path.Combine(_nugetPath, reference.Name, reference.Version.ToString(), $"{reference.Name}.dll");
             if (File.Exists(assemblyPath))
                 AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath);

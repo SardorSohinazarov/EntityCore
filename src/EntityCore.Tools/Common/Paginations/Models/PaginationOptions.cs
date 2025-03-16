@@ -3,6 +3,10 @@ using Microsoft.CodeAnalysis.CSharp;
 
 namespace EntityCore.Tools.Common.Paginations.Models
 {
+    /// <summary>
+    /// Pagination options class for pagination
+    /// PageSize and PageToken
+    /// </summary>
     public class PaginationOptions
     {
         public string GeneratePaginationOptionsClass()

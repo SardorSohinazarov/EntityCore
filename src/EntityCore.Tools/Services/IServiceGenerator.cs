@@ -1,4 +1,5 @@
 ﻿using EntityCore.Tools.Common.Paginations.Models;
+using EntityCore.Tools.DbContexts;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;

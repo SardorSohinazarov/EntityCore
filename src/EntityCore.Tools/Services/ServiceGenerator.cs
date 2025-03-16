@@ -1,9 +1,11 @@
 ﻿using EntityCore.Tools.Common.Paginations.Models;
+using EntityCore.Tools.DbContexts;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using DbContext = Microsoft.EntityFrameworkCore.DbContext;
 
 namespace EntityCore.Tools
 {

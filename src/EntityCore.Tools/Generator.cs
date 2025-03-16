@@ -1,6 +1,8 @@
 ﻿using EntityCore.Tools.Common;
 using EntityCore.Tools.Common.Paginations.Extensions;
 using EntityCore.Tools.Common.Paginations.Models;
+using EntityCore.Tools.Controllers;
+using EntityCore.Tools.DbContexts;
 using EntityCore.Tools.Middlewares;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -46,6 +48,7 @@ namespace EntityCore.Tools
             if (entityType is null)
                 throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
 
+            // Todo : Har bir generatsiya uchun alohida methodlar va loglar yaratish
             if (withService)
             {
                 PaginationOptions paginationOptions = new PaginationOptions();
@@ -83,7 +86,8 @@ namespace EntityCore.Tools
 
             if (withController)
             {
-                var controllerCode = GenerateControllerCode(entityType);
+                var controller = new Controller(entityType);
+                var controllerCode = controller.GenerateControllerCodeWithEntity();
                 var controllerPath = Path.Combine(_projectRoot, "Controllers");
                 Directory.CreateDirectory(controllerPath);
                 string controllerFilePath = Path.Combine(controllerPath, $"{entityName}sController.cs");
@@ -102,10 +106,11 @@ namespace EntityCore.Tools
             if (withResult)
             {
                 var result = new Result();
-                var resultClassesCode = result.GenerateResultClasses("Common");
+                var resultClassesCode = result.GenerateResultClasses();
                 var commonDirectoryPath = Path.Combine(_projectRoot, "Common");
                 Directory.CreateDirectory(commonDirectoryPath);
                 string resultClassesFilePath = Path.Combine(commonDirectoryPath, "Result.cs");
+               
                 File.WriteAllText(resultClassesFilePath, resultClassesCode);
             }
 

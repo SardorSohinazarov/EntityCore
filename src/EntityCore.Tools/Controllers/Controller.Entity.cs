@@ -1,36 +1,51 @@
-﻿using EntityCore.Tools.Common.Paginations.Models;
-using EntityCore.Tools.DbContexts;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Reflection;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.CodeAnalysis;
+using EntityCore.Tools.DbContexts;
+using EntityCore.Tools.Common.Paginations.Models;
 
-namespace EntityCore.Tools
+namespace EntityCore.Tools.Controllers
 {
-    public partial class Generator
+    public partial class Controller
     {
-        // TODO: Entity Typedan emas service typedan ko'rib generatsiya qilishi kerak
-        private string GenerateControllerCode(Type entityType)
+        private readonly string _entityName;
+        private readonly Type _entityType;
+        private readonly PropertyInfo _primaryKey;
+        private readonly string _returnTypeName;
+        public Controller(Type entityType)
         {
-            var entityName = entityType.Name;
-            var primaryKey = FindKeyProperty(entityType);
+            _entityType = entityType;
+            _primaryKey = FindKeyProperty(entityType);
+            _entityName = entityType.Name;
+            _returnTypeName = GetReturnTypeName(_entityName);
+        }
 
-            var classDeclaration = GetControllerClassDeclaration(entityName, primaryKey);
+        /// <summary>
+        /// Controllerni Entity Type Orqali Generatsiya qilsin
+        /// </summary>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+
+        public string GenerateControllerCodeWithEntity()
+        {
+            var classDeclaration = GetControllerClassDeclaration();
 
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Controllers"))
                 .AddMembers(classDeclaration);
 
-            CompilationUnitSyntax syntaxTree = GenerateControllerUsings(namespaceDeclaration, entityType);
+            CompilationUnitSyntax syntaxTree = GenerateControllerUsings(namespaceDeclaration, _entityType);
 
             return syntaxTree
                 .NormalizeWhitespace()
                 .ToFullString();
         }
 
-        private ClassDeclarationSyntax GetControllerClassDeclaration(string entityName, PropertyInfo primaryKey)
+        private ClassDeclarationSyntax GetControllerClassDeclaration()
         {
-            var serviceVariableName = $"{entityName}sService".GenerateFieldNameWithUnderscore();
-            var classDeclaration = SyntaxFactory.ClassDeclaration($"{entityName}sController")
+            var serviceVariableName = $"{_entityName}sService".GenerateFieldNameWithUnderscore();
+            var classDeclaration = SyntaxFactory.ClassDeclaration($"{_entityName}sController")
                         .AddBaseListTypes(SyntaxFactory.SimpleBaseType(SyntaxFactory.ParseTypeName($"ControllerBase")))
                         .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                         .AddAttributeLists(
@@ -51,39 +66,38 @@ namespace EntityCore.Tools
                             // fields
                             SyntaxFactory.FieldDeclaration(
                                 SyntaxFactory.VariableDeclaration(
-                                    SyntaxFactory.ParseTypeName($"I{entityName}sService"))
+                                    SyntaxFactory.ParseTypeName($"I{_entityName}sService"))
                                 .AddVariables(SyntaxFactory.VariableDeclarator(serviceVariableName)))
                                 .AddModifiers(
                                     SyntaxFactory.Token(SyntaxKind.PrivateKeyword),   // private 
                                     SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)), // readonly
                                                                                       //constructors
-                            SyntaxFactory.ConstructorDeclaration($"{entityName}sController")
+                            SyntaxFactory.ConstructorDeclaration($"{_entityName}sController")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier($"{entityName}sService".GenerateFieldName()))
-                                    .WithType(SyntaxFactory.ParseTypeName($"I{entityName}sService")))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier($"{_entityName}sService".GenerateFieldName()))
+                                    .WithType(SyntaxFactory.ParseTypeName($"I{_entityName}sService")))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"{serviceVariableName} = {$"{entityName}sService".GenerateFieldName()};")
+                                    SyntaxFactory.ParseStatement($"{serviceVariableName} = {$"{_entityName}sService".GenerateFieldName()};")
                                 )),
                             // methods
-                            GenerateAddActionImplementation(entityName, serviceVariableName),
-                            GenerateGetAllActionImplementation(entityName, serviceVariableName),
-                            GenerateFilterActionImplementation(entityName, serviceVariableName),
-                            GenerateGetByIdActionImplementation(entityName, serviceVariableName, primaryKey),
-                            GenerateUpdateActionImplementation(entityName, serviceVariableName, primaryKey),
-                            GenerateDeleteActionImplementation(entityName, serviceVariableName, primaryKey)
+                            GenerateAddActionImplementation(serviceVariableName),
+                            GenerateGetAllActionImplementation(serviceVariableName),
+                            GenerateFilterActionImplementation(serviceVariableName),
+                            GenerateGetByIdActionImplementation(serviceVariableName),
+                            GenerateUpdateActionImplementation(serviceVariableName),
+                            GenerateDeleteActionImplementation(serviceVariableName)
                         );
 
             return classDeclaration;
         }
 
-        private MethodDeclarationSyntax GenerateAddActionImplementation(string entityName, string serviceVariableName)
+        private MethodDeclarationSyntax GenerateAddActionImplementation(string serviceVariableName)
         {
-            var creationDtoTypeName = GetCreationDtoTypeName(entityName);
+            var creationDtoTypeName = GetCreationDtoTypeName(_entityName);
             var parametrName = creationDtoTypeName.GenerateFieldName();
-            var returnTypeName = GetReturnTypeName(entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "AddAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"Result<{_returnTypeName}>")), "AddAsync")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .AddAttributeLists(
@@ -96,14 +110,14 @@ namespace EntityCore.Tools
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(creationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.AddAsync({parametrName}));"))
+                                    SyntaxFactory.ParseStatement($"return Result<{_returnTypeName}>.Success(await {serviceVariableName}.AddAsync({parametrName}));"))
                                 );
         }
 
-        private MethodDeclarationSyntax GenerateGetAllActionImplementation(string entityName, string serviceVariableName)
+        private MethodDeclarationSyntax GenerateGetAllActionImplementation(string serviceVariableName)
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "GetAllAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"Result<List<{_returnTypeName}>>")), "GetAllAsync")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .AddAttributeLists(
@@ -114,14 +128,14 @@ namespace EntityCore.Tools
                                     )
                                 )
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.GetAllAsync());"))
+                                    SyntaxFactory.ParseStatement($"return Result<List<{_returnTypeName}>>.Success(await {serviceVariableName}.GetAllAsync());"))
                                 );
         }
 
-        private MethodDeclarationSyntax GenerateFilterActionImplementation(string entityName, string serviceVariableName)
+        private MethodDeclarationSyntax GenerateFilterActionImplementation(string serviceVariableName)
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "FilterAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"Result<List<{_returnTypeName}>>")), "FilterAsync")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .AddAttributeLists(
@@ -146,14 +160,14 @@ namespace EntityCore.Tools
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("filter"))
                                    .WithType(SyntaxFactory.ParseTypeName(typeof(PaginationOptions).Name)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.FilterAsync(filter));"))
+                                    SyntaxFactory.ParseStatement($"return Result<List<{_returnTypeName}>>.Success(await {serviceVariableName}.FilterAsync(filter));"))
                                 );
         }
 
-        private MethodDeclarationSyntax GenerateGetByIdActionImplementation(string entityName, string serviceVariableName, PropertyInfo primaryKey)
+        private MethodDeclarationSyntax GenerateGetByIdActionImplementation(string serviceVariableName)
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "GetByIdAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"Result<{_returnTypeName}>")), "GetByIdAsync")
                                 .AddModifiers(
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
@@ -177,20 +191,20 @@ namespace EntityCore.Tools
                                     )
                                 )
                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
-                                   .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
+                                   .WithType(SyntaxFactory.ParseTypeName(_primaryKey.PropertyType.ToCSharpTypeName())))
                                .WithBody(SyntaxFactory.Block(
-                                   SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.GetByIdAsync(id));")
+                                   SyntaxFactory.ParseStatement($"return Result<{_returnTypeName}>.Success(await {serviceVariableName}.GetByIdAsync(id));")
                                ));
         }
 
-        private MethodDeclarationSyntax GenerateUpdateActionImplementation(string entityName, string serviceVariableName, PropertyInfo primaryKey)
+        private MethodDeclarationSyntax GenerateUpdateActionImplementation(string serviceVariableName)
         {
-            var modificationDtoTypeName = GetModificationDtoTypeName(entityName);
+            var modificationDtoTypeName = GetModificationDtoTypeName(_entityName);
             var parametrName = modificationDtoTypeName.GenerateFieldName();
-            var returnTypeName = GetReturnTypeName(entityName);
+            var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "UpdateAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"Result<{_returnTypeName}>")), "UpdateAsync")
                                 .AddModifiers(
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
@@ -214,18 +228,18 @@ namespace EntityCore.Tools
                                     )
                                 )
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
-                                    .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
+                                    .WithType(SyntaxFactory.ParseTypeName(_primaryKey.PropertyType.ToCSharpTypeName())))
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(modificationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.UpdateAsync(id,{parametrName}));")
+                                    SyntaxFactory.ParseStatement($"return Result<{_returnTypeName}>.Success(await {serviceVariableName}.UpdateAsync(id,{parametrName}));")
                                 ));
         }
 
-        private MethodDeclarationSyntax GenerateDeleteActionImplementation(string entityName, string serviceVariableName, PropertyInfo primaryKey)
+        private MethodDeclarationSyntax GenerateDeleteActionImplementation(string serviceVariableName)
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "DeleteAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"Result<{_returnTypeName}>")), "DeleteAsync")
                                 .AddModifiers(
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
@@ -249,10 +263,108 @@ namespace EntityCore.Tools
                                     )
                                 )
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
-                                .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
+                                .WithType(SyntaxFactory.ParseTypeName(_primaryKey.PropertyType.ToCSharpTypeName())))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"return Ok(await {serviceVariableName}.DeleteAsync(id));")
+                                    SyntaxFactory.ParseStatement($"return Result<{_returnTypeName}>.Success(await {serviceVariableName}.DeleteAsync(id));")
                                 ));
+        }
+
+        private CompilationUnitSyntax GenerateControllerUsings(NamespaceDeclarationSyntax namespaceDeclaration, Type entityType)
+        {
+            var usings = new List<string>
+            {
+                "Microsoft.AspNetCore.Mvc",
+                $"Services.{entityType.Name}s",
+                "Common.Paginations.Models",
+                "Common"
+            };
+
+            var viewModelType = GetViewModel(entityType.Name);
+            if (!string.IsNullOrEmpty(viewModelType?.Namespace))
+                usings.Add(viewModelType.Namespace);
+
+            var creationDtoType = GetCreationDto(entityType.Name);
+            if (!string.IsNullOrEmpty(creationDtoType?.Namespace))
+                usings.Add(creationDtoType.Namespace);
+
+            var modificationDtoType = GetModificationDto(entityType.Name);
+            if (!string.IsNullOrEmpty(modificationDtoType?.Namespace))
+                usings.Add(modificationDtoType.Namespace);
+
+            if (!string.IsNullOrEmpty(entityType?.Namespace))
+                usings.Add(entityType.Namespace);
+
+            var syntaxTree = SyntaxFactory.CompilationUnit()
+                .AddUsings(usings.Distinct().Select(u => SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(u))).ToArray())
+                .AddMembers(namespaceDeclaration);
+
+            return syntaxTree;
+        }
+
+        private PropertyInfo FindKeyProperty(Type entityType)
+        {
+            // 1. [Key] atributi bilan belgilangan propertyni topish
+            var keyProperty = entityType
+                .GetProperties()
+                .FirstOrDefault(prop => prop.GetCustomAttribute<KeyAttribute>() != null);
+
+            if (keyProperty is not null)
+                return keyProperty;
+
+            // 2. Agar [Key] topilmasa, "Id" nomli propertyni qidirish
+            keyProperty = entityType
+                .GetProperties()
+                .FirstOrDefault(prop => string.Equals(prop.Name, "Id", StringComparison.OrdinalIgnoreCase));
+
+            if (keyProperty is null)
+                throw new InvalidOperationException("Entity must have a key property.");
+
+            return keyProperty;
+        }
+
+        private string GetReturnTypeName(Type entityType)
+            => GetReturnTypeName(entityType.Name);
+
+        private string GetReturnTypeName(string entityName)
+        {
+            var viewModelType = GetViewModel(entityName);
+            return viewModelType is null ? entityName : viewModelType.Name;
+        }
+
+        private Type GetViewModel(string entityName)
+        {
+            var viewModelName = $"{entityName}ViewModel";
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == viewModelName);
+        }
+
+        private string GetCreationDtoTypeName(string entityName)
+        {
+            var creationDtoType = GetCreationDto(entityName);
+            return creationDtoType is null ? entityName : creationDtoType.Name;
+        }
+
+        private Type GetCreationDto(string entityName)
+        {
+            var creationDtoName = $"{entityName}CreationDto";
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == creationDtoName);
+        }
+
+        private string GetModificationDtoTypeName(string entityName)
+        {
+            var modificationDtoType = GetModificationDto(entityName);
+            return modificationDtoType is null ? entityName : modificationDtoType.Name;
+        }
+
+        private Type GetModificationDto(string entityName)
+        {
+            var modificationDtoName = $"{entityName}ModificationDto";
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == modificationDtoName);
         }
     }
 }
