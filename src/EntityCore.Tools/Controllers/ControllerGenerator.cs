@@ -37,13 +37,10 @@ namespace EntityCore.Tools
                         .AddMembers(
                             // fields
                             SyntaxFactory.FieldDeclaration(
-                                SyntaxFactory.VariableDeclaration(
-                                    SyntaxFactory.ParseTypeName($"I{entityName}sService"))
+                                SyntaxFactory.VariableDeclaration(SyntaxFactory.ParseTypeName($"I{entityName}sService"))
                                 .AddVariables(SyntaxFactory.VariableDeclarator(serviceVariableName)))
-                                .AddModifiers(
-                                    SyntaxFactory.Token(SyntaxKind.PrivateKeyword),   // private 
-                                    SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)), // readonly
-                                                                                      //constructors
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword)), // async
                             SyntaxFactory.ConstructorDeclaration($"{entityName}sController")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier($"{entityName}sService".GenerateFieldName()))
@@ -111,9 +108,8 @@ namespace EntityCore.Tools
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "GetByIdAsync")
-                                .AddModifiers(
-                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
-                                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                .AddAttribute("HttpGet", "{id}")
                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                    .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
@@ -130,9 +126,8 @@ namespace EntityCore.Tools
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "UpdateAsync")
-                                .AddModifiers(
-                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
-                                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .AddAttribute("HttpPut", "{id}")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                     .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
@@ -147,9 +142,8 @@ namespace EntityCore.Tools
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName("IActionResult")), "DeleteAsync")
-                                .AddModifiers(
-                                    SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
-                                    SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
+                                .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .AddAttribute("HttpDelete", "{id}")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                 .WithType(SyntaxFactory.ParseTypeName(primaryKey.PropertyType.ToCSharpTypeName())))
