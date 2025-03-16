@@ -26,9 +26,8 @@ namespace EntityCore.Tools
                 {
                     string dllName = Path.GetFileName(dll);
 
-                    // Filter out Microsoft.EntityFrameworkCore.Design and Roslyn-related assemblies
-                    if (dllName.StartsWith("Microsoft.EntityFrameworkCore.Design", StringComparison.OrdinalIgnoreCase) ||
-                        dllName.StartsWith("Microsoft.CodeAnalysis", StringComparison.OrdinalIgnoreCase))
+                    if (dllName.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase)
+                        || dllName.StartsWith("System.", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine($"Skipping DLL: {dllName}");
                         continue;
@@ -61,13 +60,6 @@ namespace EntityCore.Tools
 
             foreach (var reference in references)
             {
-                if (reference.Name.StartsWith("Microsoft.CodeAnalysis", StringComparison.OrdinalIgnoreCase)
-                    || reference.Name.StartsWith("Microsoft.EntityFrameworkCore.Design", StringComparison.OrdinalIgnoreCase))
-                {
-                    Console.WriteLine($"Skipping: {reference.Name}");
-                    continue;
-                }
-
                 try
                 {
                     Assembly.Load(reference);
@@ -92,12 +84,6 @@ namespace EntityCore.Tools
 
         private void LoadFromNuGet(AssemblyName reference)
         {
-            if (reference.Name.StartsWith("Microsoft.EntityFrameworkCore.Design", StringComparison.OrdinalIgnoreCase))
-            {
-                Console.WriteLine($"Skipping NuGet load: {reference.Name}");
-                return;
-            }
-
             string assemblyPath = Path.Combine(_nugetPath, reference.Name, reference.Version.ToString(), $"{reference.Name}.dll");
             if (File.Exists(assemblyPath))
                 AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath);
@@ -107,18 +93,25 @@ namespace EntityCore.Tools
 
         private string FindDllPath(string projectRootPath)
         {
-            string[] versions = { "net7.0", "net8.0", "net9.0" };
-
             var dllName = Path.GetFileName(projectRootPath.TrimEnd(Path.DirectorySeparatorChar));
             Console.WriteLine("dllName:" + dllName);
 
+            var debugPath = Path.Combine(projectRootPath, "bin", "Debug");
+            if (!Directory.Exists(debugPath))
+                throw new InvalidOperationException("Debug folder not found.");
+
+            var versions = Directory.GetDirectories(debugPath)
+                           .Select(Path.GetFileName)
+                           .Where(x => x.StartsWith("net"))
+                           .OrderDescending();
+
             foreach (var version in versions)
             {
-                string path = Path.Combine(projectRootPath, "bin", "Debug", version, $"{dllName}.dll");
+                string path = Path.Combine(debugPath, version, $"{dllName}.dll");
 
                 if (File.Exists(path))
                 {
-                    Console.WriteLine($"dll-path: {path}");
+                    Console.WriteLine($"Dll path: {path}");
                     return path;
                 }
             }
