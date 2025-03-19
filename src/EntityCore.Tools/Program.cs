@@ -147,13 +147,13 @@ public class Program
         if (args.Length < 1)
             throw new InvalidOperationException("Usage: dotnet crud <command> [options]");
 
-        arguments["entity"] = args[0];
-
-        for (int i = 1; i < args.Length; i++)
+        for (int i = 0; i < args.Length; i++)
         {
-            if (args[i].StartsWith("--") && i + 1 < args.Length)
+            if (args[i].StartsWith("--"))
             {
-                arguments[args[i].Substring(2)] = args[i + 1];
+                var key = args[i][..2];
+                var value = (i + 1 < args.Length && !args[i + 1].StartsWith("--")) ? args[i + 1] : null;
+                arguments[key] = value;
                 i++;
             }
             else
@@ -163,7 +163,6 @@ public class Program
         }
 
         Console.WriteLine("Arguments:" + JsonSerializer.Serialize(arguments));
-
         return arguments;
     }
 }
