@@ -72,7 +72,7 @@ namespace EntityCore.Tools
         {
             var serviceEntityName = _arguments.ContainsKey("service") ? _arguments["service"] : null;
             if (serviceEntityName is null)
-                throw new InvalidOperationException("Service entity name can not be null!");
+                return;
 
             Type? entityType = GetEntityType(serviceEntityName);
 
@@ -95,7 +95,7 @@ namespace EntityCore.Tools
         {
             var controllerEntityName = _arguments.ContainsKey("controller") ? _arguments["controller"] : null;
             if (controllerEntityName is null)
-                throw new InvalidOperationException("Controller entity name can not be null!");
+                return;
 
             Type? entityType = GetEntityType(controllerEntityName);
 
@@ -125,8 +125,10 @@ namespace EntityCore.Tools
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                var entityType = assembly.GetType(entityName);
-                if (entityType != null)
+                var entityType = assembly.GetTypes()
+                    .FirstOrDefault(x => x.Name == entityName);
+
+                if (entityType is not null)
                     return entityType;
             }
 

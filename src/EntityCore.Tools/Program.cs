@@ -151,7 +151,7 @@ public class Program
         {
             if (args[i].StartsWith("--"))
             {
-                var key = args[i][..2];
+                var key = args[i][2..];
                 var value = (i + 1 < args.Length && !args[i + 1].StartsWith("--")) ? args[i + 1] : null;
                 arguments[key] = value;
                 i++;
