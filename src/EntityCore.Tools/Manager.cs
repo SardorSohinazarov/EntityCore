@@ -87,8 +87,8 @@ namespace EntityCore.Tools
             var iService = new IService(entityType);
             var serviceDeclarationCode = iService.Generate();
 
-            WriteCode("Services", $"I{serviceEntityName}sService.cs", serviceDeclarationCode);
-            WriteCode("Services", $"{serviceEntityName}sService.cs", serviceImplementationCode);
+            WriteCode(["Services", $"{serviceEntityName}s"], $"I{serviceEntityName}sService.cs", serviceDeclarationCode);
+            WriteCode(["Services", $"{serviceEntityName}s"], $"{serviceEntityName}sService.cs", serviceImplementationCode);
         }
 
         private void GenerateController(Dictionary<string, string> arguments)
