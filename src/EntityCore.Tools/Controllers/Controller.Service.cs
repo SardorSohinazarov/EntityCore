@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis;
+using EntityCore.Tools.Extensions;
 
 namespace EntityCore.Tools.Controllers
 {
@@ -15,7 +16,7 @@ namespace EntityCore.Tools.Controllers
         private string GenerateControllerCodeWithService(Type serviceType)
         {
             var serviceName = serviceType.Name;
-            var primaryKey = FindKeyProperty(serviceType);
+            var primaryKey = serviceType.FindPrimaryKeyProperty();
 
             var classDeclaration = GetControllerClassDeclaration();
 

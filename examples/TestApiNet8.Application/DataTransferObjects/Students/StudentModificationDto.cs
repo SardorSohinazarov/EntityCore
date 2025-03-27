@@ -1,8 +1,7 @@
-﻿namespace TestApiNet8.Application.DataTransferObjects.Students
+namespace DataTransferObjects.Students;
+
+public class StudentModificationDto
 {
-    public class StudentModificationDto
-    {
-        public string Name { get; set; }
-        public string Age { get; set; }
-    }
+	public int UserId { get; set; }
+	public List<int> TeachersIds { get; set; }
 }

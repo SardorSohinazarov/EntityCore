@@ -16,7 +16,7 @@ namespace EntityCore.Tools.Controllers
         public Controller(Type entityType)
         {
             _entityType = entityType;
-            _primaryKey = FindKeyProperty(entityType);
+            _primaryKey = entityType.FindPrimaryKeyProperty();
             _entityName = entityType.Name;
             _returnTypeName = GetReturnTypeName(_entityName);
         }

@@ -3,6 +3,7 @@ using EntityCore.Tools.Common.Paginations.Extensions;
 using EntityCore.Tools.Common.Paginations.Models;
 using EntityCore.Tools.Common.ServiceAttribute;
 using EntityCore.Tools.Controllers;
+using EntityCore.Tools.DataTransferObjects;
 using EntityCore.Tools.Middlewares;
 using EntityCore.Tools.Services;
 
@@ -22,14 +23,37 @@ namespace EntityCore.Tools
 
         public void Generate()
         {
-            GenerateService(_arguments);
-            GenerateController(_arguments);
-            GenerateExceptionM(_arguments);
-            GenerateResult(_arguments);
-            GenerateServiceAttribute(_arguments);
+            GenerateDto();
+            GenerateService();
+            GenerateController();
+            GenerateExceptionM();
+            GenerateResult();
+            GenerateServiceAttribute();
         }
 
-        private void GenerateServiceAttribute(Dictionary<string, string> arguments)
+        private void GenerateDto()
+        {
+            var entityName = _arguments.ContainsKey("dto") ? _arguments["dto"] : null;
+            if (entityName is null)
+                return;
+
+            Type? entityType = GetEntityType(entityName);
+
+            var dtos = new (string[], string, string)[]
+            {
+                (["DataTransferObjects", $"{entityName}s"], $"{entityName}CreationDto.cs", new CreationDto(entityType).Generate()),
+                (["DataTransferObjects", $"{entityName}s"], $"{entityName}ModificationDto.cs", new ModificationDto(entityType).Generate()),
+                (["DataTransferObjects", $"{entityName}s"], $"{entityName}ViewModel.cs", new ViewModel(entityType).Generate()),
+            };
+
+            foreach (var (directories, fileName, code) in dtos)
+            {
+                WriteCode(directories, fileName, code);
+                ConsoleMessage($"{fileName} generated successfully!");
+            }
+        }
+
+        private void GenerateServiceAttribute()
         {
             if (_arguments.ContainsKey("serviceAttribute"))
             {
@@ -45,7 +69,7 @@ namespace EntityCore.Tools
             }
         }
 
-        private void GenerateResult(Dictionary<string, string> arguments)
+        private void GenerateResult()
         {
             if (_arguments.ContainsKey("result"))
             {
@@ -57,7 +81,7 @@ namespace EntityCore.Tools
             }
         }
 
-        private void GenerateExceptionM(Dictionary<string, string> arguments)
+        private void GenerateExceptionM()
         {
             if (_arguments.ContainsKey("exceptionM"))
             {
@@ -68,13 +92,13 @@ namespace EntityCore.Tools
             }
         }
 
-        private void GenerateService(Dictionary<string, string> arguments)
+        private void GenerateService()
         {
-            var serviceEntityName = _arguments.ContainsKey("service") ? _arguments["service"] : null;
-            if (serviceEntityName is null)
+            var entityName = _arguments.ContainsKey("service") ? _arguments["service"] : null;
+            if (entityName is null)
                 return;
 
-            Type? entityType = GetEntityType(serviceEntityName);
+            Type? entityType = GetEntityType(entityName);
 
             string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
             Console.WriteLine("dbContextName:" + dbContextName);
@@ -87,22 +111,22 @@ namespace EntityCore.Tools
             var iService = new IService(entityType);
             var serviceDeclarationCode = iService.Generate();
 
-            WriteCode(["Services", $"{serviceEntityName}s"], $"I{serviceEntityName}sService.cs", serviceDeclarationCode);
-            WriteCode(["Services", $"{serviceEntityName}s"], $"{serviceEntityName}sService.cs", serviceImplementationCode);
+            WriteCode(["Services", $"{entityName}s"], $"I{entityName}sService.cs", serviceDeclarationCode);
+            WriteCode(["Services", $"{entityName}s"], $"{entityName}sService.cs", serviceImplementationCode);
         }
 
-        private void GenerateController(Dictionary<string, string> arguments)
+        private void GenerateController()
         {
-            var controllerEntityName = _arguments.ContainsKey("controller") ? _arguments["controller"] : null;
-            if (controllerEntityName is null)
+            var entityName = _arguments.ContainsKey("controller") ? _arguments["controller"] : null;
+            if (entityName is null)
                 return;
 
-            Type? entityType = GetEntityType(controllerEntityName);
+            Type? entityType = GetEntityType(entityName);
 
             var controller = new Controller(entityType);
             var code = controller.GenerateControllerCodeWithEntity();
-            WriteCode("Controllers", $"{controllerEntityName}sController.cs", code);
-            ConsoleMessage($"Controller for {controllerEntityName} generated successfully!");
+            WriteCode("Controllers", $"{entityName}sController.cs", code);
+            ConsoleMessage($"Controller for {entityName} generated successfully!");
         }
 
         private void GeneratePagination()

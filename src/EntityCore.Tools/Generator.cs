@@ -18,7 +18,7 @@ namespace EntityCore.Tools
             // 2. Agar [Key] topilmasa, "Id" nomli propertyni qidirish
             keyProperty = entityType
                 .GetProperties()
-                .FirstOrDefault(prop => string.Equals(prop.Name, "Id", StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(prop => string.Equals(prop.Name, "Id"));
 
             if (keyProperty is null)
                 throw new InvalidOperationException("Entity must have a key property.");
