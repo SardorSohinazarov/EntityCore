@@ -3,9 +3,9 @@ using EntityCore.Tools.Common.Paginations.Extensions;
 using EntityCore.Tools.Common.Paginations.Models;
 using EntityCore.Tools.Common.ServiceAttribute;
 using EntityCore.Tools.Controllers;
+using EntityCore.Tools.DataTransferObjects;
 using EntityCore.Tools.Middlewares;
 using EntityCore.Tools.Services;
-using Microsoft.CodeAnalysis;
 
 namespace EntityCore.Tools
 {
@@ -23,111 +23,168 @@ namespace EntityCore.Tools
 
         public void Generate()
         {
-            var entityName = _arguments["entity"];
-            Console.WriteLine("entityName:" + entityName);
-            string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
-            Console.WriteLine("dbContextName:" + dbContextName);
-            bool withController = _arguments.ContainsKey("controller") ? bool.TryParse(_arguments["controller"], out withController) : false;
-            Console.WriteLine("withcontroller:" + withController);
-            bool withView = _arguments.ContainsKey("view") ? bool.TryParse(_arguments["view"], out withView) : false;
-            Console.WriteLine("withView:" + withView);
-            bool withResult = _arguments.ContainsKey("result") ? bool.TryParse(_arguments["result"], out withResult) : false;
-            Console.WriteLine("withResult:" + withResult);
-            bool withService = _arguments.ContainsKey("service") ? bool.TryParse(_arguments["service"], out withService) : false;
-            Console.WriteLine("withService:" + withService);
-            bool exceptionM = _arguments.ContainsKey("exceptionM") ? bool.TryParse(_arguments["exceptionM"], out exceptionM) : false;
-            Console.WriteLine("exceptionM:" + exceptionM);
-            bool serviceAttribute = _arguments.ContainsKey("serviceAttribute") ? bool.TryParse(_arguments["serviceAttribute"], out serviceAttribute) : false;
-            Console.WriteLine("serviceAttribute:" + serviceAttribute);
+            GenerateDto();
+            GenerateService();
+            GenerateController();
+            GenerateExceptionM();
+            GenerateResult();
+            GenerateServiceAttribute();
+        }
 
-            var entityType = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == entityName);
+        private void GenerateDto()
+        {
+            var entityName = _arguments.ContainsKey("dto") ? _arguments["dto"] : null;
+            if (entityName is null)
+                return;
 
-            if (entityType is null)
-                throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
+            Type? entityType = GetEntityType(entityName);
 
-            // Todo : Har bir generatsiya uchun alohida methodlar va loglar yaratish
-            if (withService)
+            var dtos = new (string[], string, string)[]
             {
-                PaginationOptions paginationOptions = new PaginationOptions();
-                string paginationOptionsCode = paginationOptions.GeneratePaginationOptionsClass();
-                string commonDirectoryPath = Path.Combine(_projectRoot, "Common", "Pagination");
-                Directory.CreateDirectory(commonDirectoryPath);
-                var paginationOptionsPath = Path.Combine(commonDirectoryPath, "PaginationOptions.cs");
-                File.WriteAllText(paginationOptionsPath, paginationOptionsCode);
+                (["DataTransferObjects", $"{entityName}s"], $"{entityName}CreationDto.cs", new CreationDto(entityType).Generate()),
+                (["DataTransferObjects", $"{entityName}s"], $"{entityName}ModificationDto.cs", new ModificationDto(entityType).Generate()),
+                (["DataTransferObjects", $"{entityName}s"], $"{entityName}ViewModel.cs", new ViewModel(entityType).Generate()),
+            };
 
-                PaginationExtensions paginationExtensions = new PaginationExtensions();
-                string paginationExtensionsCode = paginationExtensions.GeneratePaginationExtensions();
-                var paginationExtensionsPath = Path.Combine(commonDirectoryPath, "PaginationExtensions.cs");
-                File.WriteAllText(paginationExtensionsPath, paginationExtensionsCode);
-
-                PaginationMetadata paginationMetadata = new PaginationMetadata();
-                string paginationMetadataCode = paginationMetadata.GeneratePaginationMetadataClass();
-                var paginationMetadataPath = Path.Combine(commonDirectoryPath, "PaginationMetadata.cs");
-                File.WriteAllText(paginationMetadataPath, paginationMetadataCode);
-
-                var service = new Service(entityType);
-                var serviceImplementationCode = service.Generate(dbContextName);
-
-                var iService = new IService(entityType);
-                var serviceDeclarationCode = iService.Generate();
-
-                string outputPath = Path.Combine(_projectRoot, "Services");
-                Directory.CreateDirectory(outputPath);
-
-                var servicePath = Path.Combine(outputPath, $"{entityName}s");
-                Directory.CreateDirectory(servicePath);
-
-                string serviceImplementationPath = Path.Combine(servicePath, $"{entityName}sService.cs");
-                File.WriteAllText(serviceImplementationPath, serviceImplementationCode);
-
-                string serviceDeclarationPath = Path.Combine(servicePath, $"I{entityName}sService.cs");
-                File.WriteAllText(serviceDeclarationPath, serviceDeclarationCode);
-            }
-
-            if (withController)
+            foreach (var (directories, fileName, code) in dtos)
             {
-                var controller = new Controller(entityType);
-                var controllerCode = controller.GenerateControllerCodeWithEntity();
-                var controllerPath = Path.Combine(_projectRoot, "Controllers");
-                Directory.CreateDirectory(controllerPath);
-                string controllerFilePath = Path.Combine(controllerPath, $"{entityName}sController.cs");
-                File.WriteAllText(controllerFilePath, controllerCode);
+                WriteCode(directories, fileName, code);
+                ConsoleMessage($"{fileName} generated successfully!");
             }
+        }
 
-            if (exceptionM)
+        private void GenerateServiceAttribute()
+        {
+            if (_arguments.ContainsKey("serviceAttribute"))
             {
-                var exceptionHandlerMiddlewareCode = new ExceptionHandlerMiddleware();
-                var exceptionHandlerMiddlewarePath = Path.Combine(_projectRoot, "Middlewares");
-                Directory.CreateDirectory(exceptionHandlerMiddlewarePath);
-                string exceptionHandlerMiddlewareFilePath = Path.Combine(exceptionHandlerMiddlewarePath, "ExceptionHandlerMiddleware.cs");
-                File.WriteAllText(exceptionHandlerMiddlewareFilePath, exceptionHandlerMiddlewareCode.GenerateExceptionHandlingMiddleware());
-            }
+                var serviceAttribute = new ServiceAttributes();
+                var serviceAttributeCode = serviceAttribute.Generate();
+                WriteCode(new[] { "Common", "ServiceAttributes" }, "ServiceAttributes.cs", serviceAttributeCode);
 
-            if (withResult)
+                var serviceAttributeCollectionExtension = new ServiceAttributeCollectionExtensions();
+                var serviceAttributeCollectionExtensionCode = serviceAttributeCollectionExtension.Generate();
+                WriteCode(new[] { "Common", "ServiceAttribute" }, "ServiceAttributeCollectionExtensions.cs", serviceAttributeCollectionExtensionCode);
+
+                ConsoleMessage("Service attribute generated successfully!");
+            }
+        }
+
+        private void GenerateResult()
+        {
+            if (_arguments.ContainsKey("result"))
             {
                 var result = new Result();
                 var resultClassesCode = result.GenerateResultClasses();
-                var commonDirectoryPath = Path.Combine(_projectRoot, "Common");
-                Directory.CreateDirectory(commonDirectoryPath);
-                string resultClassesFilePath = Path.Combine(commonDirectoryPath, "Result.cs");
-               
-                File.WriteAllText(resultClassesFilePath, resultClassesCode);
-            }
+                WriteCode("Common", "Result.cs", resultClassesCode);
 
-            if(serviceAttribute)
+                ConsoleMessage("Result classes generated successfully!");
+            }
+        }
+
+        private void GenerateExceptionM()
+        {
+            if (_arguments.ContainsKey("exceptionM"))
             {
-                var serviceAttributeCode = new ServiceAttributes();
-                var serviceAttributePath = Path.Combine(_projectRoot, "Common", "ServiceAttributes");
-                Directory.CreateDirectory(serviceAttributePath);
-                string serviceAttributeFilePath = Path.Combine(serviceAttributePath, "ServiceAttribute.cs");
-                File.WriteAllText(serviceAttributeFilePath, serviceAttributeCode.Generate());
-
-                var serviceAttributeCollectionExtension = new ServiceAttributeCollectionExtensions();
-                var serviceAttributeCollectionExtensionPath = Path.Combine(serviceAttributePath, "ServiceAttributeCollectionExtension.cs");
-                File.WriteAllText(serviceAttributeCollectionExtensionPath, serviceAttributeCollectionExtension.Generate());
+                var exceptionHandlerMiddlewareCode = new ExceptionHandlerMiddleware();
+                var code = exceptionHandlerMiddlewareCode.Generate();
+                WriteCode("Middlewares", "ExceptionHandlerMiddleware.cs", code);
+                ConsoleMessage("Exception handler middleware generated successfully!");
             }
+        }
+
+        private void GenerateService()
+        {
+            var entityName = _arguments.ContainsKey("service") ? _arguments["service"] : null;
+            if (entityName is null)
+                return;
+
+            Type? entityType = GetEntityType(entityName);
+
+            string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
+            Console.WriteLine("dbContextName:" + dbContextName);
+
+            GeneratePagination();
+
+            var service = new Service(entityType);
+            var serviceImplementationCode = service.Generate(dbContextName);
+
+            var iService = new IService(entityType);
+            var serviceDeclarationCode = iService.Generate();
+
+            WriteCode(["Services", $"{entityName}s"], $"I{entityName}sService.cs", serviceDeclarationCode);
+            WriteCode(["Services", $"{entityName}s"], $"{entityName}sService.cs", serviceImplementationCode);
+        }
+
+        private void GenerateController()
+        {
+            var entityName = _arguments.ContainsKey("controller") ? _arguments["controller"] : null;
+            if (entityName is null)
+                return;
+
+            Type? entityType = GetEntityType(entityName);
+
+            var controller = new Controller(entityType);
+            var code = controller.GenerateControllerCodeWithEntity();
+            WriteCode("Controllers", $"{entityName}sController.cs", code);
+            ConsoleMessage($"Controller for {entityName} generated successfully!");
+        }
+
+        private void GeneratePagination()
+        {
+            var paginationComponents = new (string[], string, string)[]
+            {
+                (["Common", "Pagination"], "PaginationOptions.cs", new PaginationOptions().GeneratePaginationOptionsClass()),
+                (["Common", "Pagination"], "PaginationExtensions.cs", new PaginationExtensions().GeneratePaginationExtensions()),
+                (["Common", "Pagination"], "PaginationMetadata.cs", new PaginationMetadata().GeneratePaginationMetadataClass()),
+            };
+
+            foreach (var (directories, fileName, code) in paginationComponents)
+            {
+                WriteCode(directories, fileName, code);
+                ConsoleMessage($"{fileName} generated successfully!");
+            }
+        }
+
+        private Type GetEntityType(string entityName)
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                var entityType = assembly.GetTypes()
+                    .FirstOrDefault(x => x.Name == entityName);
+
+                if (entityType is not null)
+                    return entityType;
+            }
+
+            throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
+        }
+
+        private static void ConsoleMessage(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(message);
+            Console.ResetColor();
+        }
+
+        private void WriteCode(string directory, string fileName, string code)
+        {
+            var directoryPath = Path.Combine(_projectRoot, directory);
+            Directory.CreateDirectory(directoryPath);
+            string filePath = Path.Combine(directoryPath, fileName);
+            File.WriteAllText(filePath, code);
+        }
+        
+        private void WriteCode(string[] directories, string fileName, string code)
+        {
+            string directoryPath = _projectRoot;
+
+            foreach (var directory in directories) {
+                directoryPath = Path.Combine(directoryPath, directory);
+            }
+
+            Directory.CreateDirectory(directoryPath);
+            string filePath = Path.Combine(directoryPath, fileName);
+            File.WriteAllText(filePath, code);
         }
     }
 }

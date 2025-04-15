@@ -9,7 +9,7 @@ namespace EntityCore.Tools.Middlewares
     /// </summary>
     public class ExceptionHandlerMiddleware
     {
-        public string GenerateExceptionHandlingMiddleware()
+        public string Generate()
         {
             // Using directives
             var usingDirectives = new[]

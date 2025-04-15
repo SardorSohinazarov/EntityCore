@@ -17,7 +17,7 @@ namespace EntityCore.Tools.Services
         {
             _entityType = entityType;
             _entityName = _entityType.Name;
-            _primaryKey = FindKeyProperty(entityType);
+            _primaryKey = entityType.FindPrimaryKeyProperty();
         }
 
         public string Generate(string dbContextName = null)
@@ -54,8 +54,6 @@ namespace EntityCore.Tools.Services
 
             if (dbContextType is null)
                 throw new InvalidOperationException("DbContext not found in the specified assembly.");
-
-            var primaryKey = FindKeyProperty(_entityType);
 
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName($"Services.{_entityName}s"));
 

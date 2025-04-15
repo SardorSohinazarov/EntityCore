@@ -16,13 +16,11 @@ namespace EntityCore.Tools.Services
         {
             _entityType = entityType;
             _entityName = _entityType.Name;
-            _primaryKey = FindKeyProperty(entityType);
+            _primaryKey = entityType.FindPrimaryKeyProperty();
         }
 
         public string Generate()
         {
-            var primaryKey = FindKeyProperty(_entityType);
-
             InterfaceDeclarationSyntax interfaceDeclaration = GetInterfaceDeclaration();
 
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName($"Services.{_entityName}s"))
