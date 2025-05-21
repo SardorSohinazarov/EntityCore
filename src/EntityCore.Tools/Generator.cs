@@ -9,7 +9,7 @@ namespace EntityCore.Tools
         {
             // 1. [Key] atributi bilan belgilangan propertyni topish
             var keyProperty = entityType
-                .GetProperties()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .FirstOrDefault(prop => prop.GetCustomAttribute<KeyAttribute>() != null);
 
             if (keyProperty is not null)
@@ -17,7 +17,7 @@ namespace EntityCore.Tools
 
             // 2. Agar [Key] topilmasa, "Id" nomli propertyni qidirish
             keyProperty = entityType
-                .GetProperties()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .FirstOrDefault(prop => string.Equals(prop.Name, "Id"));
 
             if (keyProperty is null)
@@ -38,9 +38,7 @@ namespace EntityCore.Tools
         protected Type GetViewModel(string entityName)
         {
             var viewModelName = $"{entityName}ViewModel";
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == viewModelName);
+            return GetType(viewModelName);
         }
 
         protected string GetCreationDtoTypeName(string entityName)
@@ -52,9 +50,7 @@ namespace EntityCore.Tools
         protected Type GetCreationDto(string entityName)
         {
             var creationDtoName = $"{entityName}CreationDto";
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == creationDtoName);
+            return GetType(creationDtoName);
         }
 
         protected string GetModificationDtoTypeName(string entityName)
@@ -66,9 +62,15 @@ namespace EntityCore.Tools
         protected Type GetModificationDto(string entityName)
         {
             var modificationDtoName = $"{entityName}ModificationDto";
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == modificationDtoName);
+            return GetType(modificationDtoName);
+        }
+
+        private Type GetType(string modelName)
+        {
+            return AppDomain.CurrentDomain
+                            .GetAssemblies()
+                            .SelectMany(assembly => assembly.GetTypes())
+                            .FirstOrDefault(t => t.Name == modelName);
         }
     }
 }

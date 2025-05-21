@@ -66,6 +66,7 @@ namespace EntityCore.Tools.DataTransferObjects
                 }
                 else
                 {
+                    // xato shu joyda
                     return $"public {type.FindPrimaryKeyProperty().PropertyType.ToCSharpTypeName()} {property.Name}Id {{ get; set; }}";
                 }
             }

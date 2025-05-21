@@ -47,7 +47,7 @@ namespace EntityCore.Tools.Extensions
         {
             // 1. [Key] atributi bilan belgilangan propertyni topish
             var keyProperty = entityType
-                .GetProperties()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .FirstOrDefault(prop => prop.GetCustomAttribute<KeyAttribute>() != null);
 
             if (keyProperty is not null)
@@ -55,11 +55,11 @@ namespace EntityCore.Tools.Extensions
 
             // 2. Agar [Key] topilmasa, "Id" nomli propertyni qidirish
             keyProperty = entityType
-                .GetProperties()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .FirstOrDefault(prop => string.Equals(prop.Name, "Id"));
 
             if (keyProperty is null)
-                throw new InvalidOperationException("Entity must have a key property.");
+                throw new InvalidOperationException($"Entity must have a key property.{entityType.Name}");
 
             return keyProperty;
         }
