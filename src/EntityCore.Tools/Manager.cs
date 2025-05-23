@@ -39,11 +39,15 @@ namespace EntityCore.Tools
 
             Type? entityType = GetEntityType(entityName);
 
+            var baseDtoNamespace = _arguments.ContainsKey("dto-namespace-base") 
+                ? _arguments["dto-namespace-base"] 
+                : "Application.DataTransferObjects";
+
             var dtos = new (string[], string, string)[]
             {
-                (["DataTransferObjects", $"{entityName}s"], $"{entityName}CreationDto.cs", new CreationDto(entityType).Generate()),
-                (["DataTransferObjects", $"{entityName}s"], $"{entityName}ModificationDto.cs", new ModificationDto(entityType).Generate()),
-                (["DataTransferObjects", $"{entityName}s"], $"{entityName}ViewModel.cs", new ViewModel(entityType).Generate()),
+                ([baseDtoNamespace, $"{entityName}s"], $"{entityName}CreationDto.cs", new CreationDto(entityType, baseDtoNamespace).Generate()),
+                ([baseDtoNamespace, $"{entityName}s"], $"{entityName}ModificationDto.cs", new ModificationDto(entityType, baseDtoNamespace).Generate()),
+                ([baseDtoNamespace, $"{entityName}s"], $"{entityName}ViewModel.cs", new ViewModel(entityType, baseDtoNamespace).Generate()),
             };
 
             foreach (var (directories, fileName, code) in dtos)
@@ -101,7 +105,7 @@ namespace EntityCore.Tools
             Type? entityType = GetEntityType(entityName);
 
             string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
-            Console.WriteLine("dbContextName:" + dbContextName);
+            // Console.WriteLine("dbContextName:" + dbContextName); // Debug statement removed
 
             GeneratePagination();
 

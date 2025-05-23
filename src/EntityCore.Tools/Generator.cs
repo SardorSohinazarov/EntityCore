@@ -7,17 +7,17 @@ namespace EntityCore.Tools
     {
         protected PropertyInfo FindKeyProperty(Type entityType)
         {
-            // 1. [Key] atributi bilan belgilangan propertyni topish
+            // 1. Find property marked with [Key] attribute
             var keyProperty = entityType
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .GetProperties()
                 .FirstOrDefault(prop => prop.GetCustomAttribute<KeyAttribute>() != null);
 
             if (keyProperty is not null)
                 return keyProperty;
 
-            // 2. Agar [Key] topilmasa, "Id" nomli propertyni qidirish
+            // 2. If [Key] is not found, search for a property named "Id"
             keyProperty = entityType
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .GetProperties()
                 .FirstOrDefault(prop => string.Equals(prop.Name, "Id"));
 
             if (keyProperty is null)
@@ -27,50 +27,48 @@ namespace EntityCore.Tools
         }
 
         protected string GetReturnTypeName(Type entityType)
-            => GetReturnTypeName(entityType.Name);
+            => ResolveReturnTypeName(entityType.Name);
 
-        protected string GetReturnTypeName(string entityName)
+        protected string ResolveReturnTypeName(string entityName)
         {
-            var viewModelType = GetViewModel(entityName);
+            var viewModelType = FindExistingViewModelType(entityName);
             return viewModelType is null ? entityName : viewModelType.Name;
         }
 
-        protected Type GetViewModel(string entityName)
+        protected Type FindExistingViewModelType(string entityName)
         {
             var viewModelName = $"{entityName}ViewModel";
-            return GetType(viewModelName);
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == viewModelName);
         }
 
         protected string GetCreationDtoTypeName(string entityName)
         {
-            var creationDtoType = GetCreationDto(entityName);
+            var creationDtoType = FindExistingCreationDtoType(entityName);
             return creationDtoType is null ? entityName : creationDtoType.Name;
         }
 
-        protected Type GetCreationDto(string entityName)
+        protected Type FindExistingCreationDtoType(string entityName)
         {
             var creationDtoName = $"{entityName}CreationDto";
-            return GetType(creationDtoName);
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == creationDtoName);
         }
 
         protected string GetModificationDtoTypeName(string entityName)
         {
-            var modificationDtoType = GetModificationDto(entityName);
+            var modificationDtoType = FindExistingModificationDtoType(entityName);
             return modificationDtoType is null ? entityName : modificationDtoType.Name;
         }
 
-        protected Type GetModificationDto(string entityName)
+        protected Type FindExistingModificationDtoType(string entityName)
         {
             var modificationDtoName = $"{entityName}ModificationDto";
-            return GetType(modificationDtoName);
-        }
-
-        private Type GetType(string modelName)
-        {
-            return AppDomain.CurrentDomain
-                            .GetAssemblies()
-                            .SelectMany(assembly => assembly.GetTypes())
-                            .FirstOrDefault(t => t.Name == modelName);
+            return AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes())
+                .FirstOrDefault(t => t.Name == modificationDtoName);
         }
     }
 }

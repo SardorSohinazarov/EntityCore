@@ -221,7 +221,7 @@ namespace EntityCore.Tools.Services
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(modificationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{_entityName}>().FirstOrDefaultAsync(x => x.Id == id);"),
+                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{_entityName}>().FirstOrDefaultAsync(x => x.{_primaryKey.Name} == id);"),
                                     SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{_entityName} with {{id}} not found.\");"),
                                     SyntaxFactory.ParseStatement($"_mapper.Map({parametrName}, entity);"),
                                     SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{_entityName}>().Update(entity);"),
@@ -265,15 +265,15 @@ namespace EntityCore.Tools.Services
                 "Common.ServiceAttribute"
             };
 
-            var viewModelType = GetViewModel(entityType.Name);
+            var viewModelType = FindExistingViewModelType(entityType.Name);
             if (!string.IsNullOrEmpty(viewModelType?.Namespace))
                 usings.Add(viewModelType.Namespace);
 
-            var creationDtoType = GetCreationDto(entityType.Name);
+            var creationDtoType = FindExistingCreationDtoType(entityType.Name);
             if (!string.IsNullOrEmpty(creationDtoType?.Namespace))
                 usings.Add(creationDtoType.Namespace);
 
-            var modificationDtoType = GetModificationDto(entityType.Name);
+            var modificationDtoType = FindExistingModificationDtoType(entityType.Name);
             if (!string.IsNullOrEmpty(modificationDtoType?.Namespace))
                 usings.Add(modificationDtoType.Namespace);
 
@@ -292,7 +292,7 @@ namespace EntityCore.Tools.Services
 
         protected string GenerateReturn()
         {
-            var viewModel = GetViewModel(_entityName);
+            var viewModel = FindExistingViewModelType(_entityName);
 
             if (viewModel is null)
                 return "entry.Entity";
@@ -302,7 +302,7 @@ namespace EntityCore.Tools.Services
 
         protected string GenerateRuturnForGetAll()
         {
-            var viewModel = GetViewModel(_entityName);
+            var viewModel = FindExistingViewModelType(_entityName);
             if (viewModel is null)
                 return "entities";
             return $"_mapper.Map<List<{viewModel.Name}>>(entities)";
@@ -310,7 +310,7 @@ namespace EntityCore.Tools.Services
 
         protected string GenerateReturnForGet()
         {
-            var viewModel = GetViewModel(_entityName);
+            var viewModel = FindExistingViewModelType(_entityName);
             if (viewModel is null)
                 return "entity";
             return $"_mapper.Map<{viewModel.Name}>(entity)";

@@ -8,15 +8,15 @@ namespace EntityCore.Tools.Controllers
     public partial class Controller
     {
         /// <summary>
-        /// Controllerni Service Type Orqali Generatsiya qilsin
-        /// Har qanday service methodlari uchun action yozib berolsin
+        /// Generate Controller by Service Type
+        /// Should be able to write actions for any service methods
         /// </summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
         private string GenerateControllerCodeWithService(Type serviceType)
         {
             var serviceName = serviceType.Name;
-            var primaryKey = serviceType.FindPrimaryKeyProperty();
+            // var primaryKey = serviceType.FindPrimaryKeyProperty(); // Unused variable
 
             var classDeclaration = GetControllerClassDeclaration();
 

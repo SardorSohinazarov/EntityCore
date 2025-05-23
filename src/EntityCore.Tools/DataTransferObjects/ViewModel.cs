@@ -12,12 +12,14 @@ namespace EntityCore.Tools.DataTransferObjects
     {
         private readonly Type _entityType;
         private readonly string _name;
+        private readonly string _baseNamespace;
         private readonly HashSet<string> _namespaces;
 
-        public ViewModel(Type entityType)
+        public ViewModel(Type entityType, string baseNamespace)
         {
             _entityType = entityType;
             _name = _entityType.Name + "ViewModel";
+            _baseNamespace = baseNamespace;
             _namespaces = new HashSet<string> { "System", "System.Collections.Generic" }; // Default namespaces
         }
 
@@ -47,7 +49,7 @@ namespace EntityCore.Tools.DataTransferObjects
             }
             result.AppendLine(); // Blank line after usings
 
-            result.AppendLine($"namespace DataTransferObjects.{_entityType.Name}s;");
+            result.AppendLine($"namespace {_baseNamespace}.{_entityType.Name}s;");
             result.AppendLine();
             result.AppendLine($"public class {_name}");
             result.AppendLine("{");
@@ -74,7 +76,7 @@ namespace EntityCore.Tools.DataTransferObjects
             if (!type.IsNavigationProperty())
             {
                 // For non-navigation properties, use ToCSharpTypeName for accurate representation (e.g., int?, List<string>)
-                _namespaces.Add(type.Namespace); // Ensure namespace for the type itself is added
+                // _namespaces.Add(type.Namespace); // This is already added at the beginning of the method.
                 if (type.IsGenericType)
                 {
                     foreach (var genArgType in type.GetGenericArguments())

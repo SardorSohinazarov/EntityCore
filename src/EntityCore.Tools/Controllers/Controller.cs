@@ -9,8 +9,8 @@
 
     /// <summary>
     /// Controller Type : Entity or Service
-    /// Entity -> Entityni CRUD operatsiyalari uchun controller
-    /// Service -> Istalgan service uchun controller
+    /// Entity -> Controller for CRUD operations for an Entity
+    /// Service -> Controller for any service
     /// </summary>
     public enum ControllerType
     {

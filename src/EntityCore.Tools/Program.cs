@@ -27,12 +27,16 @@ public class Program
         }
         catch (InvalidOperationException ex)
         {
-            Console.WriteLine("Invalid operation exception 400 😁");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("An operation error occurred:");
+            Console.ResetColor();
             HandleException(ex);
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Unhandled exception 500 😁");
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("An unexpected error occurred:");
+            Console.ResetColor();
             HandleException(ex);
         }
     }
@@ -59,61 +63,34 @@ public class Program
 
     private static void HandleException(Exception ex)
     {
-        Console.WriteLine(ex.Message);
-        Console.WriteLine(ex.StackTrace);
-
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine(ex.Message);
         Console.ResetColor();
 
-        string botToken = "7690233025:AAH_cRCVNgGz39Q1d9I1_PcHSIzl8W2Hg6U";
-        string chatId = "1087968824";
+        // string botToken = "REMOVED_FOR_SECURITY";
+        // string chatId = "REMOVED_FOR_SECURITY";
 
-        var message = $"❗️ Xatolik yuz berdi\n\n{ex.Message} \n\n{ex.StackTrace}";
+        var message = $"❗️ An error occurred\n\n{ex.Message} \n\n{ex.StackTrace}";
+        Console.WriteLine("Details: " + message); // Output details to console instead of Telegram
 
-        if (message.Length > 4096)
-        {
-            for (int i = 0; i < message.Length; i += 4096)
-            {
-                string part = message.Substring(i, Math.Min(4096, message.Length - i));
-                SendToTelegram(botToken, chatId, part);
-            }
-        }
-        else
-        {
-            SendToTelegram(botToken, chatId, message);
-        }
+        // if (message.Length > 4096)
+        // {
+        //     for (int i = 0; i < message.Length; i += 4096)
+        //     {
+        //         string part = message.Substring(i, Math.Min(4096, message.Length - i));
+        //         // SendToTelegram(botToken, chatId, part); // Call removed
+        //     }
+        // }
+        // else
+        // {
+        //     // SendToTelegram(botToken, chatId, message); // Call removed
+        // }
     }
 
-    private static void SendToTelegram(string botToken, string chatId, string message)
-    {
-        using (var client = new HttpClient())
-        {
-            var url = $"https://api.telegram.org/bot{botToken}/sendMessage";
-            var content = new StringContent(JsonSerializer.Serialize(new
-            {
-                chat_id = chatId,
-                text = message,
-            }), Encoding.UTF8, "application/json");
-
-            try
-            {
-                var response = client.PostAsync(url, content).Result;
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    Console.WriteLine("An error occurred while sending a message to the Telegram group about this exception.\nIf you want to report this issue to the contributors, you can do so here: [https://t.me/entitycore].");
-                    Console.ResetColor();
-                }
-            }
-            catch
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("An error occurred while sending a message to the Telegram group about this exception.\nIf you want to report this issue to the contributors, you can do so here: [https://t.me/entitycore].");
-                Console.ResetColor();
-            }
-        }
-    }
+    // private static void SendToTelegram(string botToken, string chatId, string message)
+    // {
+    //     // Method content removed as it's no longer called and contains sensitive URL structure
+    // }
 
     private static void EnsureBuild(string projectPath)
     {
@@ -137,10 +114,9 @@ public class Program
         if (process.ExitCode != 0)
             throw new InvalidAsynchronousStateException("Build failed. Please fix the errors and try again.");
 
-        Console.BackgroundColor = ConsoleColor.Green;
-        Console.Write("Build successfully.");
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("Build successful.");
         Console.ResetColor();
-        Console.WriteLine();
     }
 
     private static Dictionary<string, string> ParseArguments(string[] args)
@@ -165,7 +141,7 @@ public class Program
             }
         }
 
-        Console.WriteLine("Arguments:" + JsonSerializer.Serialize(arguments));
+        // Console.WriteLine("Arguments:" + JsonSerializer.Serialize(arguments)); // Debug statement removed
         return arguments;
     }
 }

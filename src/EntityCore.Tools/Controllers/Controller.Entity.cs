@@ -22,7 +22,7 @@ namespace EntityCore.Tools.Controllers
         }
 
         /// <summary>
-        /// Controllerni Entity Type Orqali Generatsiya qilsin
+        /// Generate Controller by Entity Type
         /// </summary>
         /// <param name="entityType"></param>
         /// <returns></returns>
@@ -182,15 +182,15 @@ namespace EntityCore.Tools.Controllers
                 "Common"
             };
 
-            var viewModelType = GetViewModel(entityType.Name);
+            var viewModelType = FindExistingViewModelType(entityType.Name);
             if (!string.IsNullOrEmpty(viewModelType?.Namespace))
                 usings.Add(viewModelType.Namespace);
 
-            var creationDtoType = GetCreationDto(entityType.Name);
+            var creationDtoType = FindExistingCreationDtoType(entityType.Name);
             if (!string.IsNullOrEmpty(creationDtoType?.Namespace))
                 usings.Add(creationDtoType.Namespace);
 
-            var modificationDtoType = GetModificationDto(entityType.Name);
+            var modificationDtoType = FindExistingModificationDtoType(entityType.Name);
             if (!string.IsNullOrEmpty(modificationDtoType?.Namespace))
                 usings.Add(modificationDtoType.Namespace);
 
