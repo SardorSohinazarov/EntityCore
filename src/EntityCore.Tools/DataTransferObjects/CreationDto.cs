@@ -18,7 +18,7 @@ namespace EntityCore.Tools.DataTransferObjects
         public string Generate()
         {
             var properties = _entityType.GetProperties()
-                .Select(x => GenerateProperty(x))
+                .Select(x => DtoPropertyGenerator.GenerateProperty(x))
                 .Where(x => x != null)
                 .Distinct()
                 .ToList();
@@ -34,41 +34,6 @@ namespace EntityCore.Tools.DataTransferObjects
 
             result.AppendLine("}");
             return result.ToString();
-        }
-
-        private string GenerateProperty(PropertyInfo property)
-        {
-            if (property.IsPrimaryKeyProperty())
-            {
-                return null;
-            }
-
-            Type type = property.PropertyType;
-
-            if (!type.IsNavigationProperty())
-            {
-                return $"public {type.ToCSharpTypeName()} {property.Name} {{ get; set; }}";
-            }
-            else
-            {
-                if (typeof(IEnumerable).IsAssignableFrom(type))
-                {
-                    type = type.GetGenericArguments().First();
-
-                    if (!type.IsNavigationProperty())
-                    {
-                        return $"public List<{type.ToCSharpTypeName()}> {property.Name} {{ get; set; }}";
-                    }
-                    else
-                    {
-                        return $"public List<{type.FindPrimaryKeyProperty().PropertyType.ToCSharpTypeName()}> {property.Name}Ids {{ get; set; }}";
-                    }
-                }
-                else
-                {
-                    return $"public {type.FindPrimaryKeyProperty().PropertyType.ToCSharpTypeName()} {property.Name}Id {{ get; set; }}";
-                }
-            }
         }
     }
 }
