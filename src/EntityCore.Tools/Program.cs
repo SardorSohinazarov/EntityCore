@@ -59,12 +59,15 @@ public class Program
 
     private static void HandleException(Exception ex)
     {
+        Console.WriteLine(ex.Message);
+        Console.WriteLine(ex.StackTrace);
+
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine(ex.Message);
         Console.ResetColor();
 
         string botToken = "7690233025:AAH_cRCVNgGz39Q1d9I1_PcHSIzl8W2Hg6U";
-        string chatId = "-1002320575814";
+        string chatId = "1087968824";
 
         var message = $"❗️ Xatolik yuz berdi\n\n{ex.Message} \n\n{ex.StackTrace}";
 
