@@ -5,7 +5,7 @@ using System.Text;
 
 namespace EntityCore.Tools.DataTransferObjects
 {
-    public class CreationDto
+    public class CreationDto : DtoGenerator
     {
         private readonly Type _entityType;
         private readonly string _name;
@@ -18,7 +18,7 @@ namespace EntityCore.Tools.DataTransferObjects
         public string Generate()
         {
             var properties = _entityType.GetProperties()
-                .Select(x => DtoPropertyGenerator.GenerateProperty(x))
+                .Select(x => GenerateProperty(x))
                 .Where(x => x != null)
                 .Distinct()
                 .ToList();
