@@ -8,8 +8,8 @@ namespace EntityCore.Tools.Controllers
     public partial class Controller
     {
         /// <summary>
-        /// Controllerni Service Type Orqali Generatsiya qilsin
-        /// Har qanday service methodlari uchun action yozib berolsin
+        /// Generate Controller by Service Type
+        /// Should be able to write actions for any service methods
         /// </summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>

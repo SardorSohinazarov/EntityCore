@@ -6,10 +6,13 @@ namespace EntityCore.Tools.DataTransferObjects
     {
         private readonly Type _entityType;
         private readonly string _name;
-        public ModificationDto(Type entityType)
+        private readonly string _baseNamespace;
+
+        public ModificationDto(Type entityType, string baseNamespace)
         {
             _entityType = entityType;
             _name = _entityType.Name + "ModificationDto";
+            _baseNamespace = baseNamespace;
         }
 
         public string Generate()
@@ -20,7 +23,7 @@ namespace EntityCore.Tools.DataTransferObjects
                 .Distinct()
                 .ToList();
 
-            var result = new StringBuilder($"namespace DataTransferObjects.{_entityType.Name}s;\n\n");
+            var result = new StringBuilder($"namespace {_baseNamespace}.{_entityType.Name}s;\n\n");
             result.AppendLine($"public class {_name}");
             result.AppendLine("{");
 
