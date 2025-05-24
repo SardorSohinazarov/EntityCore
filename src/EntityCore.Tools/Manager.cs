@@ -155,7 +155,7 @@ namespace EntityCore.Tools
             {
                 (["Common", "Pagination"], "PaginationOptions.cs", new PaginationOptions().GeneratePaginationOptionsClass()),
                 (["Common", "Pagination"], "PaginationExtensions.cs", new PaginationExtensions().GeneratePaginationExtensions()),
-                (["Common", "Pagination"], "PaginationMetadata.cs", new PaginationMetadata().GeneratePaginationMetadataClass()),
+                (["Common", "Pagination"], "PaginationMetadata.cs", new PaginationMetadata().Generate()),
             };
 
             foreach (var (directories, fileName, code) in paginationComponents)

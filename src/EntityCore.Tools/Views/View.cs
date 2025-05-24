@@ -17,14 +17,7 @@ namespace EntityCore.Tools.Views
 
         public string Generate()
         {
-            var viewName = $"{_entityName}View";
-            var namespaceName = $"Views.{_entityName}s";
-            var properties = _entityType.GetProperties()
-                .Select(x => GenerateProperty(x))
-                .Where(x => x != null)
-                .Distinct()
-                .ToList();
-            var code = $@"
+            return $@"";
         }
     }
 }
