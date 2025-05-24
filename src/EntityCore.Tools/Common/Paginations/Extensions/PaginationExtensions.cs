@@ -14,8 +14,6 @@ namespace EntityCore.Tools.Common.Paginations.Extensions
             // Create usings
             var usings = new[]
             {
-                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")),
-                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Linq")),
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Text.Json")),
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Microsoft.AspNetCore.Http")),
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Common.Paginations.Models"))

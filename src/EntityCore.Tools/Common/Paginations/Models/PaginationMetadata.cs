@@ -9,7 +9,7 @@ namespace EntityCore.Tools.Common.Paginations.Models
     /// </summary>
     public class PaginationMetadata
     {
-        public string GeneratePaginationMetadataClass()
+        public string Generate()
         {
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Common.Paginations.Models"));
 

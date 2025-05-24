@@ -1,15 +1,12 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using EntityCore.Tools.Extensions;
 
 namespace EntityCore.Tools.DataTransferObjects
 {
-    public class DtoPropertyGenerator
+    public class DtoGenerator
     {
-        public static string GenerateProperty(PropertyInfo property)
+        public string GenerateProperty(PropertyInfo property)
         {
             if (property.IsPrimaryKeyProperty())
             {

@@ -10,7 +10,7 @@ namespace EntityCore.Tools.Common
     /// </summary>
     public class Result
     {
-        public string GenerateResultClasses()
+        public string Generate()
         {
             // Create namespace
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Common"))
