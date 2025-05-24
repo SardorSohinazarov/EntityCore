@@ -1,7 +1,4 @@
-﻿using EntityCore.Tools.Extensions;
-using System.Collections;
-using System.Reflection;
-using System.Text;
+﻿using System.Text;
 
 namespace EntityCore.Tools.DataTransferObjects
 {

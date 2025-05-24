@@ -6,6 +6,7 @@ using EntityCore.Tools.Controllers;
 using EntityCore.Tools.DataTransferObjects;
 using EntityCore.Tools.Middlewares;
 using EntityCore.Tools.Services;
+using EntityCore.Tools.Views;
 
 namespace EntityCore.Tools
 {
@@ -25,6 +26,7 @@ namespace EntityCore.Tools
         {
             GenerateDto();
             GenerateService();
+            GenerateView();
             GenerateController();
             GenerateExceptionM();
             GenerateResult();
@@ -113,6 +115,24 @@ namespace EntityCore.Tools
 
             WriteCode(["Services", $"{entityName}s"], $"I{entityName}sService.cs", serviceDeclarationCode);
             WriteCode(["Services", $"{entityName}s"], $"{entityName}sService.cs", serviceImplementationCode);
+        }
+
+        private void GenerateView()
+        {
+            var entityName = _arguments.ContainsKey("service") ? _arguments["service"] : null;
+            if (entityName is null)
+                return;
+
+            Type? entityType = GetEntityType(entityName);
+
+            string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
+            Console.WriteLine("dbContextName:" + dbContextName);
+
+            var view = new View(entityType);
+            var viewCode = view.Generate();
+
+            WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.razor", viewCode);
+            ConsoleMessage($"View for {entityName} generated successfully!");
         }
 
         private void GenerateController()

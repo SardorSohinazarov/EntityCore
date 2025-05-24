@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApiNet8.Infrastructure"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApiNet8.Api", "examples\TestApiNet8.Api\TestApiNet8.Api.csproj", "{0115E672-3928-49F7-A7F8-DD5B532F94EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestBlazorWebAppNet8", "examples\TestBlazorWebAppNet8\TestBlazorWebAppNet8.csproj", "{5514276E-A8A8-4437-A319-32EC02188450}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,10 @@ Global
 		{0115E672-3928-49F7-A7F8-DD5B532F94EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0115E672-3928-49F7-A7F8-DD5B532F94EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0115E672-3928-49F7-A7F8-DD5B532F94EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5514276E-A8A8-4437-A319-32EC02188450}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5514276E-A8A8-4437-A319-32EC02188450}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5514276E-A8A8-4437-A319-32EC02188450}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5514276E-A8A8-4437-A319-32EC02188450}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -53,5 +59,6 @@ Global
 		{9504EE0F-90F7-49DF-96C7-F06C624EEDC0} = {20EF5BC8-C8B2-454A-B5AE-3F48F2604200}
 		{4E576670-BF6A-4779-96A5-4368163985EE} = {20EF5BC8-C8B2-454A-B5AE-3F48F2604200}
 		{0115E672-3928-49F7-A7F8-DD5B532F94EB} = {20EF5BC8-C8B2-454A-B5AE-3F48F2604200}
+		{5514276E-A8A8-4437-A319-32EC02188450} = {20EF5BC8-C8B2-454A-B5AE-3F48F2604200}
 	EndGlobalSection
 EndGlobal
