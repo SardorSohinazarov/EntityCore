@@ -76,7 +76,7 @@ namespace EntityCore.Tools
             if (_arguments.ContainsKey("result"))
             {
                 var result = new Result();
-                var resultClassesCode = result.GenerateResultClasses();
+                var resultClassesCode = result.Generate();
                 WriteCode("Common", "Result.cs", resultClassesCode);
 
                 ConsoleMessage("Result classes generated successfully!");
