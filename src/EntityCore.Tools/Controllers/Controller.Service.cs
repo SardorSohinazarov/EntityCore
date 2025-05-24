@@ -13,21 +13,7 @@ namespace EntityCore.Tools.Controllers
         /// </summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
-        private string GenerateControllerCodeWithService(Type serviceType)
-        {
-            var serviceName = serviceType.Name;
-            var primaryKey = serviceType.FindPrimaryKeyProperty();
-
-            var classDeclaration = GetControllerClassDeclaration();
-
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Controllers"))
-                .AddMembers(classDeclaration);
-
-            CompilationUnitSyntax syntaxTree = GenerateControllerUsings(namespaceDeclaration, serviceType);
-
-            return syntaxTree
-                .NormalizeWhitespace()
-                .ToFullString();
-        }
+        private string GenerateControllerCodeWithService(Type serviceType) 
+            => throw new NotImplementedException("GenerateControllerCodeWithService method is not implemented yet.");
     }
 }
