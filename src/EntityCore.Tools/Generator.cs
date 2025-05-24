@@ -35,40 +35,52 @@ namespace EntityCore.Tools
             return viewModelType is null ? entityName : viewModelType.Name;
         }
 
-        protected Type FindExistingViewModelType(string entityName)
+        public static Type FindExistingViewModelType(string entityName, IEnumerable<Assembly> assembliesToSearch)
         {
             var viewModelName = $"{entityName}ViewModel";
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == viewModelName);
+            foreach (var assembly in assembliesToSearch)
+            {
+                var type = assembly.GetTypes().FirstOrDefault(t => t.Name == viewModelName && !t.IsNested);
+                if (type != null) return type;
+            }
+            return null;
         }
 
         protected string GetCreationDtoTypeName(string entityName)
         {
-            var creationDtoType = FindExistingCreationDtoType(entityName);
+            // This method might need access to the same assemblies as Manager if used by subclasses
+            // For now, assuming it's called where AppDomain.CurrentDomain.GetAssemblies() is acceptable context
+            var creationDtoType = FindExistingCreationDtoType(entityName, AppDomain.CurrentDomain.GetAssemblies());
             return creationDtoType is null ? entityName : creationDtoType.Name;
         }
 
-        protected Type FindExistingCreationDtoType(string entityName)
+        public static Type FindExistingCreationDtoType(string entityName, IEnumerable<Assembly> assembliesToSearch)
         {
             var creationDtoName = $"{entityName}CreationDto";
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == creationDtoName);
+            foreach (var assembly in assembliesToSearch)
+            {
+                var type = assembly.GetTypes().FirstOrDefault(t => t.Name == creationDtoName && !t.IsNested);
+                if (type != null) return type;
+            }
+            return null;
         }
 
         protected string GetModificationDtoTypeName(string entityName)
         {
-            var modificationDtoType = FindExistingModificationDtoType(entityName);
+            // Similar to GetCreationDtoTypeName
+            var modificationDtoType = FindExistingModificationDtoType(entityName, AppDomain.CurrentDomain.GetAssemblies());
             return modificationDtoType is null ? entityName : modificationDtoType.Name;
         }
 
-        protected Type FindExistingModificationDtoType(string entityName)
+        public static Type FindExistingModificationDtoType(string entityName, IEnumerable<Assembly> assembliesToSearch)
         {
             var modificationDtoName = $"{entityName}ModificationDto";
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == modificationDtoName);
+            foreach (var assembly in assembliesToSearch)
+            {
+                var type = assembly.GetTypes().FirstOrDefault(t => t.Name == modificationDtoName && !t.IsNested);
+                if (type != null) return type;
+            }
+            return null;
         }
     }
 }
