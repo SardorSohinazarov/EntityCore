@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using TestApiNet8.Domain.Entities;
+using System.Collections.Generic;
 
 namespace DataTransferObjects.Teachers;
 

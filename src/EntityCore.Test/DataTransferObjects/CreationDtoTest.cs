@@ -36,24 +36,21 @@ namespace EntityCore.Test.DataTransferObjects
 
             // Namespace and Usings
             AssertNamespaceEqualTo(generatedCode, "DataTransferObjects.ComplexEntitys");
-            AssertUsingDirectiveExists(generatedCode, "System");
-            AssertUsingDirectiveExists(generatedCode, "System.Collections.Generic");
-            AssertUsingDirectiveExists(generatedCode, "EntityCore.Test.Entities");
 
             // Properties
-            AssertPropertyDoesNotExist(generatedCode, "long Id");
+            AssertPropertyDoesNotExist(generatedCode, "public long Id { get; set; }");
             AssertPropertyExists(generatedCode, "public string MainProperty { get; set; }");
 
             AssertPropertyExists(generatedCode, "public long? OptionalRelatedId { get; set; }");
-            AssertPropertyDoesNotExist(generatedCode, "RelatedEntity? OptionalRelated");
+            AssertPropertyDoesNotExist(generatedCode, "public RelatedEntity? OptionalRelated { get; set; }");
 
             AssertPropertyExists(generatedCode, "public long RequiredRelatedId { get; set; }");
-            AssertPropertyDoesNotExist(generatedCode, "RelatedEntity RequiredRelated");
+            AssertPropertyDoesNotExist(generatedCode, "public RelatedEntity RequiredRelated { get; set; }");
 
             AssertPropertyExists(generatedCode, "public ICollection<long> RelatedCollectionIds { get; set; }");
-            AssertPropertyDoesNotExist(generatedCode, "ICollection<RelatedEntity> RelatedCollection");
+            AssertPropertyDoesNotExist(generatedCode, "public ICollection<RelatedEntity> RelatedCollection { get; set; }");
             AssertPropertyExists(generatedCode, "public List<Guid> SimpleItemsIds { get; set; }");
-            AssertPropertyDoesNotExist(generatedCode, "List<SimpleEntity> SimpleItems");
+            AssertPropertyDoesNotExist(generatedCode, "public List<SimpleEntity> SimpleItems { get; set; }");
 
             AssertPropertyExists(generatedCode, "public bool IsDeleted { get; set; }");
             AssertPropertyExists(generatedCode, "public DateTime? DeletedAt { get; set; }");

@@ -6,7 +6,13 @@ namespace EntityCore.Tools.DataTransferObjects
 {
     public class DtoGenerator
     {
-        public string GenerateProperty(PropertyInfo property)
+        protected HashSet<string> _namespaces;
+        public DtoGenerator()
+        {
+            _namespaces = new HashSet<string>();
+        }
+
+        protected string GenerateProperty(PropertyInfo property)
         {
             if (property.IsPrimaryKeyProperty())
             {
@@ -38,8 +44,47 @@ namespace EntityCore.Tools.DataTransferObjects
                 }
                 else
                 {
-                    // Single navigation property
                     return $"public {type.FindPrimaryKeyProperty().PropertyType.ToCSharpTypeName()} {property.Name}Id {{ get; set; }}";
+                }
+            }
+        }
+
+        protected string GenerateViewProperty(PropertyInfo property)
+        {
+            Type type = property.PropertyType;
+
+            if (!string.IsNullOrEmpty(type.Namespace))
+            {
+                _namespaces.Add(type.Namespace);
+            }
+
+            if (!type.IsNavigationProperty())
+            {
+                return $"public {type.ToCSharpTypeName()} {property.Name} {{ get; set; }}";
+            }
+            else
+            {
+                if (typeof(IEnumerable).IsAssignableFrom(type))
+                {
+                    Type elementType = GetCollectionElementType(type);
+
+                    _namespaces.Add(elementType.Namespace);
+
+                    if (!elementType.IsNavigationProperty())
+                    {
+                        return $"public {type.ToCSharpTypeName()} {property.Name} {{ get; set; }}";
+                    }
+                    else
+                    {
+                        string genericTypeName = GetGenericTypeName(type, elementType);
+                        return $"public {genericTypeName}<{elementType.ToCSharpTypeName()}> {property.Name} {{ get; set; }}";
+                    }
+                }
+                else
+                {
+                    _namespaces.Add(type.Namespace);
+
+                    return $"public {type.Name} {property.Name} {{ get; set; }}";
                 }
             }
         }

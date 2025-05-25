@@ -20,7 +20,20 @@ namespace EntityCore.Tools.DataTransferObjects
                 .Distinct()
                 .ToList();
 
-            var result = new StringBuilder($"namespace DataTransferObjects.{_entityType.Name}s;\n\n");
+            var result = new StringBuilder();
+
+            foreach (var @namespace in _namespaces)
+            {
+                result.AppendLine($"using {@namespace};");
+            }
+
+            if(_namespaces.Count > 0)
+            {
+                result.AppendLine(); // Blank line after usings
+            }
+
+            result.AppendLine($"namespace DataTransferObjects.{_entityType.Name}s;");
+            result.AppendLine();
             result.AppendLine($"public class {_name}");
             result.AppendLine("{");
 

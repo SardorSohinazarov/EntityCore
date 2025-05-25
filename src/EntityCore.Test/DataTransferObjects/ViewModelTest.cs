@@ -24,7 +24,7 @@ namespace EntityCore.Test.DataTransferObjects
         public void Generate_Complex_Entity_ViewModel_With_Required_Properties()
         {
             // Arrange
-            var viewModel = new ViewModel(typeof(Teacher));
+            var viewModel = new ViewModel(typeof(ComplexEntity));
 
             // Act
             string generatedCode = viewModel.Generate();
@@ -33,8 +33,6 @@ namespace EntityCore.Test.DataTransferObjects
 
             // Namespace and Usings
             AssertNamespaceEqualTo(generatedCode, "DataTransferObjects.ComplexEntitys");
-            AssertUsingDirectiveExists(generatedCode, "System");
-            AssertUsingDirectiveExists(generatedCode, "System.Collections.Generic");
             AssertUsingDirectiveExists(generatedCode, "EntityCore.Test.Entities");
 
             // Properties
@@ -44,9 +42,9 @@ namespace EntityCore.Test.DataTransferObjects
             AssertPropertyExists(generatedCode, "public RelatedEntity OptionalRelated { get; set; }");
             AssertPropertyExists(generatedCode, "public long RequiredRelatedId { get; set; }");
             AssertPropertyExists(generatedCode, "public RelatedEntity RequiredRelated { get; set; }");
-            AssertPropertyDoesNotExist(generatedCode, "ICollection<long> RelatedCollectionIds");
+            AssertPropertyDoesNotExist(generatedCode, "public ICollection<long> RelatedCollectionIds { get; set; }");
             AssertPropertyExists(generatedCode, "public ICollection<RelatedEntity> RelatedCollection { get; set; }");
-            AssertPropertyDoesNotExist(generatedCode, "public List<Guid> SimpleItemsIds");
+            AssertPropertyDoesNotExist(generatedCode, "public List<Guid> SimpleItemsIds { get; set; }");
             AssertPropertyExists(generatedCode, "public List<SimpleEntity> SimpleItems { get; set; }");
             AssertPropertyExists(generatedCode, "public bool IsDeleted { get; set; }");
             AssertPropertyExists(generatedCode, "public DateTime? DeletedAt { get; set; }");

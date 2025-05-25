@@ -1,3 +1,4 @@
+
 namespace DataTransferObjects.Teachers;
 
 public class TeacherModificationDto
