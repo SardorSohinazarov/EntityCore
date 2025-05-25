@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Reflection;
-using Microsoft.CodeAnalysis;
-using EntityCore.Tools.Common.Paginations.Models;
+﻿using EntityCore.Tools.Common.Paginations.Models;
 using EntityCore.Tools.Extensions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Reflection;
 
 namespace EntityCore.Tools.Controllers
 {
@@ -113,7 +113,7 @@ namespace EntityCore.Tools.Controllers
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"Result<List<{_returnTypeName}>>")), "FilterAsync")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
-                                .AddAttribute("HttpPost","filter")
+                                .AddAttribute("HttpPost", "filter")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("filter"))
                                    .WithType(SyntaxFactory.ParseTypeName(typeof(PaginationOptions).Name)))
                                 .WithBody(SyntaxFactory.Block(

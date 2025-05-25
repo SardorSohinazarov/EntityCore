@@ -1,9 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
-using EntityCore.Tools.Extensions;
-
-namespace EntityCore.Tools.Controllers
+﻿namespace EntityCore.Tools.Controllers
 {
     public partial class Controller
     {
@@ -14,20 +9,6 @@ namespace EntityCore.Tools.Controllers
         /// <param name="serviceType"></param>
         /// <returns></returns>
         private string GenerateControllerCodeWithService(Type serviceType)
-        {
-            var serviceName = serviceType.Name;
-            var primaryKey = serviceType.FindPrimaryKeyProperty();
-
-            var classDeclaration = GetControllerClassDeclaration();
-
-            var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Controllers"))
-                .AddMembers(classDeclaration);
-
-            CompilationUnitSyntax syntaxTree = GenerateControllerUsings(namespaceDeclaration, serviceType);
-
-            return syntaxTree
-                .NormalizeWhitespace()
-                .ToFullString();
-        }
+            => throw new NotImplementedException("GenerateControllerCodeWithService method is not implemented yet.");
     }
 }

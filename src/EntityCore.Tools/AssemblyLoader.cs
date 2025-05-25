@@ -49,14 +49,13 @@ namespace EntityCore.Tools
             Assembly mainAssembly = Assembly.LoadFrom(dllPath);
             AssemblyName[] references = mainAssembly.GetReferencedAssemblies();
 
-            if (references.Length != 0)
-                Console.WriteLine("Referenced assemblies");
-
             LoadReferencedAssemblies(references);
         }
 
         private void LoadReferencedAssemblies(AssemblyName[] references)
         {
+            if (references.Length > 0)
+                Console.WriteLine("Referenced assemblies");
 
             foreach (var reference in references)
             {
@@ -74,10 +73,6 @@ namespace EntityCore.Tools
                     {
                         Console.WriteLine($"Failed to load: {reference.Name}");
                     }
-                }
-                finally
-                {
-                    Console.WriteLine($"Assembly: {reference.Name}");
                 }
             }
         }

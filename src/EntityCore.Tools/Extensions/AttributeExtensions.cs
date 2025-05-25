@@ -1,5 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EntityCore.Tools.Extensions
 {
@@ -23,6 +23,17 @@ namespace EntityCore.Tools.Extensions
                                     SyntaxFactory.SingletonSeparatedList(
                                         SyntaxFactory.Attribute(
                                             SyntaxFactory.IdentifierName(attributeName))
+                                    )
+                                )
+                            );
+            }
+            else
+            {
+                return propertyDeclarationSyntax.AddAttributeLists(
+                                SyntaxFactory.AttributeList(
+                                    SyntaxFactory.SingletonSeparatedList(
+                                        SyntaxFactory.Attribute(
+                                            SyntaxFactory.IdentifierName(attributeName))
                                         .WithArgumentList(
                                             SyntaxFactory.AttributeArgumentList(
                                                 SyntaxFactory.SingletonSeparatedList(
@@ -35,17 +46,6 @@ namespace EntityCore.Tools.Extensions
                                                 )
                                             )
                                         )
-                                    )
-                                )
-                            );
-            }
-            else
-            {
-                return propertyDeclarationSyntax.AddAttributeLists(
-                                SyntaxFactory.AttributeList(
-                                    SyntaxFactory.SingletonSeparatedList(
-                                        SyntaxFactory.Attribute(
-                                            SyntaxFactory.IdentifierName(attributeName))
                                     )
                                 )
                             );

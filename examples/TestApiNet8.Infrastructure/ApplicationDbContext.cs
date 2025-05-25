@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TestApiWithNet8.Entities;
+using TestApiNet8.Domain.Entities;
 
 namespace TestApiWithNet8
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext() 
+        public ApplicationDbContext()
             => Database.Migrate();
 
         public DbSet<Student> Students { get; set; }

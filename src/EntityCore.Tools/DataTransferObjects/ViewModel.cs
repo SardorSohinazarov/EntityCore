@@ -1,14 +1,12 @@
-﻿using EntityCore.Tools.Extensions;
-using System.Collections;
-using System.Reflection;
-using System.Text;
+﻿using System.Text;
 
 namespace EntityCore.Tools.DataTransferObjects
 {
-    public class ViewModel
+    public class ViewModel : DtoGenerator
     {
         private readonly Type _entityType;
         private readonly string _name;
+
         public ViewModel(Type entityType)
         {
             _entityType = entityType;
@@ -17,46 +15,42 @@ namespace EntityCore.Tools.DataTransferObjects
 
         public string Generate()
         {
-            var properties = _entityType.GetProperties()
-                .Select(x => GenerateProperty(x))
-                .Where(x => x != null)
-                .Distinct()
-                .ToList();
+            var properties = new List<string>();
+            foreach (var propertyInfo in _entityType.GetProperties())
+            {
+                var propertyString = GenerateViewProperty(propertyInfo);
+                if (propertyString != null)
+                {
+                    properties.Add(propertyString);
+                }
+            }
 
-            var result = new StringBuilder($"namespace DataTransferObjects.{_entityType.Name}s;\n\n");
+            if (!string.IsNullOrEmpty(_entityType.Namespace))
+            {
+                _namespaces.Add(_entityType.Namespace);
+            }
+
+            var result = new StringBuilder();
+
+            foreach (var @namespace in _namespaces)
+            {
+                result.AppendLine($"using {@namespace};");
+            }
+
+            result.AppendLine(); // Blank line after usings
+
+            result.AppendLine($"namespace DataTransferObjects.{_entityType.Name}s;");
+            result.AppendLine();
             result.AppendLine($"public class {_name}");
             result.AppendLine("{");
 
             foreach (var property in properties)
             {
-                result.AppendLine($"\t{property}");
+                result.AppendLine($"    {property}");
             }
 
             result.AppendLine("}");
             return result.ToString();
-        }
-
-        private string GenerateProperty(PropertyInfo property)
-        {
-            Type type = property.PropertyType;
-
-            if (!type.IsNavigationProperty())
-            {
-                return $"public {type.ToCSharpTypeName()} {property.Name} {{ get; set; }}";
-            }
-            else
-            {
-                if (typeof(IEnumerable).IsAssignableFrom(type))
-                {
-                    type = type.GetGenericArguments().First();
-
-                    return $"public List<{type.Name}> {property.Name} {{ get; set; }}";
-                }
-                else
-                {
-                    return $"public {type.Name} {property.Name} {{ get; set; }}";
-                }
-            }
         }
     }
 }

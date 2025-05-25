@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Reflection;
+﻿using EntityCore.Tools.Common.Paginations.Models;
 using EntityCore.Tools.Extensions;
-using EntityCore.Tools.Common.Paginations.Models;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Reflection;
 
 namespace EntityCore.Tools.Services
 {

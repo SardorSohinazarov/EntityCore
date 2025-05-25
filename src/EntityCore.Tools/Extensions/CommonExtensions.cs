@@ -8,21 +8,36 @@ namespace EntityCore.Tools.Extensions
         private static readonly Dictionary<Type, string> TypeMap = new()
         {
             { typeof(sbyte), "sbyte" },
+            { typeof(sbyte?), "sbyte?" },
             { typeof(byte), "byte" },
+            { typeof(byte?), "byte?" },
             { typeof(short), "short" },
+            { typeof(short?), "short?" },
             { typeof(ushort), "ushort" },
+            { typeof(ushort?), "ushort?" },
             { typeof(int), "int" },
+            { typeof(int?), "int?" },
             { typeof(uint), "uint" },
+            { typeof(uint?), "uint?" },
             { typeof(long), "long" },
+            { typeof(long?), "long?" },
             { typeof(ulong), "ulong" },
+            { typeof(ulong?), "ulong?" },
             { typeof(float), "float" },
+            { typeof(float?), "float?" },
             { typeof(double), "double" },
+            { typeof(double?), "double?" },
             { typeof(decimal), "decimal" },
+            { typeof(decimal?), "decimal?" },
             { typeof(bool), "bool" },
+            { typeof(bool?), "bool?" },
             { typeof(char), "char" },
+            { typeof(char?), "char?" },
             { typeof(string), "string" },
             { typeof(Guid), "Guid" },
+            { typeof(Guid?), "Guid?" },
             { typeof(DateTime), "DateTime" },
+            { typeof(DateTime?), "DateTime?" },
         };
 
         public static string ToCSharpTypeName(this Type type)
@@ -37,17 +52,23 @@ namespace EntityCore.Tools.Extensions
             => $"_{str.GenerateFieldName()}";
 
         public static bool IsNavigationProperty(this Type type)
-            => !(type.IsPrimitive
-                || type == typeof(string)
-                || type == typeof(decimal)
-                || type == typeof(Guid)
-                || type == typeof(DateTime));
+        {
+            foreach (var primitiveType in TypeMap.Keys)
+            {
+                if (type == primitiveType || type == Nullable.GetUnderlyingType(primitiveType))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         public static PropertyInfo FindPrimaryKeyProperty(this Type entityType)
         {
             // 1. [Key] atributi bilan belgilangan propertyni topish
             var keyProperty = entityType
-                .GetProperties()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .FirstOrDefault(prop => prop.GetCustomAttribute<KeyAttribute>() != null);
 
             if (keyProperty is not null)
@@ -55,11 +76,11 @@ namespace EntityCore.Tools.Extensions
 
             // 2. Agar [Key] topilmasa, "Id" nomli propertyni qidirish
             keyProperty = entityType
-                .GetProperties()
+                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .FirstOrDefault(prop => string.Equals(prop.Name, "Id"));
 
             if (keyProperty is null)
-                throw new InvalidOperationException("Entity must have a key property.");
+                throw new InvalidOperationException($"Entity must have a key property.{entityType.Name}");
 
             return keyProperty;
         }

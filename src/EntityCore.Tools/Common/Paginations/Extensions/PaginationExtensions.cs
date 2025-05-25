@@ -14,8 +14,6 @@ namespace EntityCore.Tools.Common.Paginations.Extensions
             // using'larni yaratish
             var usings = new[]
             {
-                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")),
-                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Linq")),
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Text.Json")),
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Microsoft.AspNetCore.Http")),
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Common.Paginations.Models"))

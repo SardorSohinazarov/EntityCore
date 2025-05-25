@@ -1,6 +1,4 @@
-﻿using TestApiNet8.Domain.Entities;
-
-namespace TestApiWithNet8.Entities
+﻿namespace TestApiNet8.Domain.Entities
 {
     public class Student
     {

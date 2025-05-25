@@ -6,6 +6,7 @@ using EntityCore.Tools.Controllers;
 using EntityCore.Tools.DataTransferObjects;
 using EntityCore.Tools.Middlewares;
 using EntityCore.Tools.Services;
+using EntityCore.Tools.Views;
 
 namespace EntityCore.Tools
 {
@@ -25,6 +26,7 @@ namespace EntityCore.Tools
         {
             GenerateDto();
             GenerateService();
+            GenerateView();
             GenerateController();
             GenerateExceptionM();
             GenerateResult();
@@ -74,7 +76,7 @@ namespace EntityCore.Tools
             if (_arguments.ContainsKey("result"))
             {
                 var result = new Result();
-                var resultClassesCode = result.GenerateResultClasses();
+                var resultClassesCode = result.Generate();
                 WriteCode("Common", "Result.cs", resultClassesCode);
 
                 ConsoleMessage("Result classes generated successfully!");
@@ -115,6 +117,24 @@ namespace EntityCore.Tools
             WriteCode(["Services", $"{entityName}s"], $"{entityName}sService.cs", serviceImplementationCode);
         }
 
+        private void GenerateView()
+        {
+            var entityName = _arguments.ContainsKey("service") ? _arguments["service"] : null;
+            if (entityName is null)
+                return;
+
+            Type? entityType = GetEntityType(entityName);
+
+            string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
+            Console.WriteLine("dbContextName:" + dbContextName);
+
+            var view = new View(entityType);
+            var viewCode = view.Generate();
+
+            WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.razor", viewCode);
+            ConsoleMessage($"View for {entityName} generated successfully!");
+        }
+
         private void GenerateController()
         {
             var entityName = _arguments.ContainsKey("controller") ? _arguments["controller"] : null;
@@ -135,7 +155,7 @@ namespace EntityCore.Tools
             {
                 (["Common", "Pagination"], "PaginationOptions.cs", new PaginationOptions().GeneratePaginationOptionsClass()),
                 (["Common", "Pagination"], "PaginationExtensions.cs", new PaginationExtensions().GeneratePaginationExtensions()),
-                (["Common", "Pagination"], "PaginationMetadata.cs", new PaginationMetadata().GeneratePaginationMetadataClass()),
+                (["Common", "Pagination"], "PaginationMetadata.cs", new PaginationMetadata().Generate()),
             };
 
             foreach (var (directories, fileName, code) in paginationComponents)
@@ -173,12 +193,13 @@ namespace EntityCore.Tools
             string filePath = Path.Combine(directoryPath, fileName);
             File.WriteAllText(filePath, code);
         }
-        
+
         private void WriteCode(string[] directories, string fileName, string code)
         {
             string directoryPath = _projectRoot;
 
-            foreach (var directory in directories) {
+            foreach (var directory in directories)
+            {
                 directoryPath = Path.Combine(directoryPath, directory);
             }
 

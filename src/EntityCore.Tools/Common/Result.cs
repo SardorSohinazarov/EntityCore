@@ -10,7 +10,7 @@ namespace EntityCore.Tools.Common
     /// </summary>
     public class Result
     {
-        public string GenerateResultClasses()
+        public string Generate()
         {
             // Namespace yaratish
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Common"))
@@ -74,7 +74,7 @@ namespace EntityCore.Tools.Common
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                         )
-                        .AddAttribute("JsonPropertyName","data"),
+                        .AddAttribute("JsonPropertyName", "data"),
 
                     // Fail() and Success() methods
                     GenerateMethod("Fail", "Result<T>", false, isGeneric: true),

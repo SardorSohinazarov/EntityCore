@@ -1,10 +1,10 @@
-﻿using EntityCore.Tools.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using EntityCore.Tools.Common.Paginations.Models;
+﻿using EntityCore.Tools.Common.Paginations.Models;
+using EntityCore.Tools.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace EntityCore.Tools.Services
 {
@@ -221,7 +221,7 @@ namespace EntityCore.Tools.Services
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(modificationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{_entityName}>().FirstOrDefaultAsync(x => x.Id == id);"),
+                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{_entityName}>().FirstOrDefaultAsync(x => x.{_primaryKey.Name} == id);"),
                                     SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{_entityName} with {{id}} not found.\");"),
                                     SyntaxFactory.ParseStatement($"_mapper.Map({parametrName}, entity);"),
                                     SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{_entityName}>().Update(entity);"),

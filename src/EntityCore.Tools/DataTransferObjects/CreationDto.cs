@@ -1,11 +1,8 @@
-﻿using EntityCore.Tools.Extensions;
-using System.Collections;
-using System.Reflection;
-using System.Text;
+﻿using System.Text;
 
 namespace EntityCore.Tools.DataTransferObjects
 {
-    public class CreationDto
+    public class CreationDto : DtoGenerator
     {
         private readonly Type _entityType;
         private readonly string _name;
@@ -23,7 +20,20 @@ namespace EntityCore.Tools.DataTransferObjects
                 .Distinct()
                 .ToList();
 
-            var result = new StringBuilder($"namespace DataTransferObjects.{_entityType.Name}s;\n\n");
+            var result = new StringBuilder();
+
+            foreach (var @namespace in _namespaces)
+            {
+                result.AppendLine($"using {@namespace};");
+            }
+
+            if (_namespaces.Count > 0)
+            {
+                result.AppendLine(); // Blank line after usings
+            }
+
+            result.AppendLine($"namespace DataTransferObjects.{_entityType.Name}s;");
+            result.AppendLine();
             result.AppendLine($"public class {_name}");
             result.AppendLine("{");
 
@@ -34,41 +44,6 @@ namespace EntityCore.Tools.DataTransferObjects
 
             result.AppendLine("}");
             return result.ToString();
-        }
-
-        private string GenerateProperty(PropertyInfo property)
-        {
-            if (property.IsPrimaryKeyProperty())
-            {
-                return null;
-            }
-
-            Type type = property.PropertyType;
-
-            if (!type.IsNavigationProperty())
-            {
-                return $"public {type.ToCSharpTypeName()} {property.Name} {{ get; set; }}";
-            }
-            else
-            {
-                if (typeof(IEnumerable).IsAssignableFrom(type))
-                {
-                    type = type.GetGenericArguments().First();
-
-                    if (!type.IsNavigationProperty())
-                    {
-                        return $"public List<{type.ToCSharpTypeName()}> {property.Name} {{ get; set; }}";
-                    }
-                    else
-                    {
-                        return $"public List<{type.FindPrimaryKeyProperty().PropertyType.ToCSharpTypeName()}> {property.Name}Ids {{ get; set; }}";
-                    }
-                }
-                else
-                {
-                    return $"public {type.FindPrimaryKeyProperty().PropertyType.ToCSharpTypeName()} {property.Name}Id {{ get; set; }}";
-                }
-            }
         }
     }
 }
