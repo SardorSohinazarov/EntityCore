@@ -9,7 +9,7 @@
         public RelatedEntity? OptionalRelated { get; set; }
 
         public long RequiredRelatedId { get; set; } // Foreign key for RequiredRelated
-        public RelatedEntity RequiredRelated { get; set; } = null!;
+        public RelatedEntity RequiredRelated { get; set; }
 
 
         // Collection navigation property

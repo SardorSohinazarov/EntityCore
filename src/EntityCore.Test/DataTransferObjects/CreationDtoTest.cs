@@ -1,6 +1,5 @@
 ﻿using EntityCore.Test.Entities;
 using EntityCore.Tools.DataTransferObjects;
-using System.Security.Cryptography.X509Certificates;
 
 namespace EntityCore.Test.DataTransferObjects
 {
@@ -34,6 +33,7 @@ namespace EntityCore.Test.DataTransferObjects
             string generatedCode = creationDto.Generate();
 
             // Assert
+            AssertPropertyDoesNotExist(generatedCode, "long Id");
             AssertPropertyExists(generatedCode, "public string MainProperty { get; set; }");
 
             AssertPropertyExists(generatedCode, "public long? OptionalRelatedId { get; set; }");
@@ -42,8 +42,10 @@ namespace EntityCore.Test.DataTransferObjects
             AssertPropertyExists(generatedCode, "public long RequiredRelatedId { get; set; }");
             AssertPropertyDoesNotExist(generatedCode, "RelatedEntity RequiredRelated");
 
-            AssertPropertyExists(generatedCode, "public List<long> RelatedCollectionIds { get; set; }");
+            AssertPropertyExists(generatedCode, "public ICollection<long> RelatedCollectionIds { get; set; }");
+            AssertPropertyDoesNotExist(generatedCode, "ICollection<RelatedEntity> RelatedCollection");
             AssertPropertyExists(generatedCode, "public List<Guid> SimpleItemsIds { get; set; }");
+            AssertPropertyDoesNotExist(generatedCode, "List<SimpleEntity> SimpleItems");
 
             AssertPropertyExists(generatedCode, "public bool IsDeleted { get; set; }");
             AssertPropertyExists(generatedCode, "public DateTime? DeletedAt { get; set; }");

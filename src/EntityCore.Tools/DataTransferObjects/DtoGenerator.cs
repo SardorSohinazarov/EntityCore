@@ -23,19 +23,17 @@ namespace EntityCore.Tools.DataTransferObjects
             {
                 if (typeof(IEnumerable).IsAssignableFrom(type))
                 {
-                    type = type.GetGenericArguments().First();
+                    Type elementType = GetCollectionElementType(type);
 
-                    if (!type.IsNavigationProperty())
+                    if (!elementType.IsNavigationProperty())
                     {
-                        // This case might need further clarification based on actual usage,
-                        // but for now, let's assume it's a collection of non-navigational complex types.
-                        // We'll represent them as a list of their C# type names.
-                        return $"public List<{type.ToCSharpTypeName()}> {property.Name} {{ get; set; }}";
+                        return $"public {type.ToCSharpTypeName()} {property.Name} {{ get; set; }}";
                     }
                     else
                     {
-                        // Collection of navigation properties
-                        return $"public List<{type.FindPrimaryKeyProperty().PropertyType.ToCSharpTypeName()}> {property.Name}Ids {{ get; set; }}";
+                        Type pkType = elementType.FindPrimaryKeyProperty().PropertyType;
+                        string genericTypeName = GetGenericTypeName(type, elementType);
+                        return $"public {genericTypeName}<{pkType.ToCSharpTypeName()}> {property.Name}Ids {{ get; set; }}";
                     }
                 }
                 else
@@ -44,6 +42,30 @@ namespace EntityCore.Tools.DataTransferObjects
                     return $"public {type.FindPrimaryKeyProperty().PropertyType.ToCSharpTypeName()} {property.Name}Id {{ get; set; }}";
                 }
             }
+        }
+
+        private string GetGenericTypeName(Type type, Type elementType)
+        {
+            var genericType = type.IsGenericType ? type.GetGenericTypeDefinition() : typeof(List<>);
+            return genericType.Name.Split('`')[0];
+        }
+
+        private Type GetCollectionElementType(Type collectionType)
+        {
+            if (collectionType.IsArray)
+                return collectionType.GetElementType();
+
+            if (collectionType.IsGenericType)
+                return collectionType.GetGenericArguments().First();
+
+            // Fallback: check interfaces
+            var enumerableInterface = collectionType.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+
+            if (enumerableInterface != null)
+                return enumerableInterface.GetGenericArguments().First();
+
+            return typeof(object); // unknown fallback
         }
     }
 }
