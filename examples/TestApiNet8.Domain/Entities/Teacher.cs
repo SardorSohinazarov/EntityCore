@@ -6,6 +6,6 @@
         public int UserId { get; set; }
         public User User { get; set; }
 
-        public ICollection<Student> Students { get; set; }
+        public List<Student> Students { get; set; }
     }
 }

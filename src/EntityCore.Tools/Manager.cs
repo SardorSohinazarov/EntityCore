@@ -119,7 +119,7 @@ namespace EntityCore.Tools
 
         private void GenerateView()
         {
-            var entityName = _arguments.ContainsKey("service") ? _arguments["service"] : null;
+            var entityName = _arguments.ContainsKey("view") ? _arguments["view"] : null;
             if (entityName is null)
                 return;
 

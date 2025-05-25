@@ -7,7 +7,7 @@ namespace TestApiNet8.Infrastructure
     {
         public static IServiceCollection AddInfrastructure(this IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>();
+            services.AddDbContext<TestApiNet8Db>();
 
             return services;
         }
