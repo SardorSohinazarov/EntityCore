@@ -147,30 +147,18 @@ namespace EntityCore.Tools.Services
             idsProperties = idsProperties.Where(x => collectionPropertiesNames.Contains(x.Name));
             collectionProperties = collectionProperties.Where(x => idsProperties.Any(y => y.Name == $"{x.Name}Ids")).ToList();
 
-            if (idsProperties.Any())
-            {
-                var idsPropertiesStatements = collectionProperties.Select(x =>
-                    SyntaxFactory.ParseStatement(
-                        $"entity.{x.Name} = await {dbContextVariableName}.Set<{GetCollectionElementType(x.PropertyType).Name}>().Where(x => {parametrName}.{idsProperties.FirstOrDefault(y => $"{x.Name}Ids" == y.Name).Name}.Contains(x.{GetCollectionElementType(x.PropertyType).FindPrimaryKeyProperty().Name})).ToListAsync();"));
+            var idsPropertiesStatements = collectionProperties.Select(x =>
+                SyntaxFactory.ParseStatement(
+                    $"entity.{x.Name} = await {dbContextVariableName}.Set<{GetCollectionElementType(x.PropertyType).Name}>()" +
+                    $"      .Where(x => {parametrName}.{idsProperties.FirstOrDefault(y => $"{x.Name}Ids" == y.Name).Name}.Contains(x.{GetCollectionElementType(x.PropertyType).FindPrimaryKeyProperty().Name}))" +
+                    $"      .ToListAsync();"));
 
-                List<StatementSyntax> statementSyntaxes = new List<StatementSyntax>();
-                statementSyntaxes.Add(SyntaxFactory.ParseStatement($"var entity = _mapper.Map<{_entityName}>({parametrName});"));
+            List<StatementSyntax> statementSyntaxes = [SyntaxFactory.ParseStatement($"var entity = _mapper.Map<{_entityName}>({parametrName});")];
+            if(idsPropertiesStatements.Any())
                 statementSyntaxes.AddRange(idsPropertiesStatements);
-                statementSyntaxes.Add(SyntaxFactory.ParseStatement($"var entry = await {dbContextVariableName}.Set<{_entityName}>().AddAsync(entity);"));
-                statementSyntaxes.Add(SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"));
-                statementSyntaxes.Add(SyntaxFactory.ParseStatement($"return {GenerateReturn()};"));
-
-                return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                    .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "AddAsync")
-                                    .AddModifiers(
-                                        SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
-                                        SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
-                                    .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
-                                        .WithType(SyntaxFactory.ParseTypeName(creationDtoTypeName)))
-                                    .WithBody(SyntaxFactory.Block(
-                                        statementSyntaxes
-                                    ));
-            }
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"var entry = await {dbContextVariableName}.Set<{_entityName}>().AddAsync(entity);"));
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"));
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"return {GenerateReturn()};"));
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "AddAsync")
@@ -180,15 +168,7 @@ namespace EntityCore.Tools.Services
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(creationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entity = _mapper.Map<{_entityName}>({parametrName});"),
-                                    /*
-                                                 var students = await _testApiNet8Db.Students
-                                                    .Where(x => teacherCreationDto.StudentsIds.Contains(x.Id)).ToListAsync();
-                                                entity.Students = students;
-                                    */
-                                    SyntaxFactory.ParseStatement($"var entry = await {dbContextVariableName}.Set<{_entityName}>().AddAsync(entity);"),
-                                    SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"),
-                                    SyntaxFactory.ParseStatement($"return {GenerateReturn()};")
+                                    statementSyntaxes
                                 ));
         }
 
