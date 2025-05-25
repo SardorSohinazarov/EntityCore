@@ -1,6 +1,5 @@
 ﻿using EntityCore.Test.Entities;
 using EntityCore.Tools.DataTransferObjects;
-using TestApiNet8.Domain.Entities;
 
 namespace EntityCore.Test.DataTransferObjects
 {

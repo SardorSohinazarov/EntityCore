@@ -193,12 +193,13 @@ namespace EntityCore.Tools
             string filePath = Path.Combine(directoryPath, fileName);
             File.WriteAllText(filePath, code);
         }
-        
+
         private void WriteCode(string[] directories, string fileName, string code)
         {
             string directoryPath = _projectRoot;
 
-            foreach (var directory in directories) {
+            foreach (var directory in directories)
+            {
                 directoryPath = Path.Combine(directoryPath, directory);
             }
 

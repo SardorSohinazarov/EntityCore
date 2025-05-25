@@ -5,7 +5,7 @@ namespace TestApiWithNet8
 {
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext() 
+        public ApplicationDbContext()
             => Database.Migrate();
 
         public DbSet<Student> Students { get; set; }

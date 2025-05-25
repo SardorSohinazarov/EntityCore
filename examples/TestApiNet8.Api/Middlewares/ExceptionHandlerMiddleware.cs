@@ -1,5 +1,5 @@
-using System.Net;
 using Common;
+using System.Net;
 using System.Text.Json;
 
 namespace Middlewares

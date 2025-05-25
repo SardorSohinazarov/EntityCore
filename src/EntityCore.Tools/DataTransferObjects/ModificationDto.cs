@@ -27,7 +27,7 @@ namespace EntityCore.Tools.DataTransferObjects
                 result.AppendLine($"using {@namespace};");
             }
 
-            if(_namespaces.Count > 0)
+            if (_namespaces.Count > 0)
             {
                 result.AppendLine(); // Blank line after usings
             }

@@ -1,9 +1,4 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
-using EntityCore.Tools.Extensions;
-
-namespace EntityCore.Tools.Controllers
+﻿namespace EntityCore.Tools.Controllers
 {
     public partial class Controller
     {
@@ -13,7 +8,7 @@ namespace EntityCore.Tools.Controllers
         /// </summary>
         /// <param name="serviceType"></param>
         /// <returns></returns>
-        private string GenerateControllerCodeWithService(Type serviceType) 
+        private string GenerateControllerCodeWithService(Type serviceType)
             => throw new NotImplementedException("GenerateControllerCodeWithService method is not implemented yet.");
     }
 }

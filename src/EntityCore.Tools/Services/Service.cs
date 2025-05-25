@@ -1,10 +1,10 @@
-﻿using EntityCore.Tools.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Reflection;
-using Microsoft.EntityFrameworkCore;
-using EntityCore.Tools.Common.Paginations.Models;
+﻿using EntityCore.Tools.Common.Paginations.Models;
+using EntityCore.Tools.Extensions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 namespace EntityCore.Tools.Services
 {

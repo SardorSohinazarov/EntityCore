@@ -50,7 +50,7 @@ namespace EntityCore.Tools.Views
 
             if (dbContextType is null)
                 throw new InvalidOperationException("DbContext not found in the specified assembly.");
-            
+
             return "";
         }
     }

@@ -7,7 +7,7 @@
     {
         public DbContext(string name)
         {
-            
+
         }
     }
 }

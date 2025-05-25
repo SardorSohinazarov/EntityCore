@@ -9,7 +9,7 @@ namespace EntityCore.Tools
     /// </summary>
     public class MappingProfile : Generator
     {
-        public ClassDeclarationSyntax GenerateMappingProfile(Type entityType) 
+        public ClassDeclarationSyntax GenerateMappingProfile(Type entityType)
             => GenerateMappingProfile(entityType.Name);
 
         public ClassDeclarationSyntax GenerateMappingProfile(string entityName)

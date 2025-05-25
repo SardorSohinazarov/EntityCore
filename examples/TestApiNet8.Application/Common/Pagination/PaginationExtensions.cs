@@ -1,6 +1,6 @@
-using System.Text.Json;
-using Microsoft.AspNetCore.Http;
 using Common.Paginations.Models;
+using Microsoft.AspNetCore.Http;
+using System.Text.Json;
 
 namespace Common.Paginations.Extensions
 {

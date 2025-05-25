@@ -74,7 +74,7 @@ namespace EntityCore.Tools.Common
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken))
                         )
-                        .AddAttribute("JsonPropertyName","data"),
+                        .AddAttribute("JsonPropertyName", "data"),
 
                     // Fail() and Success() methods
                     GenerateMethod("Fail", "Result<T>", false, isGeneric: true),

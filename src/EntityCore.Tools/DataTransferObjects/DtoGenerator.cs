@@ -1,6 +1,6 @@
+using EntityCore.Tools.Extensions;
 using System.Collections;
 using System.Reflection;
-using EntityCore.Tools.Extensions;
 
 namespace EntityCore.Tools.DataTransferObjects
 {
@@ -91,7 +91,7 @@ namespace EntityCore.Tools.DataTransferObjects
 
         private string GetGenericTypeName(Type type, Type elementType)
         {
-            var genericType = type.IsGenericType 
+            var genericType = type.IsGenericType
                 ? type.GetGenericTypeDefinition()
                 : typeof(IEnumerable<>);
 
