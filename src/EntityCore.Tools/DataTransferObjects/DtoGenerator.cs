@@ -46,7 +46,10 @@ namespace EntityCore.Tools.DataTransferObjects
 
         private string GetGenericTypeName(Type type, Type elementType)
         {
-            var genericType = type.IsGenericType ? type.GetGenericTypeDefinition() : typeof(List<>);
+            var genericType = type.IsGenericType 
+                ? type.GetGenericTypeDefinition()
+                : typeof(IEnumerable<>);
+
             return genericType.Name.Split('`')[0];
         }
 

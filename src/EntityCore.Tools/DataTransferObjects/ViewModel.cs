@@ -51,7 +51,7 @@ namespace EntityCore.Tools.DataTransferObjects
 
             foreach (var property in properties)
             {
-                result.AppendLine($"    {property}"); // Indent properties
+                result.AppendLine($"    {property}");
             }
 
             result.AppendLine("}");
@@ -70,50 +70,56 @@ namespace EntityCore.Tools.DataTransferObjects
 
             if (!type.IsNavigationProperty())
             {
-                // For non-navigation properties, use ToCSharpTypeName for accurate representation (e.g., int?, List<string>)
-                _namespaces.Add(type.Namespace); // Ensure namespace for the type itself is added
-                if (type.IsGenericType)
-                {
-                    foreach (var genArgType in type.GetGenericArguments())
-                    {
-                        if (!string.IsNullOrEmpty(genArgType.Namespace)) { _namespaces.Add(genArgType.Namespace); }
-                    }
-                }
                 return $"public {type.ToCSharpTypeName()} {property.Name} {{ get; set; }}";
             }
             else
             {
                 if (typeof(IEnumerable).IsAssignableFrom(type))
                 {
-                    // Collection navigation property
-                    Type genericArgument = type.GetGenericArguments().FirstOrDefault();
-                    if (genericArgument == null) // Non-generic IEnumerable, less common for navigation properties
-                    {
-                        _namespaces.Add(typeof(IEnumerable).Namespace);
-                        return $"public IEnumerable {property.Name} {{ get; set; }}";
-                    }
+                    Type elementType = GetCollectionElementType(type);
 
-                    // Add namespace of the generic argument
-                    if (!string.IsNullOrEmpty(genericArgument.Namespace))
+                    if (!elementType.IsNavigationProperty())
                     {
-                        _namespaces.Add(genericArgument.Namespace);
+                        return $"public {type.ToCSharpTypeName()} {property.Name} {{ get; set; }}";
                     }
-                    // Assuming we want List<RelatedEntityTypeViewModel> or List<RelatedEntityType>
-                    // For now, sticking to List<RelatedEntityType> as per subtask description
-                    return $"public List<{genericArgument.Name}> {property.Name} {{ get; set; }}";
+                    else
+                    {
+                        string genericTypeName = GetGenericTypeName(type, elementType);
+                        return $"public {genericTypeName}<{elementType.ToCSharpTypeName()}> {property.Name} {{ get; set; }}";
+                    }
                 }
                 else
                 {
-                    // Single navigation property
-                    // Add namespace of the property type (the related entity)
-                    if (!string.IsNullOrEmpty(type.Namespace))
-                    {
-                        _namespaces.Add(type.Namespace);
-                    }
-                    // Use type.Name, assuming the namespace will be imported via 'using'
                     return $"public {type.Name} {property.Name} {{ get; set; }}";
                 }
             }
+        }
+
+        private string GetGenericTypeName(Type type, Type elementType)
+        {
+            var genericType = type.IsGenericType 
+                ? type.GetGenericTypeDefinition()
+                : typeof(IEnumerable<>);
+
+            return genericType.Name.Split('`')[0];
+        }
+
+        private Type GetCollectionElementType(Type collectionType)
+        {
+            if (collectionType.IsArray)
+                return collectionType.GetElementType();
+
+            if (collectionType.IsGenericType)
+                return collectionType.GetGenericArguments().First();
+
+            // Fallback: check interfaces
+            var enumerableInterface = collectionType.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+
+            if (enumerableInterface != null)
+                return enumerableInterface.GetGenericArguments().First();
+
+            return typeof(object); // unknown fallback
         }
     }
 }

@@ -35,8 +35,8 @@ namespace EntityCore.Test.DataTransferObjects
             AssertPropertyExists(generatedCode, "public RelatedEntity OptionalRelated { get; set; }");
             AssertPropertyExists(generatedCode, "public long RequiredRelatedId { get; set; }");
             AssertPropertyExists(generatedCode, "public RelatedEntity RequiredRelated { get; set; }");
-            AssertPropertyDoesNotExist(generatedCode, "List<long> RelatedCollectionIds");
-            AssertPropertyExists(generatedCode, "public List<RelatedEntity> RelatedCollection { get; set; }");
+            AssertPropertyDoesNotExist(generatedCode, "ICollection<long> RelatedCollectionIds");
+            AssertPropertyExists(generatedCode, "public ICollection<RelatedEntity> RelatedCollection { get; set; }");
             AssertPropertyDoesNotExist(generatedCode, "public List<Guid> SimpleItemsIds");
             AssertPropertyExists(generatedCode, "public List<SimpleEntity> SimpleItems { get; set; }");
             AssertPropertyExists(generatedCode, "public bool IsDeleted { get; set; }");
