@@ -38,10 +38,11 @@ namespace EntityCore.Tools.DataTransferObjects
 
             var result = new StringBuilder();
 
-            foreach (var ns in _namespaces.OrderBy(n => n))
+            foreach (var @namespace in _namespaces)
             {
-                result.AppendLine($"using {ns};");
+                result.AppendLine($"using {@namespace};");
             }
+
             result.AppendLine(); // Blank line after usings
 
             result.AppendLine($"namespace DataTransferObjects.{_entityType.Name}s;");
@@ -78,6 +79,8 @@ namespace EntityCore.Tools.DataTransferObjects
                 {
                     Type elementType = GetCollectionElementType(type);
 
+                    _namespaces.Add(elementType.Namespace);
+
                     if (!elementType.IsNavigationProperty())
                     {
                         return $"public {type.ToCSharpTypeName()} {property.Name} {{ get; set; }}";
@@ -90,6 +93,8 @@ namespace EntityCore.Tools.DataTransferObjects
                 }
                 else
                 {
+                    _namespaces.Add(type.Namespace);
+
                     return $"public {type.Name} {property.Name} {{ get; set; }}";
                 }
             }

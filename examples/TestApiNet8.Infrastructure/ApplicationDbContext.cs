@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TestApiWithNet8.Entities;
+using TestApiNet8.Domain.Entities;
 
 namespace TestApiWithNet8
 {

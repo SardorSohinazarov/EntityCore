@@ -32,6 +32,14 @@ namespace EntityCore.Test.DataTransferObjects
             string generatedCode = creationDto.Generate();
 
             // Assert
+
+            // Namespace and Usings
+            AssertNamespaceEqualTo(generatedCode, "DataTransferObjects.ComplexEntitys");
+            AssertUsingDirectiveExists(generatedCode, "System");
+            AssertUsingDirectiveExists(generatedCode, "System.Collections.Generic");
+            AssertUsingDirectiveExists(generatedCode, "EntityCore.Test.Entities");
+
+            // Properties
             AssertPropertyDoesNotExist(generatedCode, "long Id");
 
             AssertPropertyExists(generatedCode, "public string MainProperty { get; set; }");

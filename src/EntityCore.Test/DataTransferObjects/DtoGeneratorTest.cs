@@ -6,18 +6,28 @@ namespace EntityCore.Test.DataTransferObjects
     {
         protected void AssertPropertyExists(string generatedCode, string propertySignature)
         {
-            // Normalize whitespace in the property signature and code for robust matching
-            string normalizedSignature = Regex.Replace(propertySignature, @"\s+", " ").Trim();
             string normalizedCode = Regex.Replace(generatedCode, @"\s+", " ").Trim();
-            Assert.True(normalizedCode.Contains(normalizedSignature), $"Expected property '{normalizedSignature}' not found in '{normalizedCode}'.");
+            Assert.True(normalizedCode.Contains(propertySignature), $"Expected property '{propertySignature}' not found in '{normalizedCode}'.");
         }
 
-        protected void AssertPropertyDoesNotExist(string generatedCode, string propertyName)
+        protected void AssertPropertyDoesNotExist(string generatedCode, string propertySignature)
         {
-            // Checks if a property with the given name (and typical { get; set; } structure) exists.
-            // This is a simplified check and might need adjustment if property structures vary significantly.
             string normalizedCode = Regex.Replace(generatedCode, @"\s+", " ").Trim();
-            Assert.False(normalizedCode.Contains($"public {propertyName} {{ get; set; }}") || normalizedCode.Contains($" {propertyName} {{ get; set; }}"), $"Property '{propertyName}' should not exist but was found in '{normalizedCode}'.");
+            Assert.False(normalizedCode.Contains(propertySignature) || normalizedCode.Contains(propertySignature), $"Property '{propertySignature}' should not exist but was found in '{normalizedCode}'.");
+        }
+
+        protected void AssertNamespaceEqualTo(string generatedCode, string namespaceName)
+        {
+            string normalizedNamespace = Regex.Replace(namespaceName, @"\s+", " ").Trim();
+            string normalizedCode = Regex.Replace(generatedCode, @"\s+", " ").Trim();
+            Assert.True(normalizedCode.Contains($"namespace {normalizedNamespace}"), $"Expected namespace '{normalizedNamespace}' not found in '{normalizedCode}'.");
+        }
+
+        protected void AssertUsingDirectiveExists(string generatedCode, string usingDirective)
+        {
+            string normalizedUsing = Regex.Replace(usingDirective, @"\s+", " ").Trim();
+            string normalizedCode = Regex.Replace(generatedCode, @"\s+", " ").Trim();
+            Assert.True(normalizedCode.Contains($"using {normalizedUsing};"), $"Expected using directive '{normalizedUsing}' not found in '{normalizedCode}'.");
         }
     }
 }

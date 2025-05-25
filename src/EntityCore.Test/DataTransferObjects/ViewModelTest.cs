@@ -1,5 +1,6 @@
 ﻿using EntityCore.Test.Entities;
 using EntityCore.Tools.DataTransferObjects;
+using TestApiNet8.Domain.Entities;
 
 namespace EntityCore.Test.DataTransferObjects
 {
@@ -23,12 +24,20 @@ namespace EntityCore.Test.DataTransferObjects
         public void Generate_Complex_Entity_ViewModel_With_Required_Properties()
         {
             // Arrange
-            var viewModel = new ViewModel(typeof(ComplexEntity));
+            var viewModel = new ViewModel(typeof(Teacher));
 
             // Act
             string generatedCode = viewModel.Generate();
 
             // Assert
+
+            // Namespace and Usings
+            AssertNamespaceEqualTo(generatedCode, "DataTransferObjects.ComplexEntitys");
+            AssertUsingDirectiveExists(generatedCode, "System");
+            AssertUsingDirectiveExists(generatedCode, "System.Collections.Generic");
+            AssertUsingDirectiveExists(generatedCode, "EntityCore.Test.Entities");
+
+            // Properties
             AssertPropertyExists(generatedCode, "public long Id { get; set; }");
             AssertPropertyExists(generatedCode, "public string MainProperty { get; set; }");
             AssertPropertyExists(generatedCode, "public long? OptionalRelatedId { get; set; }");

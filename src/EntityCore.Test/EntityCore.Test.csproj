@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\examples\TestApiNet8.Domain\TestApiNet8.Domain.csproj" />
     <ProjectReference Include="..\EntityCore.Tools\EntityCore.Tools.csproj" />
   </ItemGroup>
 

@@ -1,6 +1,4 @@
-﻿using TestApiWithNet8.Entities;
-
-namespace TestApiNet8.Domain.Entities
+﻿namespace TestApiNet8.Domain.Entities
 {
     public class Teacher
     {
