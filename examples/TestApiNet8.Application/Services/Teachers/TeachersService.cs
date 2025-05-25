@@ -26,11 +26,7 @@ namespace Services.Teachers
         public async Task<TeacherViewModel> AddAsync(TeacherCreationDto teacherCreationDto)
         {
             var entity = _mapper.Map<Teacher>(teacherCreationDto);
-
-            var students = await _testApiNet8Db.Students
-                .Where(x => teacherCreationDto.StudentsIds.Contains(x.Id)).ToListAsync();
-            entity.Students = students;
-
+            entity.Students = await _testApiNet8Db.Set<Student>().Where(x => teacherCreationDto.StudentsIds.Contains(x.Id)).ToListAsync();
             var entry = await _testApiNet8Db.Set<Teacher>().AddAsync(entity);
             await _testApiNet8Db.SaveChangesAsync();
             return _mapper.Map<TeacherViewModel>(entry.Entity);
@@ -63,6 +59,7 @@ namespace Services.Teachers
             if (entity == null)
                 throw new InvalidOperationException($"Teacher with {id} not found.");
             _mapper.Map(teacherModificationDto, entity);
+            entity.Students = await _testApiNet8Db.Set<Student>().Where(x => teacherModificationDto.StudentsIds.Contains(x.Id)).ToListAsync();
             var entry = _testApiNet8Db.Set<Teacher>().Update(entity);
             await _testApiNet8Db.SaveChangesAsync();
             return _mapper.Map<TeacherViewModel>(entry.Entity);

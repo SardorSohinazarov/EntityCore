@@ -136,22 +136,31 @@ namespace EntityCore.Tools.Services
 
         private MethodDeclarationSyntax GenerateAddMethodImplementation(string dbContextVariableName)
         {
-            var creationDtoType = GetCreationDto(_entityName);
+            List<StatementSyntax> idsPropertiesStatements = new List<StatementSyntax>();
             var creationDtoTypeName = GetCreationDtoTypeName(_entityName);
             var parametrName = creationDtoTypeName.GenerateFieldName();
             var returnTypeName = GetReturnTypeName(_entityName);
 
-            var collectionProperties = _entityType.GetProperties().Where(x => typeof(IEnumerable).IsAssignableFrom(x.PropertyType));
-            var collectionPropertiesNames = collectionProperties.Select(x => $"{x.Name}Ids");
-            var idsProperties = creationDtoType.GetProperties().Where(x => x.Name.EndsWith("Ids"));
-            idsProperties = idsProperties.Where(x => collectionPropertiesNames.Contains(x.Name));
-            collectionProperties = collectionProperties.Where(x => idsProperties.Any(y => y.Name == $"{x.Name}Ids")).ToList();
+            if(creationDtoTypeName != _entityName)
+            {
+                var creationDtoType = GetCreationDto(_entityName);
+                var collectionPropertiesWithIds = _entityType.GetProperties()
+                    .Where(x => typeof(IEnumerable).IsAssignableFrom(x.PropertyType))
+                    .Select(x => new 
+                    {
+                        Property = x,
+                        IdsProperty = creationDtoType.GetProperty($"{x.Name}Ids")
+                    })
+                    .Where(x => x.IdsProperty != null)
+                    .ToList();
 
-            var idsPropertiesStatements = collectionProperties.Select(x =>
-                SyntaxFactory.ParseStatement(
-                    $"entity.{x.Name} = await {dbContextVariableName}.Set<{GetCollectionElementType(x.PropertyType).Name}>()" +
-                    $"      .Where(x => {parametrName}.{idsProperties.FirstOrDefault(y => $"{x.Name}Ids" == y.Name).Name}.Contains(x.{GetCollectionElementType(x.PropertyType).FindPrimaryKeyProperty().Name}))" +
-                    $"      .ToListAsync();"));
+                idsPropertiesStatements = collectionPropertiesWithIds.Select(x =>
+                    SyntaxFactory.ParseStatement(
+                        $"entity.{x.Property.Name} = await {dbContextVariableName}.Set<{GetCollectionElementType(x.Property.PropertyType).Name}>()" +
+                        $"      .Where(x => {parametrName}.{x.IdsProperty.Name}.Contains(x.{GetCollectionElementType(x.Property.PropertyType).FindPrimaryKeyProperty().Name}))" +
+                        $"      .ToListAsync();"))
+                    .ToList();
+            }
 
             List<StatementSyntax> statementSyntaxes = [SyntaxFactory.ParseStatement($"var entity = _mapper.Map<{_entityName}>({parametrName});")];
             if(idsPropertiesStatements.Any())
@@ -225,9 +234,41 @@ namespace EntityCore.Tools.Services
 
         private MethodDeclarationSyntax GenerateUpdateMethodImplementation(string dbContextVariableName)
         {
+            List<StatementSyntax> idsPropertiesStatements = new List<StatementSyntax>();
             var modificationDtoTypeName = GetModificationDtoTypeName(_entityName);
             var parametrName = modificationDtoTypeName.GenerateFieldName();
             var returnTypeName = GetReturnTypeName(_entityName);
+
+            if(modificationDtoTypeName != _entityName)
+            {
+                var modificationDto = GetModificationDto(_entityName);
+                var collectionPropertiesWithIds = _entityType.GetProperties()
+                    .Where(x => typeof(IEnumerable).IsAssignableFrom(x.PropertyType))
+                    .Select(x => new 
+                    {
+                        Property = x,
+                        IdsProperty = modificationDto.GetProperty($"{x.Name}Ids")
+                    })
+                    .Where(x => x.IdsProperty != null)
+                    .ToList();
+
+                idsPropertiesStatements = collectionPropertiesWithIds.Select(x =>
+                    SyntaxFactory.ParseStatement(
+                        $"entity.{x.Property.Name} = await {dbContextVariableName}.Set<{GetCollectionElementType(x.Property.PropertyType).Name}>()" +
+                        $"      .Where(x => {parametrName}.{x.IdsProperty.Name}.Contains(x.{GetCollectionElementType(x.Property.PropertyType).FindPrimaryKeyProperty().Name}))" +
+                        $"      .ToListAsync();"))
+                    .ToList();
+            }
+
+            List<StatementSyntax> statementSyntaxes = new List<StatementSyntax>();
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{_entityName}>().FirstOrDefaultAsync(x => x.{_primaryKey.Name} == id);"));
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{_entityName} with {{id}} not found.\");"));
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"_mapper.Map({parametrName}, entity);"));
+            if (idsPropertiesStatements.Any())
+                statementSyntaxes.AddRange(idsPropertiesStatements);
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{_entityName}>().Update(entity);"));
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"));
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"return {GenerateReturn()};"));
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "UpdateAsync")
@@ -239,12 +280,7 @@ namespace EntityCore.Tools.Services
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(modificationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{_entityName}>().FirstOrDefaultAsync(x => x.{_primaryKey.Name} == id);"),
-                                    SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{_entityName} with {{id}} not found.\");"),
-                                    SyntaxFactory.ParseStatement($"_mapper.Map({parametrName}, entity);"),
-                                    SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{_entityName}>().Update(entity);"),
-                                    SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"),
-                                    SyntaxFactory.ParseStatement($"return {GenerateReturn()};")
+                                    statementSyntaxes
                                 ));
         }
 
