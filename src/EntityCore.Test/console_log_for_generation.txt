@@ -1,0 +1,27 @@
+Service.Generate: Starting generation for entity: SimpleEntity
+Service.Generate: DbContext resolved to: EntityCore.Test.Mocks.TestDbContext
+Service.Generate: About to call GetClassDeclaration.
+Service.GetClassDeclaration: Entered for entity: SimpleEntity
+Service.GetClassDeclaration: Generated class (first 200 chars): [ScopedService]
+public class SimpleEntitysService : ISimpleEntitysService
+{
+    private readonly TestDbContext _testDbContext;
+    private readonly IMapper _mapper;
+    private readonly IHttpCont
+Service.Generate: GetClassDeclaration returned: ClassDecl object
+Service.Generate: About to generate mapping profile.
+Data transfer objects not found for this entity -> SimpleEntity
+Service.Generate: Mapping profile generated (first 200 chars): null_mapping_code
+Service.Generate: About to call GenerateUsings.
+Service.Generate: Final generated code (first 300 chars): using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Common.Paginations.Models;
+using Common.Paginations.Extensions;
+using Common.ServiceAttribute;
+using EntityCore.Test.Mocks;
+using EntityCore.Test.Entities;
+
+namespace Services.SimpleEntitys
+{
+   

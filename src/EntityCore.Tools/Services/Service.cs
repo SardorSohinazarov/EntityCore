@@ -65,15 +65,14 @@ namespace EntityCore.Tools.Services
 
             var mappingProfile = new MappingProfile();
             var mappingProfileCode = mappingProfile.GenerateMappingProfile(_entityName);
-
+            
             if (mappingProfileCode is not null)
                 namespaceDeclaration = namespaceDeclaration.AddMembers(mappingProfileCode);
-
+            
             var syntaxTree = GenerateUsings(namespaceDeclaration, dbContextType, _entityType);
 
-            return syntaxTree
-                .NormalizeWhitespace()
-                .ToFullString();
+            var fullGeneratedCode = syntaxTree.NormalizeWhitespace().ToFullString(); // Restored NormalizeWhitespace
+            return fullGeneratedCode;
         }
 
         private ClassDeclarationSyntax GetClassDeclaration(Type dbContextType)
@@ -130,7 +129,6 @@ namespace EntityCore.Tools.Services
                             GenerateUpdateMethodImplementation(dbContextVariableName),
                             GenerateDeleteMethodImplementation(dbContextVariableName)
                         );
-
             return classDeclaration;
         }
 

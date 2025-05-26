@@ -1,0 +1,75 @@
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Common.Paginations.Models;
+using Common.Paginations.Extensions;
+using Common.ServiceAttribute;
+using EntityCore.Test.Mocks;
+using EntityCore.Test.Entities;
+
+namespace Services.SimpleEntitys
+{
+    [ScopedService]
+    public class SimpleEntitysService : ISimpleEntitysService
+    {
+        private readonly TestDbContext _testDbContext;
+        private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContext;
+        public SimpleEntitysService(TestDbContext testDbContext, IMapper mapper, IHttpContextAccessor httpContext)
+        {
+            _testDbContext = testDbContext;
+            _mapper = mapper;
+            _httpContext = httpContext;
+        }
+
+        public async Task<SimpleEntity> AddAsync(SimpleEntity simpleEntity)
+        {
+            var entity = _mapper.Map<SimpleEntity>(simpleEntity);
+            var entry = await _testDbContext.Set<SimpleEntity>().AddAsync(entity);
+            await _testDbContext.SaveChangesAsync();
+            return entry.Entity;
+        }
+
+        public async Task<List<SimpleEntity>> GetAllAsync()
+        {
+            var entities = await _testDbContext.Set<SimpleEntity>().ToListAsync();
+            return entities;
+        }
+
+        public async Task<List<SimpleEntity>> FilterAsync(PaginationOptions filter)
+        {
+            var httpContext = _httpContext.HttpContext;
+            var entities = await _testDbContext.Set<SimpleEntity>().ApplyPagination(filter, httpContext).ToListAsync();
+            return entities;
+        }
+
+        public async Task<SimpleEntity> GetByIdAsync(Guid id)
+        {
+            var entity = await _testDbContext.Set<SimpleEntity>().FirstOrDefaultAsync(x => x.Id == id);
+            if (entity == null)
+                throw new InvalidOperationException($"SimpleEntity with Id {id} not found.");
+            return entity;
+        }
+
+        public async Task<SimpleEntity> UpdateAsync(Guid id, SimpleEntity simpleEntity)
+        {
+            var entity = await _testDbContext.Set<SimpleEntity>().FirstOrDefaultAsync(x => x.Id == id);
+            if (entity == null)
+                throw new InvalidOperationException($"SimpleEntity with {id} not found.");
+            _mapper.Map(simpleEntity, entity);
+            var entry = _testDbContext.Set<SimpleEntity>().Update(entity);
+            await _testDbContext.SaveChangesAsync();
+            return entry.Entity;
+        }
+
+        public async Task<SimpleEntity> DeleteAsync(Guid id)
+        {
+            var entity = await _testDbContext.Set<SimpleEntity>().FirstOrDefaultAsync(x => x.Id == id);
+            if (entity == null)
+                throw new InvalidOperationException($"SimpleEntity with {id} not found.");
+            var entry = _testDbContext.Set<SimpleEntity>().Remove(entity);
+            await _testDbContext.SaveChangesAsync();
+            return entry.Entity;
+        }
+    }
+}
