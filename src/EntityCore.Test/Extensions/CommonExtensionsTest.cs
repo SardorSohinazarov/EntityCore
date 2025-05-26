@@ -3,42 +3,51 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EntityCore.Test.Extensions
 {
-    public class CommonExtensionsTest
+    public partial class CommonExtensionsTest
     {
+        [Fact]
+        public void Should_Return_True_Or_False_Is_Navigational_Property()
+        {
+            // Arrange
+            var primitiveTypes = new[]
+            {
+                typeof(int), typeof(Guid), typeof(DateTime), typeof(bool),
+                typeof(int?), typeof(Guid?), typeof(DateTime?), typeof(bool?),
+                typeof(string)
+             };
+
+            var nonPrimitiveTypes = new[]
+            {
+                typeof(EntityWithKeyAttr), typeof(EntityWithIdProp), typeof(EntityWithGuidIdProp),
+            };
+
+            // Act & Assert
+            foreach (var type in primitiveTypes)
+            {
+                Assert.False(type.IsNavigationProperty(), $"{type.Name} should not be a navigation property.");
+            }
+
+            foreach (var type in nonPrimitiveTypes)
+            {
+                Assert.True(type.IsNavigationProperty(), $"{type.Name} should be a navigation property.");
+            }
+        }
+
         [Theory]
-        [InlineData(typeof(EntityWithKeyAttr), "CustomKey", typeof(int))]
-        [InlineData(typeof(EntityWithIdProp), "Id", typeof(int))]
-        [InlineData(typeof(EntityWithGuidIdProp), "Id", typeof(Guid))]
-        [InlineData(typeof(EntityWithKeyAndId), "ExplicitKey", typeof(string))]
-        public void Should_Return_Primary_Key_Property(Type entityType, string propertyName, Type keyType)
+        [InlineData(typeof(int), "int")]
+        [InlineData(typeof(int?), "int?")]
+        [InlineData(typeof(string), "string")]
+        [InlineData(typeof(Guid), "Guid")]
+        [InlineData(typeof(Guid?), "Guid?")]
+        [InlineData(typeof(DateTime), "DateTime")]
+        [InlineData(typeof(DateTime?), "DateTime?")]
+        public void Should_Return_True_CSharp_Type_Name(Type type, string expectedName)
         {
             // Arrange
             // Act
-            var keyProp = entityType.FindPrimaryKeyProperty();
+            var typeName = type.ToCSharpTypeName();
             // Assert
-            Assert.NotNull(keyProp);
-            Assert.Equal(propertyName, keyProp.Name);
-            Assert.True(keyProp.PropertyType == keyType);
-        }
-
-        [Theory]
-        [InlineData(typeof(EntityWithLowercaseIdProp), $"Entity {nameof(EntityWithLowercaseIdProp)} does not have a primary key defined. " +
-                    "Please ensure it has a property with [Key] attribute or named 'Id'.")]
-        [InlineData(typeof(EntityWithNoKey), $"Entity {nameof(EntityWithNoKey)} does not have a primary key defined. " +
-                    "Please ensure it has a property with [Key] attribute or named 'Id'.")]
-        public void Should_Throw_Exception_When_No_Primary_Key_Property(Type entityType, string expectedMessage)
-        {
-            // Arrange
-            // Act & Assert
-            var exception = Assert.Throws<InvalidOperationException>(() => entityType.FindPrimaryKeyProperty());
-            Assert.Equal(expectedMessage, exception.Message);
+            Assert.Equal(expectedName, typeName);
         }
     }
-
-    public class EntityWithKeyAttr { [Key] public int CustomKey { get; set; } }
-    public class EntityWithIdProp { public int Id { get; set; } }
-    public class EntityWithGuidIdProp { public Guid Id { get; set; } }
-    public class EntityWithLowercaseIdProp { public int id { get; set; } }
-    public class EntityWithNoKey { public string Name { get; set; } }
-    public class EntityWithKeyAndId { [Key] public string ExplicitKey { get; set; } public int Id { get; set; } }
 }
