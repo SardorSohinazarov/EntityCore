@@ -50,11 +50,12 @@ namespace EntityCore.Tools.Services
         private MemberDeclarationSyntax GenerateAddMethodDecleration()
         {
             var creationDtoTypeName = GetCreationDtoTypeName(_entityName);
+            var parametrName = creationDtoTypeName.GenerateFieldName();
             var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "AddAsync")
-                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(creationDtoTypeName)))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
@@ -96,13 +97,14 @@ namespace EntityCore.Tools.Services
         private MethodDeclarationSyntax GenerateUpdateMethodDeclaration()
         {
             var modificationDtoTypeName = GetModificationDtoTypeName(_entityName);
+            var parametrName = modificationDtoTypeName.GenerateFieldName();
             var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "UpdateAsync")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                     .WithType(SyntaxFactory.ParseTypeName(_primaryKey.PropertyType.ToCSharpTypeName())))
-                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(modificationDtoTypeName)))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)
                                 );
