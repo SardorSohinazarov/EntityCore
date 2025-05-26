@@ -9,7 +9,7 @@ namespace EntityCore.Test.Services
         [Theory]
         [InlineData(typeof(SimpleEntity), null, null, null)]
         [InlineData(typeof(ComplexEntity), typeof(ComplexEntityCreationDto), typeof(ComplexEntityModificationDto), typeof(ComplexEntityViewModel))]
-        public void Should_Generate_Valid_Service_For_Entity(Type entityType, Type? creationDto, Type? modificationDto, Type? viewModel)
+        public void Should_Generate_Valid_Service_Interface_For_Entity(Type entityType, Type? creationDto, Type? modificationDto, Type? viewModel)
         {
             // Arrange
             var serviceGenerator = new IService(entityType);
