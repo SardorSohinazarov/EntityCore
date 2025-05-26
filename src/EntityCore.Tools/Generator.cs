@@ -5,27 +5,6 @@ namespace EntityCore.Tools
 {
     public class Generator
     {
-        protected PropertyInfo FindKeyProperty(Type entityType)
-        {
-            // 1. [Key] atributi bilan belgilangan propertyni topish
-            var keyProperty = entityType
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .FirstOrDefault(prop => prop.GetCustomAttribute<KeyAttribute>() != null);
-
-            if (keyProperty is not null)
-                return keyProperty;
-
-            // 2. Agar [Key] topilmasa, "Id" nomli propertyni qidirish
-            keyProperty = entityType
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .FirstOrDefault(prop => string.Equals(prop.Name, "Id"));
-
-            if (keyProperty is null)
-                throw new InvalidOperationException("Entity must have a key property.");
-
-            return keyProperty;
-        }
-
         protected string GetReturnTypeName(Type entityType)
             => GetReturnTypeName(entityType.Name);
 

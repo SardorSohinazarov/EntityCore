@@ -66,21 +66,21 @@ namespace EntityCore.Tools.Extensions
 
         public static PropertyInfo FindPrimaryKeyProperty(this Type entityType)
         {
+            var properties = entityType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
             // 1. [Key] atributi bilan belgilangan propertyni topish
-            var keyProperty = entityType
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            var keyProperty = properties
                 .FirstOrDefault(prop => prop.GetCustomAttribute<KeyAttribute>() != null);
 
             if (keyProperty is not null)
                 return keyProperty;
 
             // 2. Agar [Key] topilmasa, "Id" nomli propertyni qidirish
-            keyProperty = entityType
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            keyProperty = properties
                 .FirstOrDefault(prop => string.Equals(prop.Name, "Id"));
 
-            if (keyProperty is null)
-                throw new InvalidOperationException($"Entity must have a key property.{entityType.Name}");
+            if(keyProperty is null)
+                throw new InvalidOperationException($"Entity {entityType.Name} does not have a primary key defined. " +
+                    "Please ensure it has a property with [Key] attribute or named 'Id'.");
 
             return keyProperty;
         }
