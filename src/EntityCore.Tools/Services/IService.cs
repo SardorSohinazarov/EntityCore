@@ -127,11 +127,7 @@ namespace EntityCore.Tools.Services
         {
             var usings = new List<string>
             {
-                "AutoMapper",
-                "Microsoft.EntityFrameworkCore",
-                "Microsoft.AspNetCore.Http",
                 "Common.Paginations.Models",
-                "Common.Paginations.Extensions"
             };
 
             var viewModelType = GetViewModel(entityType.Name);

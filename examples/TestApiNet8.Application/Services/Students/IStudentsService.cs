@@ -1,10 +1,5 @@
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
 using Common.Paginations.Models;
-using Common.Paginations.Extensions;
 using DataTransferObjects.Students;
-using TestApiNet8.Domain.Entities;
 
 namespace Services.Students
 {
