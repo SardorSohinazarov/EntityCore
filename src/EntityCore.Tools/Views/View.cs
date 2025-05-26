@@ -1,5 +1,5 @@
-﻿using EntityCore.Tools.DbContexts;
-using EntityCore.Tools.Extensions;
+﻿using EntityCore.Tools.Extensions;
+using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
 namespace EntityCore.Tools.Views
