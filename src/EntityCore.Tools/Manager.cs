@@ -125,14 +125,30 @@ namespace EntityCore.Tools
 
             Type? entityType = GetEntityType(entityName);
 
-            string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
-            Console.WriteLine("dbContextName:" + dbContextName);
+            // Retrieve optional namespace arguments
+            string? dtosNamespace = _arguments.ContainsKey("dtos-namespace") ? _arguments["dtos-namespace"] : null;
+            string? viewModelsNamespace = _arguments.ContainsKey("viewmodels-namespace") ? _arguments["viewmodels-namespace"] : null;
 
-            var view = new View(entityType);
-            var viewCode = view.Generate();
+            var viewGenerator = new View(entityType);
+            var generatedPages = viewGenerator.GenerateCrudPages(dtosNamespace, viewModelsNamespace);
 
-            WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.razor", viewCode);
-            ConsoleMessage($"View for {entityName} generated successfully!");
+            string entityViewBasePath = Path.Combine("Components", "Pages", $"{entityName}s");
+
+            if (!generatedPages.Any())
+            {
+                ConsoleMessage($"No Blazor views generated for {entityName}. Check DTOs/ViewModels if expected.", ConsoleColor.Yellow);
+                return;
+            }
+            
+            foreach (var page in generatedPages)
+            {
+                // page.Key is the filename like "EntityList.razor"
+                // page.Value is the code content
+                // The WriteCode method handles combining _projectRoot with the relative path parts.
+                WriteCode(entityViewBasePath.Split(Path.DirectorySeparatorChar), page.Key, page.Value);
+                ConsoleMessage($"{page.Key} for {entityName} generated successfully in {entityViewBasePath}!");
+            }
+            ConsoleMessage($"All Blazor CRUD pages for {entityName} generated successfully under {Path.Combine(_projectRoot, entityViewBasePath)} directory.");
         }
 
         private void GenerateController()
@@ -179,9 +195,9 @@ namespace EntityCore.Tools
             throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
         }
 
-        private static void ConsoleMessage(string message)
+        private static void ConsoleMessage(string message, ConsoleColor color = ConsoleColor.Green)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
+            Console.ForegroundColor = color;
             Console.WriteLine(message);
             Console.ResetColor();
         }
