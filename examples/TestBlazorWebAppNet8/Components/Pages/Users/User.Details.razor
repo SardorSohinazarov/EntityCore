@@ -1,0 +1,51 @@
+@page "/users/details/{Id:int}"
+@using DataTransferObjects.Users
+@using Services.Users
+@inject IUsersService UserService
+@inject NavigationManager NavigationManager
+
+<h3>User Details</h3>
+
+@if (userDetails == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-3">Id</dt>
+        <dd class="col-sm-9">@userDetails.Id</dd>
+        <dt class="col-sm-3">Name</dt>
+        <dd class="col-sm-9">@userDetails.Name</dd>
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@userDetails.Email</dd>
+        <dt class="col-sm-3">Password</dt>
+        <dd class="col-sm-9">@userDetails.Password</dd>
+    </dl>
+    <div>
+        <button class="btn btn-primary" @onclick="EditUser">Edit</button>
+        <button class="btn btn-secondary" @onclick="BackToList">Back to List</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Int32 Id { get; set; }
+
+    private UserViewModel? userDetails;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        userDetails = await UserService.GetByIdAsync(Id);
+    }
+
+    private void EditUser()
+    {
+        NavigationManager.NavigateTo($"/users/edit/{Id}");
+    }
+
+    private void BackToList()
+    {
+        NavigationManager.NavigateTo("/users");
+    }
+}

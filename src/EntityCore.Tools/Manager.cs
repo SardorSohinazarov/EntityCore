@@ -129,10 +129,13 @@ namespace EntityCore.Tools
             Console.WriteLine("dbContextName:" + dbContextName);
 
             var view = new View(entityType);
-            var viewCode = view.Generate();
+            var viewCodes = view.Generate();
 
-            WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.razor", viewCode);
-            ConsoleMessage($"View for {entityName} generated successfully!");
+            foreach(var viewCode in viewCodes)
+            {
+                WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.{viewCode.Item1}.razor", viewCode.Item2);
+                ConsoleMessage($"View for {entityName} generated successfully!");
+            }
         }
 
         private void GenerateController()
