@@ -3,7 +3,6 @@ using Services.Students;
 using Common.Paginations.Models;
 using Common;
 using DataTransferObjects.Students;
-using TestApiNet8.Domain.Entities;
 
 namespace Controllers
 {
