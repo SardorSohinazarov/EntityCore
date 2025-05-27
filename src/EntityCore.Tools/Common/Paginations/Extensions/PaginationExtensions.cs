@@ -11,7 +11,7 @@ namespace EntityCore.Tools.Common.Paginations.Extensions
     {
         public string GeneratePaginationExtensions()
         {
-            // using'larni yaratish
+            // Create usings
             var usings = new[]
             {
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System")),
@@ -64,17 +64,17 @@ namespace EntityCore.Tools.Common.Paginations.Extensions
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword), SyntaxFactory.Token(SyntaxKind.StaticKeyword))
                 .AddMembers(method);
 
-            // namespace yaratish
+            // Create namespace
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Common.Paginations.Extensions"))
                 .AddMembers(classDeclaration);
 
-            // using'lar va namespace'ni birlashtirish
+            // Combine usings and namespace
             var compilationUnit = SyntaxFactory.CompilationUnit()
                 .AddUsings(usings)
                 .AddMembers(namespaceDeclaration)
                 .NormalizeWhitespace();
 
-            // Kodni string ko'rinishda qaytarish
+            // Return code as string
             return compilationUnit.ToFullString();
         }
     }

@@ -63,10 +63,10 @@ namespace EntityCore.Tools.Common.Paginations.Models
                         )
                 );
 
-            // Namespacega classni qo'shish
+            // Add class to namespace
             namespaceDeclaration = namespaceDeclaration.AddMembers(classDeclaration);
 
-            // Kodni string ko'rinishida olish
+            // Get code as string
             return namespaceDeclaration.NormalizeWhitespace().ToFullString();
         }
     }

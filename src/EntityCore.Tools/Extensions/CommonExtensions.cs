@@ -45,7 +45,7 @@ namespace EntityCore.Tools.Extensions
 
         public static PropertyInfo FindPrimaryKeyProperty(this Type entityType)
         {
-            // 1. [Key] atributi bilan belgilangan propertyni topish
+            // 1. Find property marked with [Key] attribute
             var keyProperty = entityType
                 .GetProperties()
                 .FirstOrDefault(prop => prop.GetCustomAttribute<KeyAttribute>() != null);
@@ -53,7 +53,7 @@ namespace EntityCore.Tools.Extensions
             if (keyProperty is not null)
                 return keyProperty;
 
-            // 2. Agar [Key] topilmasa, "Id" nomli propertyni qidirish
+            // 2. If [Key] is not found, search for a property named "Id"
             keyProperty = entityType
                 .GetProperties()
                 .FirstOrDefault(prop => string.Equals(prop.Name, "Id"));
@@ -66,12 +66,12 @@ namespace EntityCore.Tools.Extensions
 
         public static bool IsPrimaryKeyProperty(this PropertyInfo propertyInfo)
         {
-            // 1. [Key] atributi bilan belgilanganmi
+            // 1. Is it marked with [Key] attribute?
             var keyAttribute = propertyInfo.GetCustomAttribute<KeyAttribute>();
             if (keyAttribute is not null)
                 return true;
 
-            // 2. Agar [Key] topilmasa, "Id" nomli propertymi
+            // 2. If [Key] is not found, is it a property named "Id"?
             return string.Equals(propertyInfo.Name, "Id");
         }
     }

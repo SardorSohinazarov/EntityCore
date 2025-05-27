@@ -7,7 +7,7 @@ namespace EntityCore.Tools
     {
         protected PropertyInfo FindKeyProperty(Type entityType)
         {
-            // 1. [Key] atributi bilan belgilangan propertyni topish
+            // 1. Find property marked with [Key] attribute
             var keyProperty = entityType
                 .GetProperties()
                 .FirstOrDefault(prop => prop.GetCustomAttribute<KeyAttribute>() != null);
@@ -15,7 +15,7 @@ namespace EntityCore.Tools
             if (keyProperty is not null)
                 return keyProperty;
 
-            // 2. Agar [Key] topilmasa, "Id" nomli propertyni qidirish
+            // 2. If [Key] is not found, search for a property named "Id"
             keyProperty = entityType
                 .GetProperties()
                 .FirstOrDefault(prop => string.Equals(prop.Name, "Id"));
@@ -27,48 +27,60 @@ namespace EntityCore.Tools
         }
 
         protected string GetReturnTypeName(Type entityType)
-            => GetReturnTypeName(entityType.Name);
+            => ResolveReturnTypeName(entityType.Name);
 
-        protected string GetReturnTypeName(string entityName)
+        protected string ResolveReturnTypeName(string entityName)
         {
-            var viewModelType = GetViewModel(entityName);
+            var viewModelType = FindExistingViewModelType(entityName);
             return viewModelType is null ? entityName : viewModelType.Name;
         }
 
-        protected Type GetViewModel(string entityName)
+        public static Type FindExistingViewModelType(string entityName, IEnumerable<Assembly> assembliesToSearch)
         {
             var viewModelName = $"{entityName}ViewModel";
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == viewModelName);
+            foreach (var assembly in assembliesToSearch)
+            {
+                var type = assembly.GetTypes().FirstOrDefault(t => t.Name == viewModelName && !t.IsNested);
+                if (type != null) return type;
+            }
+            return null;
         }
 
         protected string GetCreationDtoTypeName(string entityName)
         {
-            var creationDtoType = GetCreationDto(entityName);
+            // This method might need access to the same assemblies as Manager if used by subclasses
+            // For now, assuming it's called where AppDomain.CurrentDomain.GetAssemblies() is acceptable context
+            var creationDtoType = FindExistingCreationDtoType(entityName, AppDomain.CurrentDomain.GetAssemblies());
             return creationDtoType is null ? entityName : creationDtoType.Name;
         }
 
-        protected Type GetCreationDto(string entityName)
+        public static Type FindExistingCreationDtoType(string entityName, IEnumerable<Assembly> assembliesToSearch)
         {
             var creationDtoName = $"{entityName}CreationDto";
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == creationDtoName);
+            foreach (var assembly in assembliesToSearch)
+            {
+                var type = assembly.GetTypes().FirstOrDefault(t => t.Name == creationDtoName && !t.IsNested);
+                if (type != null) return type;
+            }
+            return null;
         }
 
         protected string GetModificationDtoTypeName(string entityName)
         {
-            var modificationDtoType = GetModificationDto(entityName);
+            // Similar to GetCreationDtoTypeName
+            var modificationDtoType = FindExistingModificationDtoType(entityName, AppDomain.CurrentDomain.GetAssemblies());
             return modificationDtoType is null ? entityName : modificationDtoType.Name;
         }
 
-        protected Type GetModificationDto(string entityName)
+        public static Type FindExistingModificationDtoType(string entityName, IEnumerable<Assembly> assembliesToSearch)
         {
             var modificationDtoName = $"{entityName}ModificationDto";
-            return AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes())
-                .FirstOrDefault(t => t.Name == modificationDtoName);
+            foreach (var assembly in assembliesToSearch)
+            {
+                var type = assembly.GetTypes().FirstOrDefault(t => t.Name == modificationDtoName && !t.IsNested);
+                if (type != null) return type;
+            }
+            return null;
         }
     }
 }

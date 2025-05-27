@@ -49,8 +49,8 @@ namespace EntityCore.Tools
             Assembly mainAssembly = Assembly.LoadFrom(dllPath);
             AssemblyName[] references = mainAssembly.GetReferencedAssemblies();
 
-            if (references.Length != 0)
-                Console.WriteLine("Referenced assemblies");
+            // if (references.Length != 0)
+            //     Console.WriteLine("Referenced assemblies"); // Removed for brevity
 
             LoadReferencedAssemblies(references);
         }
@@ -75,10 +75,10 @@ namespace EntityCore.Tools
                         Console.WriteLine($"Failed to load: {reference.Name}");
                     }
                 }
-                finally
-                {
-                    Console.WriteLine($"Assembly: {reference.Name}");
-                }
+                // finally
+                // {
+                //     Console.WriteLine($"Assembly: {reference.Name}"); // Removed for brevity
+                // }
             }
         }
 

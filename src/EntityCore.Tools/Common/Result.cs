@@ -12,11 +12,11 @@ namespace EntityCore.Tools.Common
     {
         public string GenerateResultClasses()
         {
-            // Namespace yaratish
+            // Create namespace
             var namespaceDeclaration = SyntaxFactory.NamespaceDeclaration(SyntaxFactory.ParseName("Common"))
                 .NormalizeWhitespace();
 
-            // Result klassini yaratish
+            // Create Result class
             var resultClass = SyntaxFactory.ClassDeclaration("Result")
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
                 .AddMembers(
@@ -54,7 +54,7 @@ namespace EntityCore.Tools.Common
                     GenerateMethod("Success", "Result", true, true)
                 );
 
-            // Result<T> klassini yaratish
+            // Create Result<T> class
             var genericResultClass = SyntaxFactory.ClassDeclaration("Result")
                 .AddTypeParameterListParameters(SyntaxFactory.TypeParameter("T"))
                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
@@ -85,10 +85,10 @@ namespace EntityCore.Tools.Common
                     GenerateMethod("Success", "Result<T>", true, hasMessage: true, isGeneric: true, hasData: true)
                 );
 
-            // Namespacega klasslarni qo'shish
+            // Add classes to namespace
             namespaceDeclaration = namespaceDeclaration.AddMembers(resultClass, genericResultClass);
 
-            // usings
+            // Usings
             var usings = new[]
             {
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Text.Json.Serialization"))
