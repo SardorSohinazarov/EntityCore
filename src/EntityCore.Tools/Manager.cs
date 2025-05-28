@@ -96,7 +96,7 @@ namespace EntityCore.Tools
 
             Type? entityType = GetEntityType(entityName);
 
-            string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
+            var dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
             Console.WriteLine("dbContextName:" + dbContextName);
 
             GeneratePagination();

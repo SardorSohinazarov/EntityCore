@@ -21,7 +21,7 @@ namespace EntityCore.Tools.Services
             _primaryKey = entityType.FindPrimaryKeyProperty();
         }
 
-        public string Generate(string dbContextName = null)
+        public string Generate(string? dbContextName = null)
         {
             Type? dbContextType = null;
 
@@ -137,13 +137,16 @@ namespace EntityCore.Tools.Services
         private MethodDeclarationSyntax GenerateAddMethodImplementation(string dbContextVariableName)
         {
             List<StatementSyntax> idsPropertiesStatements = new List<StatementSyntax>();
+            List<StatementSyntax> navigationalPropertiesStatements = new List<StatementSyntax>();
             var creationDtoTypeName = GetCreationDtoTypeName(_entityName);
             var parametrName = creationDtoTypeName.GenerateFieldName();
             var returnTypeName = GetReturnTypeName(_entityName);
 
+
             if(creationDtoTypeName != _entityName)
             {
-                var creationDtoType = GetCreationDtoType(_entityName);
+                // id larni listi kelsa shularni map qilish
+                var creationDtoType = GetCreationDtoType(_entityName) ?? _entityType;
                 var collectionPropertiesWithIds = _entityType.GetProperties()
                     .Where(x => typeof(IEnumerable).IsAssignableFrom(x.PropertyType))
                     .Select(x => new 
@@ -160,11 +163,38 @@ namespace EntityCore.Tools.Services
                         $"      .Where(x => {parametrName}.{x.IdsProperty.Name}.Contains(x.{GetCollectionElementType(x.Property.PropertyType).FindPrimaryKeyProperty().Name}))" +
                         $"      .ToListAsync();"))
                     .ToList();
+
+                // Navigational propertylarni map qilish
+                var properties = _entityType.GetProperties();
+
+                var navigationalIdProperties = properties
+                    .Where(x => !x.PropertyType.IsNavigationProperty())
+                    .Where(x => !x.IsPrimaryKeyProperty())
+                    .Where(x => x.Name.EndsWith("Id"))
+                    .ToList();
+
+                var navigationalProperties = properties
+                    .Where(x => x.PropertyType.IsNavigationProperty())
+                    .Where(x => !x.IsPrimaryKeyProperty())
+                    .Where(x => !navigationalIdProperties.Select(y => y.Name).Contains(x.Name + "Id"))
+                    .ToList();
+
+                navigationalProperties = navigationalProperties
+                    .Where(x => creationDtoType.GetProperties().Select(x => x.Name).Contains(x.Name + "Id"))
+                    .ToList();
+
+                navigationalPropertiesStatements = navigationalProperties.Select(x => 
+                        SyntaxFactory.ParseStatement(
+                        $"entity.{x.Name} = await {dbContextVariableName}.Set<{x.PropertyType.Name}>()" +
+                        $"      .FirstOrDefaultAsync(x => {parametrName}.{x.Name + "Id"} == x.{x.PropertyType.FindPrimaryKeyProperty().Name});"))
+                    .ToList();
             }
 
             List<StatementSyntax> statementSyntaxes = [SyntaxFactory.ParseStatement($"var entity = _mapper.Map<{_entityName}>({parametrName});")];
             if(idsPropertiesStatements.Any())
                 statementSyntaxes.AddRange(idsPropertiesStatements);
+            if(navigationalPropertiesStatements.Any())
+                statementSyntaxes.AddRange(navigationalPropertiesStatements);
             statementSyntaxes.Add(SyntaxFactory.ParseStatement($"var entry = await {dbContextVariableName}.Set<{_entityName}>().AddAsync(entity);"));
             statementSyntaxes.Add(SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"));
             statementSyntaxes.Add(SyntaxFactory.ParseStatement($"return {GenerateReturn()};"));
@@ -235,13 +265,16 @@ namespace EntityCore.Tools.Services
         private MethodDeclarationSyntax GenerateUpdateMethodImplementation(string dbContextVariableName)
         {
             List<StatementSyntax> idsPropertiesStatements = new List<StatementSyntax>();
+            List<StatementSyntax> navigationalPropertiesStatements = new List<StatementSyntax>();
             var modificationDtoTypeName = GetModificationDtoTypeName(_entityName);
             var parametrName = modificationDtoTypeName.GenerateFieldName();
             var returnTypeName = GetReturnTypeName(_entityName);
 
             if(modificationDtoTypeName != _entityName)
             {
-                var modificationDto = GetModificationDtoType(_entityName);
+                var modificationDto = GetModificationDtoType(_entityName) ?? _entityType;
+
+                // id larni listi kelsa shularni map qilish
                 var collectionPropertiesWithIds = _entityType.GetProperties()
                     .Where(x => typeof(IEnumerable).IsAssignableFrom(x.PropertyType))
                     .Select(x => new 
@@ -257,6 +290,31 @@ namespace EntityCore.Tools.Services
                         $"entity.{x.Property.Name} = await {dbContextVariableName}.Set<{GetCollectionElementType(x.Property.PropertyType).Name}>()" +
                         $"      .Where(x => {parametrName}.{x.IdsProperty.Name}.Contains(x.{GetCollectionElementType(x.Property.PropertyType).FindPrimaryKeyProperty().Name}))" +
                         $"      .ToListAsync();"))
+                    .ToList();
+
+                // Navigational propertylarni map qilish
+                var properties = _entityType.GetProperties();
+
+                var navigationalIdProperties = properties
+                    .Where(x => !x.PropertyType.IsNavigationProperty())
+                    .Where(x => !x.IsPrimaryKeyProperty())
+                    .Where(x => x.Name.EndsWith("Id"))
+                    .ToList();
+
+                var navigationalProperties = properties
+                    .Where(x => x.PropertyType.IsNavigationProperty())
+                    .Where(x => !x.IsPrimaryKeyProperty())
+                    .Where(x => !navigationalIdProperties.Select(y => y.Name).Contains(x.Name + "Id"))
+                    .ToList();
+
+                navigationalProperties = navigationalProperties
+                    .Where(x => modificationDto.GetProperties().Select(x => x.Name).Contains(x.Name + "Id"))
+                    .ToList();
+
+                navigationalPropertiesStatements = navigationalProperties.Select(x => 
+                        SyntaxFactory.ParseStatement(
+                        $"entity.{x.Name} = await {dbContextVariableName}.Set<{x.PropertyType.Name}>()" +
+                        $"      .FirstOrDefaultAsync(x => {parametrName}.{x.Name + "Id"} == x.{x.PropertyType.FindPrimaryKeyProperty().Name});"))
                     .ToList();
             }
 
@@ -385,7 +443,7 @@ namespace EntityCore.Tools.Services
             if (enumerableInterface != null)
                 return enumerableInterface.GetGenericArguments().First();
 
-            return typeof(object); // unknown fallback
+            return null;
         }
     }
 }
