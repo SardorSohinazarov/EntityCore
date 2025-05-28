@@ -29,6 +29,7 @@ namespace EntityCore.Tools.Views
 
             var sb = new StringBuilder();
             sb.AppendLine($"@page \"/{pluralEntityName.ToLower()}\"");
+            sb.AppendLine("@rendermode InteractiveServer");
             if(!string.IsNullOrEmpty(_viewModelType.Namespace))
                 sb.AppendLine($"@using {_viewModelType.Namespace}");
             if(!string.IsNullOrEmpty(_serviceType.Namespace))
