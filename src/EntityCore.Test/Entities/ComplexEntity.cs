@@ -11,6 +11,7 @@
         public long RequiredRelatedId { get; set; } // Foreign key for RequiredRelated
         public RelatedEntity RequiredRelated { get; set; }
 
+        public RelatedEntity ReletedEntity { get; set; }
 
         // Collection navigation property
         public ICollection<RelatedEntity> RelatedCollection { get; set; } = new List<RelatedEntity>();
@@ -32,6 +33,8 @@
         public long? OptionalRelatedId { get; set; } // Foreign key for OptionalRelated
 
         public long RequiredRelatedId { get; set; } // Foreign key for RequiredRelated
+
+        public long ReletedEntityId { get; set; }
 
         // Collection navigation property
         public ICollection<long> RelatedCollection { get; set; }

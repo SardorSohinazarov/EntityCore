@@ -96,7 +96,7 @@ namespace EntityCore.Tools
 
             Type? entityType = GetEntityType(entityName);
 
-            string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
+            var dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
             Console.WriteLine("dbContextName:" + dbContextName);
 
             GeneratePagination();
@@ -192,14 +192,21 @@ namespace EntityCore.Tools
 
             Directory.CreateDirectory(directoryPath);
             string filePath = Path.Combine(directoryPath, fileName);
+
+            if (File.Exists(filePath))
+            {
+                ConsoleMessage($"!!! {fileName} already exists.", ConsoleColor.Yellow);
+                return;
+            }
+
             File.WriteAllText(filePath, code);
 
             ConsoleMessage($"{fileName} generated successfully!");
         }
 
-        private void ConsoleMessage(string message)
+        private void ConsoleMessage(string message, ConsoleColor consoleColor = ConsoleColor.Green)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
+            Console.ForegroundColor = consoleColor;
             Console.WriteLine(message);
             Console.ResetColor();
         }

@@ -30,6 +30,7 @@ namespace EntityCore.Tools.Views
 
             var sb = new StringBuilder();
             sb.AppendLine($"@page \"/{pluralEntityName.ToLower()}/{{Id:{_primaryKey.PropertyType.ToCSharpTypeName()}}}\"");
+            sb.AppendLine("@rendermode InteractiveServer");
             if(!string.IsNullOrEmpty(_viewModelType.Namespace))
                 sb.AppendLine($"@using {_viewModelType.Namespace}");
             if(!string.IsNullOrEmpty(_serviceType.Namespace))

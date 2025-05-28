@@ -28,6 +28,7 @@ namespace EntityCore.Tools.Views
 
             var sb = new StringBuilder();
             sb.AppendLine($"@page \"/{pluralEntityName.ToLower()}/create\"");
+            sb.AppendLine("@rendermode InteractiveServer");
             if(!string.IsNullOrEmpty(_creationDtoType.Namespace))
                 sb.AppendLine($"@using {_creationDtoType.Namespace}");
             if(!string.IsNullOrEmpty(_serviceType.Namespace))
@@ -37,7 +38,7 @@ namespace EntityCore.Tools.Views
             sb.AppendLine("");
             sb.AppendLine($"<h3>Create New {_entityName}</h3>");
             sb.AppendLine("");
-            sb.AppendLine($"<EditForm Model=\"@{_entityName.GenerateFieldName()}\" OnValidSubmit=\"@HandleValidSubmit\">");
+            sb.AppendLine($"<EditForm FormName=\"{_creationDtoType.Name}\" Model=\"@{_entityName.GenerateFieldName()}\" OnValidSubmit=\"() => HandleValidSubmit()\">");
             sb.AppendLine("    <DataAnnotationsValidator />");
             sb.AppendLine("    <ValidationSummary />");
             sb.AppendLine("");
@@ -57,7 +58,8 @@ namespace EntityCore.Tools.Views
             sb.AppendLine("</EditForm>");
             sb.AppendLine("");
             sb.AppendLine("@code {");
-            sb.AppendLine($"    private {_creationDtoType.Name} {_entityName.GenerateFieldName()} = new {_creationDtoType.Name}();");
+            sb.AppendLine($"    [SupplyParameterFromForm]");
+            sb.AppendLine($"    public {_creationDtoType.Name} {_entityName.GenerateFieldName()} {{ get; set; }} = new {_creationDtoType.Name}();");
             sb.AppendLine("");
             sb.AppendLine("    private async Task HandleValidSubmit()");
             sb.AppendLine("    {");
