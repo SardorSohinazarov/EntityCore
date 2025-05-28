@@ -1,0 +1,49 @@
+@page "/users/{Id:int}"
+@using DataTransferObjects.Users
+@using Services.Users
+@inject IUsersService UserService
+@inject NavigationManager NavigationManager
+
+<h3>User Details</h3>
+
+@if (user == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-3">Name</dt>
+        <dd class="col-sm-9">@user.Name</dd>
+        <dt class="col-sm-3">Email</dt>
+        <dd class="col-sm-9">@user.Email</dd>
+        <dt class="col-sm-3">Password</dt>
+        <dd class="col-sm-9">@user.Password</dd>
+    </dl>
+    <div>
+        <button class="btn btn-primary" @onclick="Save">Save</button>
+        <button class="btn btn-secondary" @onclick="BackToList">Back to List</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private UserViewModel? user;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        user = await UserService.GetByIdAsync(Id);
+    }
+
+    private void Save()
+    {
+        throw new NotImplementedException("Save functionality is not implemented.");
+    }
+
+    private void BackToList()
+    {
+        NavigationManager.NavigateTo("/users");
+    }
+}

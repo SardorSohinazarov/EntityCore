@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Reflection;
-
-namespace EntityCore.Tools
+﻿namespace EntityCore.Tools
 {
     public class Generator
     {
@@ -10,11 +7,11 @@ namespace EntityCore.Tools
 
         protected string GetReturnTypeName(string entityName)
         {
-            var viewModelType = GetViewModel(entityName);
+            var viewModelType = GetViewModelType(entityName);
             return viewModelType is null ? entityName : viewModelType.Name;
         }
 
-        protected Type GetViewModel(string entityName)
+        protected Type GetViewModelType(string entityName)
         {
             var viewModelName = $"{entityName}ViewModel";
             return GetType(viewModelName);
@@ -22,11 +19,11 @@ namespace EntityCore.Tools
 
         protected string GetCreationDtoTypeName(string entityName)
         {
-            var creationDtoType = GetCreationDto(entityName);
+            var creationDtoType = GetCreationDtoType(entityName);
             return creationDtoType is null ? entityName : creationDtoType.Name;
         }
 
-        protected Type GetCreationDto(string entityName)
+        protected Type GetCreationDtoType(string entityName)
         {
             var creationDtoName = $"{entityName}CreationDto";
             return GetType(creationDtoName);
@@ -34,17 +31,17 @@ namespace EntityCore.Tools
 
         protected string GetModificationDtoTypeName(string entityName)
         {
-            var modificationDtoType = GetModificationDto(entityName);
+            var modificationDtoType = GetModificationDtoType(entityName);
             return modificationDtoType is null ? entityName : modificationDtoType.Name;
         }
 
-        protected Type GetModificationDto(string entityName)
+        protected Type GetModificationDtoType(string entityName)
         {
             var modificationDtoName = $"{entityName}ModificationDto";
             return GetType(modificationDtoName);
         }
 
-        private Type GetType(string modelName)
+        protected Type GetType(string modelName)
         {
             return AppDomain.CurrentDomain
                             .GetAssemblies()

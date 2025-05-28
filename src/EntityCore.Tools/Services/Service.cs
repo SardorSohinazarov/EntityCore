@@ -143,7 +143,7 @@ namespace EntityCore.Tools.Services
 
             if(creationDtoTypeName != _entityName)
             {
-                var creationDtoType = GetCreationDto(_entityName);
+                var creationDtoType = GetCreationDtoType(_entityName);
                 var collectionPropertiesWithIds = _entityType.GetProperties()
                     .Where(x => typeof(IEnumerable).IsAssignableFrom(x.PropertyType))
                     .Select(x => new 
@@ -241,7 +241,7 @@ namespace EntityCore.Tools.Services
 
             if(modificationDtoTypeName != _entityName)
             {
-                var modificationDto = GetModificationDto(_entityName);
+                var modificationDto = GetModificationDtoType(_entityName);
                 var collectionPropertiesWithIds = _entityType.GetProperties()
                     .Where(x => typeof(IEnumerable).IsAssignableFrom(x.PropertyType))
                     .Select(x => new 
@@ -319,15 +319,15 @@ namespace EntityCore.Tools.Services
                 "Common.ServiceAttribute"
             };
 
-            var viewModelType = GetViewModel(entityType.Name);
+            var viewModelType = GetViewModelType(entityType.Name);
             if (!string.IsNullOrEmpty(viewModelType?.Namespace))
                 usings.Add(viewModelType.Namespace);
 
-            var creationDtoType = GetCreationDto(entityType.Name);
+            var creationDtoType = GetCreationDtoType(entityType.Name);
             if (!string.IsNullOrEmpty(creationDtoType?.Namespace))
                 usings.Add(creationDtoType.Namespace);
 
-            var modificationDtoType = GetModificationDto(entityType.Name);
+            var modificationDtoType = GetModificationDtoType(entityType.Name);
             if (!string.IsNullOrEmpty(modificationDtoType?.Namespace))
                 usings.Add(modificationDtoType.Namespace);
 
@@ -346,7 +346,7 @@ namespace EntityCore.Tools.Services
 
         protected string GenerateReturn()
         {
-            var viewModel = GetViewModel(_entityName);
+            var viewModel = GetViewModelType(_entityName);
 
             if (viewModel is null)
                 return "entry.Entity";
@@ -356,7 +356,7 @@ namespace EntityCore.Tools.Services
 
         protected string GenerateRuturnForGetAll()
         {
-            var viewModel = GetViewModel(_entityName);
+            var viewModel = GetViewModelType(_entityName);
             if (viewModel is null)
                 return "entities";
             return $"_mapper.Map<List<{viewModel.Name}>>(entities)";
@@ -364,7 +364,7 @@ namespace EntityCore.Tools.Services
 
         protected string GenerateReturnForGet()
         {
-            var viewModel = GetViewModel(_entityName);
+            var viewModel = GetViewModelType(_entityName);
             if (viewModel is null)
                 return "entity";
             return $"_mapper.Map<{viewModel.Name}>(entity)";

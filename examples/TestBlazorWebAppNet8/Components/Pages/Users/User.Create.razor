@@ -1,0 +1,46 @@
+@page "/users/create"
+@using DataTransferObjects.Users
+@using Services.Users
+@inject IUsersService UserService
+@inject NavigationManager NavigationManager
+
+<h3>Create New User</h3>
+
+<EditForm Model="@user" OnValidSubmit="@HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group mb-3">
+        <label for="name">Name:</label>
+        <InputText id="name" class="form-control" @bind-Value="user.Name" />
+        <ValidationMessage For="@(() => user.Name)" />
+    </div>
+    <div class="form-group mb-3">
+        <label for="email">Email:</label>
+        <InputText id="email" class="form-control" @bind-Value="user.Email" />
+        <ValidationMessage For="@(() => user.Email)" />
+    </div>
+    <div class="form-group mb-3">
+        <label for="password">Password:</label>
+        <InputText id="password" class="form-control" @bind-Value="user.Password" />
+        <ValidationMessage For="@(() => user.Password)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+</EditForm>
+
+@code {
+    private UserCreationDto user = new UserCreationDto();
+
+    private async Task HandleValidSubmit()
+    {
+        await UserService.AddAsync(user);
+        NavigationManager.NavigateTo("/users");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/users");
+    }
+}
