@@ -13,6 +13,8 @@ builder.Services.AddInfrastructure();
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Services.AddDinamicMenu();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
