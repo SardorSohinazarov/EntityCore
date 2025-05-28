@@ -6,24 +6,24 @@
 
 <h3>Create New User</h3>
 
-<EditForm Model="@userCreationDto" OnValidSubmit="HandleValidSubmit">
+<EditForm Model="@user" OnValidSubmit="@HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
     <div class="form-group mb-3">
         <label for="name">Name:</label>
-        <InputText id="name" class="form-control" @bind-Value="userCreationDto.Name" />
-        <ValidationMessage For="@(() => userCreationDto.Name)" />
+        <InputText id="name" class="form-control" @bind-Value="user.Name" />
+        <ValidationMessage For="@(() => user.Name)" />
     </div>
     <div class="form-group mb-3">
         <label for="email">Email:</label>
-        <InputText id="email" class="form-control" @bind-Value="userCreationDto.Email" />
-        <ValidationMessage For="@(() => userCreationDto.Email)" />
+        <InputText id="email" class="form-control" @bind-Value="user.Email" />
+        <ValidationMessage For="@(() => user.Email)" />
     </div>
     <div class="form-group mb-3">
         <label for="password">Password:</label>
-        <InputText id="password" class="form-control" @bind-Value="userCreationDto.Password" />
-        <ValidationMessage For="@(() => userCreationDto.Password)" />
+        <InputText id="password" class="form-control" @bind-Value="user.Password" />
+        <ValidationMessage For="@(() => user.Password)" />
     </div>
 
     <button type="submit" class="btn btn-primary">Save</button>
@@ -31,11 +31,11 @@
 </EditForm>
 
 @code {
-    private UserCreationDto userCreationDto = new UserCreationDto();
+    private UserCreationDto user = new UserCreationDto();
 
     private async Task HandleValidSubmit()
     {
-        await UserService.AddAsync(userCreationDto);
+        await UserService.AddAsync(user);
         NavigationManager.NavigateTo("/users");
     }
 

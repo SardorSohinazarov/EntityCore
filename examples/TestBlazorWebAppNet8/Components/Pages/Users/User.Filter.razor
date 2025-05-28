@@ -7,7 +7,7 @@
 
 <NavLink class="btn btn-primary mb-3" href="/users/create">Create New</NavLink>
 
-@if (users == null)
+@if (Users == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -16,6 +16,7 @@ else
     <table class="table">
         <thead>
             <tr>
+                <th>#</th>
                 <th>Name</th>
                 <th>Email</th>
                 <th>Password</th>
@@ -24,16 +25,16 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in users)
+            @foreach (var item in Users)
             {
                 <tr>
+                    <td>@item.Id</td>
                     <td>@item.Name</td>
                     <td>@item.Email</td>
                     <td>@item.Password</td>
                     <td>@item.Id</td>
                     <td>
-                        <NavLink class="btn btn-sm btn-info" href="@($"/users/details/{item.Id}")">Details</NavLink>
-                        <NavLink class="btn btn-sm btn-warning" href="@($"/users/edit/{item.Id}")">Edit</NavLink>
+                        <NavLink class="btn btn-sm btn-info" href="@($"/users/{item.Id}")">Details</NavLink>
                         <button class="btn btn-sm btn-danger" @onclick="() => DeleteUser(item.Id)">Delete</button>
                     </td>
                 </tr>
@@ -43,16 +44,16 @@ else
 }
 
 @code {
-    private List<UserViewModel>? users;
+    private List<UserViewModel> Users;
 
     protected override async Task OnInitializedAsync()
     {
-        users = await UserService.GetAllAsync();
+        Users = await UserService.GetAllAsync();
     }
 
     async Task DeleteUser(Int32 id)
     {
         await UserService.DeleteAsync(id);
-        users = await UserService.GetAllAsync(); // Refresh list
+        Users = await UserService.GetAllAsync(); // Refresh list
     }
 }

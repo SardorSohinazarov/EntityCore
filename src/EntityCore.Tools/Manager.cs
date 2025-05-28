@@ -51,7 +51,6 @@ namespace EntityCore.Tools
             foreach (var (directories, fileName, code) in dtos)
             {
                 WriteCode(directories, fileName, code);
-                ConsoleMessage($"{fileName} generated successfully!");
             }
         }
 
@@ -66,8 +65,6 @@ namespace EntityCore.Tools
                 var serviceAttributeCollectionExtension = new ServiceAttributeCollectionExtensions();
                 var serviceAttributeCollectionExtensionCode = serviceAttributeCollectionExtension.Generate();
                 WriteCode(new[] { "Common", "ServiceAttribute" }, "ServiceAttributeCollectionExtensions.cs", serviceAttributeCollectionExtensionCode);
-
-                ConsoleMessage("Service attribute generated successfully!");
             }
         }
 
@@ -78,8 +75,6 @@ namespace EntityCore.Tools
                 var result = new Result();
                 var resultClassesCode = result.Generate();
                 WriteCode("Common", "Result.cs", resultClassesCode);
-
-                ConsoleMessage("Result classes generated successfully!");
             }
         }
 
@@ -90,7 +85,6 @@ namespace EntityCore.Tools
                 var exceptionHandlerMiddlewareCode = new ExceptionHandlerMiddleware();
                 var code = exceptionHandlerMiddlewareCode.Generate();
                 WriteCode("Middlewares", "ExceptionHandlerMiddleware.cs", code);
-                ConsoleMessage("Exception handler middleware generated successfully!");
             }
         }
 
@@ -125,16 +119,12 @@ namespace EntityCore.Tools
 
             Type? entityType = GetEntityType(entityName);
 
-            string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
-            Console.WriteLine("dbContextName:" + dbContextName);
-
             var view = new View(entityType);
             var viewCodes = view.Generate();
 
             foreach(var viewCode in viewCodes)
             {
                 WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.{viewCode.Item1}.razor", viewCode.Item2);
-                ConsoleMessage($"View for {entityName} generated successfully!");
             }
         }
 
@@ -149,7 +139,6 @@ namespace EntityCore.Tools
             var controller = new Controller(entityType);
             var code = controller.GenerateControllerCodeWithEntity();
             WriteCode("Controllers", $"{entityName}sController.cs", code);
-            ConsoleMessage($"Controller for {entityName} generated successfully!");
         }
 
         private void GeneratePagination()
@@ -164,7 +153,6 @@ namespace EntityCore.Tools
             foreach (var (directories, fileName, code) in paginationComponents)
             {
                 WriteCode(directories, fileName, code);
-                ConsoleMessage($"{fileName} generated successfully!");
             }
         }
 
@@ -182,19 +170,15 @@ namespace EntityCore.Tools
             throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
         }
 
-        private static void ConsoleMessage(string message)
-        {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(message);
-            Console.ResetColor();
-        }
-
         private void WriteCode(string directory, string fileName, string code)
         {
             var directoryPath = Path.Combine(_projectRoot, directory);
             Directory.CreateDirectory(directoryPath);
             string filePath = Path.Combine(directoryPath, fileName);
             File.WriteAllText(filePath, code);
+
+            
+            ConsoleMessage($"{fileName} generated successfully!");
         }
 
         private void WriteCode(string[] directories, string fileName, string code)
@@ -209,6 +193,15 @@ namespace EntityCore.Tools
             Directory.CreateDirectory(directoryPath);
             string filePath = Path.Combine(directoryPath, fileName);
             File.WriteAllText(filePath, code);
+
+            ConsoleMessage($"{fileName} generated successfully!");
+        }
+
+        private void ConsoleMessage(string message)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine(message);
+            Console.ResetColor();
         }
     }
 }
