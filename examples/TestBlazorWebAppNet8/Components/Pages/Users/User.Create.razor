@@ -6,23 +6,23 @@
 
 <h3>Create New User</h3>
 
-<EditForm Model="@user" OnValidSubmit="@HandleValidSubmit">
+<EditForm Model="@user" OnValidSubmit="@HandleValidSubmit" FormName="CreateUserForm">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
     <div class="form-group mb-3">
         <label for="name">Name:</label>
-        <InputText id="name" class="form-control" @bind-Value="user.Name" />
+        <InputText id="name" name="Name" class="form-control" @bind-Value="@user.Name" />
         <ValidationMessage For="@(() => user.Name)" />
     </div>
     <div class="form-group mb-3">
         <label for="email">Email:</label>
-        <InputText id="email" class="form-control" @bind-Value="user.Email" />
+        <InputText id="email" name="Email" class="form-control" @bind-Value="@user.Email" />
         <ValidationMessage For="@(() => user.Email)" />
     </div>
     <div class="form-group mb-3">
         <label for="password">Password:</label>
-        <InputText id="password" class="form-control" @bind-Value="user.Password" />
+        <InputText id="password" name="Password" class="form-control" @bind-Value="@user.Password" />
         <ValidationMessage For="@(() => user.Password)" />
     </div>
 
