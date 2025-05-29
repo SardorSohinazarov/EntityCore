@@ -10,7 +10,8 @@ namespace Common.Paginations.Extensions
         {
             var totalCount = source.Count();
             var paginationInfo = new PaginationMetadata(totalCount, options.PageSize, options.PageToken);
-            httpContext.Response.Headers["X-Pagination"] = JsonSerializer.Serialize(paginationInfo);
+            if (!httpContext.Response.Headers.IsReadOnly)
+                httpContext.Response.Headers["X-Pagination"] = JsonSerializer.Serialize(paginationInfo);
             return source.Skip((options.PageToken - 1) * options.PageSize).Take(options.PageSize);
         }
     }

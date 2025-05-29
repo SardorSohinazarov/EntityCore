@@ -53,7 +53,8 @@ namespace EntityCore.Tools.Common.Paginations.Extensions
                 .WithBody(SyntaxFactory.Block(
                     SyntaxFactory.ParseStatement("var totalCount = source.Count();"),
                     SyntaxFactory.ParseStatement("var paginationInfo = new PaginationMetadata(totalCount, options.PageSize, options.PageToken);"),
-                    SyntaxFactory.ParseStatement("httpContext.Response.Headers[\"X-Pagination\"] = JsonSerializer.Serialize(paginationInfo);"),
+                    SyntaxFactory.ParseStatement("if(!httpContext.Response.Headers.IsReadOnly)"),
+                    SyntaxFactory.ParseStatement("  httpContext.Response.Headers[\"X-Pagination\"] = JsonSerializer.Serialize(paginationInfo);"),
                     SyntaxFactory.ParseStatement("return source.Skip((options.PageToken - 1) * options.PageSize).Take(options.PageSize);")
                 ));
 
