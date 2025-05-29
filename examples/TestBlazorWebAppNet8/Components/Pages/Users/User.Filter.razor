@@ -47,9 +47,15 @@ else
 @code {
     private List<UserViewModel> Users;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
+    {
+        _ = LoadAsync();
+    }
+
+    async Task LoadAsync()
     {
         Users = await UserService.GetAllAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     async Task DeleteUser(Int32 id)
