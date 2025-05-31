@@ -83,7 +83,7 @@ else
     async Task LoadAsync()
     {
         var filteredData = await UserService.FilterAsync(PaginationOptions);
-        Users = filteredData.Users;
+        Users = filteredData.Items;
         PaginationMetadata = filteredData.Pagination;
         await InvokeAsync(StateHasChanged);
     }
@@ -92,7 +92,7 @@ else
     {
         await UserService.DeleteAsync(id);
         var filteredData = await UserService.FilterAsync(PaginationOptions);
-        Users = filteredData.Users;
+        Users = filteredData.Items;
         PaginationMetadata = filteredData.Pagination;
         StateHasChanged();
     }

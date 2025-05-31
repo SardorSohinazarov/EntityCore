@@ -7,7 +7,7 @@ using Common.ServiceAttribute;
 using DataTransferObjects.Users;
 using TestApiWithNet8;
 using TestApiNet8.Domain.Entities;
-using TestApiNet8.Application.DataTransferObjects.Users;
+using TestApiNet8.Application.Common;
 
 namespace Services.Users
 {
@@ -38,15 +38,15 @@ namespace Services.Users
             return _mapper.Map<List<UserViewModel>>(entities);
         }
 
-        public async Task<UserListViewModel> FilterAsync(PaginationOptions filter)
+        public async Task<ListResult<UserViewModel>> FilterAsync(PaginationOptions filter)
         {
             var httpContext = _httpContext.HttpContext;
             var paginated = await _applicationDbContext.Set<User>().ApplyPaginationAsync(filter);
             var users = _mapper.Map<List<UserViewModel>>(paginated.paginatedList);
-            return new UserListViewModel
+            return new ListResult<UserViewModel>
             {
                 Pagination = paginated.paginationMetadata,
-                Users = users
+                Items = users
             };
         }
 
