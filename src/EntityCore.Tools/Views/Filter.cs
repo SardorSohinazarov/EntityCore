@@ -81,9 +81,15 @@ namespace EntityCore.Tools.Views
             sb.AppendLine("@code {");
             sb.AppendLine($"    private List<{_viewModelType.Name}> {pluralEntityName};");
             sb.AppendLine("");
-            sb.AppendLine("    protected override async Task OnInitializedAsync()");
+            sb.AppendLine("    protected override void OnInitialized()");
+            sb.AppendLine("    {");
+            sb.AppendLine($"        _ = LoadAsync();");
+            sb.AppendLine("    }");
+            sb.AppendLine("");
+            sb.AppendLine("    async Task LoadAsync()");
             sb.AppendLine("    {");
             sb.AppendLine($"        {pluralEntityName} = await {serviceName}.GetAllAsync();");
+            sb.AppendLine($"        await InvokeAsync(StateHasChanged);");
             sb.AppendLine("    }");
             sb.AppendLine("");
             sb.AppendLine($"    async Task Delete{_entityName}({_primaryKey.PropertyType.Name} id)");
