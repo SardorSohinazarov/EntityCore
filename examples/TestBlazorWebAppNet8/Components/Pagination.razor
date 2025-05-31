@@ -24,7 +24,11 @@
                     </button>
                 </li>
             }
-            <li class="page-item"><span class="page-link">@PaginationMetadata.CurrentPage</span></li>
+            <li class="page-item">
+                <span class="page-link">
+                    @PaginationMetadata.CurrentPage
+                </span>
+            </li>
             @if(PaginationMetadata.CurrentPage + 1 < PaginationMetadata.TotalPages){
                 <li class="page-item">
                     <button class="page-link" @onclick=NextPage>
