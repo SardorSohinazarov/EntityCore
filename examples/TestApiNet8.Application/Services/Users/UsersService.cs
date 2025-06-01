@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Common.Paginations.Models;
 using Common.Paginations.Extensions;
 using Common.ServiceAttribute;
+using Common;
 using DataTransferObjects.Users;
 using TestApiWithNet8;
 using TestApiNet8.Domain.Entities;
@@ -13,12 +14,12 @@ namespace Services.Users
     [ScopedService]
     public class UsersService : IUsersService
     {
-        private readonly TestApiNet8Db _applicationDbContext;
+        private readonly TestApiNet8Db _testApiNet8Db;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContext;
-        public UsersService(TestApiNet8Db applicationDbContext, IMapper mapper, IHttpContextAccessor httpContext)
+        public UsersService(TestApiNet8Db testApiNet8Db, IMapper mapper, IHttpContextAccessor httpContext)
         {
-            _applicationDbContext = applicationDbContext;
+            _testApiNet8Db = testApiNet8Db;
             _mapper = mapper;
             _httpContext = httpContext;
         }
@@ -26,27 +27,28 @@ namespace Services.Users
         public async Task<UserViewModel> AddAsync(UserCreationDto userCreationDto)
         {
             var entity = _mapper.Map<User>(userCreationDto);
-            var entry = await _applicationDbContext.Set<User>().AddAsync(entity);
-            await _applicationDbContext.SaveChangesAsync();
+            var entry = await _testApiNet8Db.Set<User>().AddAsync(entity);
+            await _testApiNet8Db.SaveChangesAsync();
             return _mapper.Map<UserViewModel>(entry.Entity);
         }
 
         public async Task<List<UserViewModel>> GetAllAsync()
         {
-            var entities = await _applicationDbContext.Set<User>().ToListAsync();
+            var entities = await _testApiNet8Db.Set<User>().ToListAsync();
             return _mapper.Map<List<UserViewModel>>(entities);
         }
 
-        public async Task<List<UserViewModel>> FilterAsync(PaginationOptions filter)
+        public async Task<ListResult<UserViewModel>> FilterAsync(PaginationOptions filter)
         {
             var httpContext = _httpContext.HttpContext;
-            var entities = await _applicationDbContext.Set<User>().ApplyPagination(filter, httpContext).ToListAsync();
-            return _mapper.Map<List<UserViewModel>>(entities);
+            var paginatedResult = await _testApiNet8Db.Set<User>().ApplyPaginationAsync(filter);
+            var Users = _mapper.Map<List<UserViewModel>>(paginatedResult.paginatedList);
+            return new ListResult<UserViewModel>(paginatedResult.paginationMetadata, Users);
         }
 
         public async Task<UserViewModel> GetByIdAsync(int id)
         {
-            var entity = await _applicationDbContext.Set<User>().FirstOrDefaultAsync(x => x.Id == id);
+            var entity = await _testApiNet8Db.Set<User>().FirstOrDefaultAsync(x => x.Id == id);
             if (entity == null)
                 throw new InvalidOperationException($"User with Id {id} not found.");
             return _mapper.Map<UserViewModel>(entity);
@@ -54,22 +56,22 @@ namespace Services.Users
 
         public async Task<UserViewModel> UpdateAsync(int id, UserModificationDto userModificationDto)
         {
-            var entity = await _applicationDbContext.Set<User>().FirstOrDefaultAsync(x => x.Id == id);
+            var entity = await _testApiNet8Db.Set<User>().FirstOrDefaultAsync(x => x.Id == id);
             if (entity == null)
                 throw new InvalidOperationException($"User with {id} not found.");
             _mapper.Map(userModificationDto, entity);
-            var entry = _applicationDbContext.Set<User>().Update(entity);
-            await _applicationDbContext.SaveChangesAsync();
+            var entry = _testApiNet8Db.Set<User>().Update(entity);
+            await _testApiNet8Db.SaveChangesAsync();
             return _mapper.Map<UserViewModel>(entry.Entity);
         }
 
         public async Task<UserViewModel> DeleteAsync(int id)
         {
-            var entity = await _applicationDbContext.Set<User>().FirstOrDefaultAsync(x => x.Id == id);
+            var entity = await _testApiNet8Db.Set<User>().FirstOrDefaultAsync(x => x.Id == id);
             if (entity == null)
                 throw new InvalidOperationException($"User with {id} not found.");
-            var entry = _applicationDbContext.Set<User>().Remove(entity);
-            await _applicationDbContext.SaveChangesAsync();
+            var entry = _testApiNet8Db.Set<User>().Remove(entity);
+            await _testApiNet8Db.SaveChangesAsync();
             return _mapper.Map<UserViewModel>(entry.Entity);
         }
     }

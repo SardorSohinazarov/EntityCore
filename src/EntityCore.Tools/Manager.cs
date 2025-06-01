@@ -7,6 +7,7 @@ using EntityCore.Tools.DataTransferObjects;
 using EntityCore.Tools.Middlewares;
 using EntityCore.Tools.Services;
 using EntityCore.Tools.Views;
+using EntityCore.Tools.Views.Components;
 
 namespace EntityCore.Tools
 {
@@ -24,13 +25,16 @@ namespace EntityCore.Tools
 
         public void Generate()
         {
+            // Backend generation
             GenerateDto();
             GenerateService();
-            GenerateView();
             GenerateController();
             GenerateExceptionM();
             GenerateResult();
             GenerateServiceAttribute();
+
+            // Frontend generation
+            GenerateView();
         }
 
         private void GenerateDto()
@@ -100,6 +104,7 @@ namespace EntityCore.Tools
             Console.WriteLine("dbContextName:" + dbContextName);
 
             GeneratePagination();
+            GenerateListResult();
 
             var service = new Service(entityType);
             var serviceImplementationCode = service.Generate(dbContextName);
@@ -111,6 +116,13 @@ namespace EntityCore.Tools
             WriteCode(["Services", $"{entityName}s"], $"{entityName}sService.cs", serviceImplementationCode);
         }
 
+        private void GenerateListResult()
+        {
+            ListResult listResult = new ListResult();
+            var code = listResult.Generate();
+            WriteCode("Common", "ListResult.cs", code);
+        }
+
         private void GenerateView()
         {
             var entityName = _arguments.ContainsKey("view") ? _arguments["view"] : null;
@@ -118,6 +130,8 @@ namespace EntityCore.Tools
                 return;
 
             Type? entityType = GetEntityType(entityName);
+
+            GeneratePaginationComponent();
 
             var view = new View(entityType);
             var viewCodes = view.Generate();
@@ -139,6 +153,13 @@ namespace EntityCore.Tools
             var controller = new Controller(entityType);
             var code = controller.GenerateControllerCodeWithEntity();
             WriteCode("Controllers", $"{entityName}sController.cs", code);
+        }
+
+        private void GeneratePaginationComponent()
+        {
+            var paginationComponent = new PaginationComponent();
+            var code = paginationComponent.Generate();
+            WriteCode(["Components"], "Pagination.razor", code);
         }
 
         private void GeneratePagination()

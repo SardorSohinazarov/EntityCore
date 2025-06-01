@@ -13,12 +13,14 @@ namespace EntityCore.Tools.Services
     {
         private readonly string _entityName;
         private readonly Type _entityType;
+        private readonly Type _viewModelType;
         private readonly PropertyInfo _primaryKey;
         public Service(Type entityType)
         {
             _entityType = entityType;
             _entityName = _entityType.Name;
             _primaryKey = entityType.FindPrimaryKeyProperty();
+            _viewModelType = GetViewModelType(_entityName) ?? entityType;
         }
 
         public string Generate(string? dbContextName = null)
@@ -231,7 +233,7 @@ namespace EntityCore.Tools.Services
             var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier(nameof(Task)))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{returnTypeName}>")), "FilterAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"ListResult<{returnTypeName}>")), "FilterAsync")
                                 .AddModifiers(
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
@@ -239,8 +241,9 @@ namespace EntityCore.Tools.Services
                                     .WithType(SyntaxFactory.ParseTypeName(typeof(PaginationOptions).Name)))
                                 .WithBody(SyntaxFactory.Block(
                                     SyntaxFactory.ParseStatement($"var httpContext = _httpContext.HttpContext;"),
-                                    SyntaxFactory.ParseStatement($"var entities = await {dbContextVariableName}.Set<{_entityName}>().ApplyPagination(filter,httpContext).ToListAsync();"),
-                                    SyntaxFactory.ParseStatement($"return {GenerateRuturnForGetAll()};")
+                                    SyntaxFactory.ParseStatement($"var paginatedResult = await {dbContextVariableName}.Set<{_entityName}>().ApplyPaginationAsync(filter);"),
+                                    SyntaxFactory.ParseStatement($"var {_entityName}s = _mapper.Map<List<{_viewModelType.Name}>>(paginatedResult.paginatedList);"),
+                                    SyntaxFactory.ParseStatement($"return {GenerateRuturnForFilter()};")
                                 ));
         }
 
@@ -374,7 +377,8 @@ namespace EntityCore.Tools.Services
                 "Microsoft.AspNetCore.Http",
                 "Common.Paginations.Models",
                 "Common.Paginations.Extensions",
-                "Common.ServiceAttribute"
+                "Common.ServiceAttribute",
+                "Common"
             };
 
             var viewModelType = GetViewModelType(entityType.Name);
@@ -402,7 +406,7 @@ namespace EntityCore.Tools.Services
             return syntaxTree;
         }
 
-        protected string GenerateReturn()
+        private string GenerateReturn()
         {
             var viewModel = GetViewModelType(_entityName);
 
@@ -412,7 +416,7 @@ namespace EntityCore.Tools.Services
             return $"_mapper.Map<{viewModel.Name}>(entry.Entity)";
         }
 
-        protected string GenerateRuturnForGetAll()
+        private string GenerateRuturnForGetAll()
         {
             var viewModel = GetViewModelType(_entityName);
             if (viewModel is null)
@@ -420,7 +424,13 @@ namespace EntityCore.Tools.Services
             return $"_mapper.Map<List<{viewModel.Name}>>(entities)";
         }
 
-        protected string GenerateReturnForGet()
+        private string GenerateRuturnForFilter()
+        {
+            var viewModel = GetViewModelType(_entityName) ?? _entityType;
+            return $"new ListResult<{viewModel.Name}>(paginatedResult.paginationMetadata,{_entityName}s)";
+        }
+
+        private string GenerateReturnForGet()
         {
             var viewModel = GetViewModelType(_entityName);
             if (viewModel is null)

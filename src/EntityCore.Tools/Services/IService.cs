@@ -75,7 +75,7 @@ namespace EntityCore.Tools.Services
             var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{returnTypeName}>")), "FilterAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"ListResult<{returnTypeName}>")), "FilterAsync")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("filter"))
                                                     .WithType(SyntaxFactory.ParseTypeName(typeof(PaginationOptions).Name)))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)
@@ -130,6 +130,7 @@ namespace EntityCore.Tools.Services
             var usings = new List<string>
             {
                 "Common.Paginations.Models",
+                "Common"
             };
 
             var viewModelType = GetViewModelType(entityType.Name);
