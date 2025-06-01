@@ -1,41 +1,17 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Reflection;
-
-namespace EntityCore.Tools
+﻿namespace EntityCore.Tools
 {
     public class Generator
     {
-        protected PropertyInfo FindKeyProperty(Type entityType)
-        {
-            // 1. [Key] atributi bilan belgilangan propertyni topish
-            var keyProperty = entityType
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .FirstOrDefault(prop => prop.GetCustomAttribute<KeyAttribute>() != null);
-
-            if (keyProperty is not null)
-                return keyProperty;
-
-            // 2. Agar [Key] topilmasa, "Id" nomli propertyni qidirish
-            keyProperty = entityType
-                .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .FirstOrDefault(prop => string.Equals(prop.Name, "Id"));
-
-            if (keyProperty is null)
-                throw new InvalidOperationException("Entity must have a key property.");
-
-            return keyProperty;
-        }
-
         protected string GetReturnTypeName(Type entityType)
             => GetReturnTypeName(entityType.Name);
 
         protected string GetReturnTypeName(string entityName)
         {
-            var viewModelType = GetViewModel(entityName);
+            var viewModelType = GetViewModelType(entityName);
             return viewModelType is null ? entityName : viewModelType.Name;
         }
 
-        protected Type GetViewModel(string entityName)
+        protected Type GetViewModelType(string entityName)
         {
             var viewModelName = $"{entityName}ViewModel";
             return GetType(viewModelName);
@@ -43,11 +19,11 @@ namespace EntityCore.Tools
 
         protected string GetCreationDtoTypeName(string entityName)
         {
-            var creationDtoType = GetCreationDto(entityName);
+            var creationDtoType = GetCreationDtoType(entityName);
             return creationDtoType is null ? entityName : creationDtoType.Name;
         }
 
-        protected Type GetCreationDto(string entityName)
+        protected Type GetCreationDtoType(string entityName)
         {
             var creationDtoName = $"{entityName}CreationDto";
             return GetType(creationDtoName);
@@ -55,17 +31,17 @@ namespace EntityCore.Tools
 
         protected string GetModificationDtoTypeName(string entityName)
         {
-            var modificationDtoType = GetModificationDto(entityName);
+            var modificationDtoType = GetModificationDtoType(entityName);
             return modificationDtoType is null ? entityName : modificationDtoType.Name;
         }
 
-        protected Type GetModificationDto(string entityName)
+        protected Type GetModificationDtoType(string entityName)
         {
             var modificationDtoName = $"{entityName}ModificationDto";
             return GetType(modificationDtoName);
         }
 
-        private Type GetType(string modelName)
+        protected Type GetType(string modelName)
         {
             return AppDomain.CurrentDomain
                             .GetAssemblies()

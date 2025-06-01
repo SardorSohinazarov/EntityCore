@@ -14,8 +14,8 @@ namespace EntityCore.Tools.Middlewares
             // Using directives
             var usingDirectives = new[]
             {
-                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Net")),
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("Common")),
+                SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Net")),
                 SyntaxFactory.UsingDirective(SyntaxFactory.ParseName("System.Text.Json")),
             };
 

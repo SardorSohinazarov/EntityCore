@@ -14,9 +14,9 @@ namespace EntityCore.Tools
 
         public ClassDeclarationSyntax GenerateMappingProfile(string entityName)
         {
-            var viewModel = GetViewModel(entityName);
-            var creationDto = GetCreationDto(entityName);
-            var modificationDto = GetModificationDto(entityName);
+            var viewModel = GetViewModelType(entityName);
+            var creationDto = GetCreationDtoType(entityName);
+            var modificationDto = GetModificationDtoType(entityName);
 
             if (viewModel == null && creationDto == null && modificationDto == null)
             {

@@ -1,22 +1,16 @@
-﻿using EntityCore.Tools.DbContexts;
-using EntityCore.Tools.Extensions;
-using System.Reflection;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace EntityCore.Tools.Views
 {
-    public class View
+    public class View : Generator
     {
-        private readonly string _entityName;
         private readonly Type _entityType;
-        private readonly PropertyInfo _primaryKey;
         public View(Type entityType)
         {
             _entityType = entityType;
-            _entityName = _entityType.Name;
-            _primaryKey = entityType.FindPrimaryKeyProperty();
         }
 
-        public string Generate(string dbContextName = null)
+        public List<(string,string)> Generate(string dbContextName = null)
         {
             Type? dbContextType = null;
 
@@ -51,7 +45,15 @@ namespace EntityCore.Tools.Views
             if (dbContextType is null)
                 throw new InvalidOperationException("DbContext not found in the specified assembly.");
 
-            return "";
+            var views = new List<(string, string)>();
+            var filter = new Filter(_entityType);
+            views.Add(("Filter", filter.Generate()));
+            var create = new Create(_entityType);
+            views.Add(("Create", create.Generate()));
+            var details = new Details(_entityType);
+            views.Add(("Details", details.Generate()));
+
+            return views;
         }
     }
 }

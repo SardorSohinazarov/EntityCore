@@ -1,0 +1,99 @@
+﻿namespace EntityCore.Tools.Views.Components
+{
+    public partial class PaginationComponent
+    {
+        public string Generate()
+        {
+            return @"@using Common.Paginations.Models
+@inject NavigationManager NavigationManager
+
+@if (PaginationMetadata is not null){
+    <nav aria-label=""Page navigation example"">
+        <ul class=""pagination"">
+            @if (PaginationMetadata.CurrentPage != 1){
+                <li class=""page-item"">
+                    <button class=""page-link"" @onclick=PreviousPage>
+                        <span aria-hidden=""true"">&laquo;</span>
+                    </button>
+                </li>
+                <li class=""page-item"">
+                    <button class=""page-link"" @onclick=FirstPage>
+                        <span aria-hidden=""true"">1</span>
+                    </button>
+                </li>
+                <li class=""page-item""><span class=""page-link"" aria-hidden=""true"">...</span></li>
+            }
+            @if(PaginationMetadata.CurrentPage - 1 > 1){
+                <li class=""page-item"">
+                    <button class=""page-link"" @onclick=PreviousPage>
+                        <span aria-hidden=""true"">@(PaginationMetadata.CurrentPage - 1)</span>
+                    </button>
+                </li>
+            }
+            <li class=""page-item"">
+                <span class=""page-link"">
+                    @PaginationMetadata.CurrentPage
+                </span>
+            </li>
+            @if(PaginationMetadata.CurrentPage + 1 < PaginationMetadata.TotalPages){
+                <li class=""page-item"">
+                    <button class=""page-link"" @onclick=NextPage>
+                        <span aria-hidden=""true"">@(PaginationMetadata.CurrentPage + 1)</span>
+                    </button>
+                </li>
+            }
+            @if (PaginationMetadata.CurrentPage != PaginationMetadata.TotalPages){
+                <li class=""page-item""><span class=""page-link"" aria-hidden=""true"">...</span></li>
+                <li class=""page-item"">
+                    <button class=""page-link"" @onclick=LastPage>
+                        <span aria-hidden=""true"">@PaginationMetadata.TotalPages</span>
+                    </button>
+                </li>
+                <li class=""page-item"">
+                    <button class=""page-link"" @onclick=NextPage>
+                        <span aria-hidden=""true"">&raquo;</span>
+                    </button>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+
+@code {
+    [Parameter]
+    public PaginationMetadata PaginationMetadata { get; set; }
+    [Parameter]
+    public string PageName { get; set; }
+
+    private void FirstPage()
+    {
+        GoToPage(1);
+    }
+
+    private void LastPage()
+    {
+        GoToPage(PaginationMetadata.TotalPages);
+    }
+
+    private void NextPage()
+    {
+        if (PaginationMetadata.CurrentPage < PaginationMetadata.TotalPages)
+            GoToPage(PaginationMetadata.CurrentPage + 1);
+    }
+
+    private void PreviousPage()
+    {
+        if (PaginationMetadata.CurrentPage > 1)
+            GoToPage(PaginationMetadata.CurrentPage - 1);
+    }
+
+    private void GoToPage(int page)
+    {
+        if (page >= 1 && page <= PaginationMetadata.TotalPages)
+            NavigationManager.NavigateTo($""/{PageName}?page={page}&size={PaginationMetadata.PageSize}"");
+    }
+}
+";
+        }
+    }
+}

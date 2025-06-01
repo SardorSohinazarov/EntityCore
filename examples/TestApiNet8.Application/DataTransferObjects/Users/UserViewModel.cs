@@ -1,3 +1,6 @@
+using System;
+using TestApiNet8.Domain.Entities;
+
 namespace DataTransferObjects.Users;
 
 public class UserViewModel

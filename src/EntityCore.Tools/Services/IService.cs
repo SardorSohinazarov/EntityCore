@@ -50,11 +50,12 @@ namespace EntityCore.Tools.Services
         private MemberDeclarationSyntax GenerateAddMethodDecleration()
         {
             var creationDtoTypeName = GetCreationDtoTypeName(_entityName);
+            var parametrName = creationDtoTypeName.GenerateFieldName();
             var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "AddAsync")
-                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(creationDtoTypeName)))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
@@ -74,7 +75,7 @@ namespace EntityCore.Tools.Services
             var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{returnTypeName}>")), "FilterAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"ListResult<{returnTypeName}>")), "FilterAsync")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("filter"))
                                                     .WithType(SyntaxFactory.ParseTypeName(typeof(PaginationOptions).Name)))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)
@@ -96,13 +97,14 @@ namespace EntityCore.Tools.Services
         private MethodDeclarationSyntax GenerateUpdateMethodDeclaration()
         {
             var modificationDtoTypeName = GetModificationDtoTypeName(_entityName);
+            var parametrName = modificationDtoTypeName.GenerateFieldName();
             var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "UpdateAsync")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("id"))
                                     .WithType(SyntaxFactory.ParseTypeName(_primaryKey.PropertyType.ToCSharpTypeName())))
-                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("entity"))
+                                .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(modificationDtoTypeName)))
                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)
                                 );
@@ -127,22 +129,19 @@ namespace EntityCore.Tools.Services
         {
             var usings = new List<string>
             {
-                "AutoMapper",
-                "Microsoft.EntityFrameworkCore",
-                "Microsoft.AspNetCore.Http",
                 "Common.Paginations.Models",
-                "Common.Paginations.Extensions"
+                "Common"
             };
 
-            var viewModelType = GetViewModel(entityType.Name);
+            var viewModelType = GetViewModelType(entityType.Name);
             if (!string.IsNullOrEmpty(viewModelType?.Namespace))
                 usings.Add(viewModelType.Namespace);
 
-            var creationDtoType = GetCreationDto(entityType.Name);
+            var creationDtoType = GetCreationDtoType(entityType.Name);
             if (!string.IsNullOrEmpty(creationDtoType?.Namespace))
                 usings.Add(creationDtoType.Namespace);
 
-            var modificationDtoType = GetModificationDto(entityType.Name);
+            var modificationDtoType = GetModificationDtoType(entityType.Name);
             if (!string.IsNullOrEmpty(modificationDtoType?.Namespace))
                 usings.Add(modificationDtoType.Namespace);
 

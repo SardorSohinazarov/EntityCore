@@ -7,6 +7,7 @@ using EntityCore.Tools.DataTransferObjects;
 using EntityCore.Tools.Middlewares;
 using EntityCore.Tools.Services;
 using EntityCore.Tools.Views;
+using EntityCore.Tools.Views.Components;
 
 namespace EntityCore.Tools
 {
@@ -24,13 +25,16 @@ namespace EntityCore.Tools
 
         public void Generate()
         {
+            // Backend generation
             GenerateDto();
             GenerateService();
-            GenerateView();
             GenerateController();
             GenerateExceptionM();
             GenerateResult();
             GenerateServiceAttribute();
+
+            // Frontend generation
+            GenerateView();
         }
 
         private void GenerateDto()
@@ -51,7 +55,6 @@ namespace EntityCore.Tools
             foreach (var (directories, fileName, code) in dtos)
             {
                 WriteCode(directories, fileName, code);
-                ConsoleMessage($"{fileName} generated successfully!");
             }
         }
 
@@ -66,8 +69,6 @@ namespace EntityCore.Tools
                 var serviceAttributeCollectionExtension = new ServiceAttributeCollectionExtensions();
                 var serviceAttributeCollectionExtensionCode = serviceAttributeCollectionExtension.Generate();
                 WriteCode(new[] { "Common", "ServiceAttribute" }, "ServiceAttributeCollectionExtensions.cs", serviceAttributeCollectionExtensionCode);
-
-                ConsoleMessage("Service attribute generated successfully!");
             }
         }
 
@@ -78,8 +79,6 @@ namespace EntityCore.Tools
                 var result = new Result();
                 var resultClassesCode = result.Generate();
                 WriteCode("Common", "Result.cs", resultClassesCode);
-
-                ConsoleMessage("Result classes generated successfully!");
             }
         }
 
@@ -90,7 +89,6 @@ namespace EntityCore.Tools
                 var exceptionHandlerMiddlewareCode = new ExceptionHandlerMiddleware();
                 var code = exceptionHandlerMiddlewareCode.Generate();
                 WriteCode("Middlewares", "ExceptionHandlerMiddleware.cs", code);
-                ConsoleMessage("Exception handler middleware generated successfully!");
             }
         }
 
@@ -102,10 +100,11 @@ namespace EntityCore.Tools
 
             Type? entityType = GetEntityType(entityName);
 
-            string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
+            var dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
             Console.WriteLine("dbContextName:" + dbContextName);
 
             GeneratePagination();
+            GenerateListResult();
 
             var service = new Service(entityType);
             var serviceImplementationCode = service.Generate(dbContextName);
@@ -117,22 +116,30 @@ namespace EntityCore.Tools
             WriteCode(["Services", $"{entityName}s"], $"{entityName}sService.cs", serviceImplementationCode);
         }
 
+        private void GenerateListResult()
+        {
+            ListResult listResult = new ListResult();
+            var code = listResult.Generate();
+            WriteCode("Common", "ListResult.cs", code);
+        }
+
         private void GenerateView()
         {
-            var entityName = _arguments.ContainsKey("service") ? _arguments["service"] : null;
+            var entityName = _arguments.ContainsKey("view") ? _arguments["view"] : null;
             if (entityName is null)
                 return;
 
             Type? entityType = GetEntityType(entityName);
 
-            string dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
-            Console.WriteLine("dbContextName:" + dbContextName);
+            GeneratePaginationComponent();
 
             var view = new View(entityType);
-            var viewCode = view.Generate();
+            var viewCodes = view.Generate();
 
-            WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.razor", viewCode);
-            ConsoleMessage($"View for {entityName} generated successfully!");
+            foreach(var viewCode in viewCodes)
+            {
+                WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.{viewCode.Item1}.razor", viewCode.Item2);
+            }
         }
 
         private void GenerateController()
@@ -146,7 +153,16 @@ namespace EntityCore.Tools
             var controller = new Controller(entityType);
             var code = controller.GenerateControllerCodeWithEntity();
             WriteCode("Controllers", $"{entityName}sController.cs", code);
-            ConsoleMessage($"Controller for {entityName} generated successfully!");
+        }
+
+        private void GeneratePaginationComponent()
+        {
+            var paginationComponent = new PaginationComponent();
+            var code = paginationComponent.Generate();
+            WriteCode(["Components"], "Pagination.razor", code);
+
+            var style = paginationComponent.Style();
+            WriteCode(["Components"], "Pagination.razor.css", style);
         }
 
         private void GeneratePagination()
@@ -161,7 +177,6 @@ namespace EntityCore.Tools
             foreach (var (directories, fileName, code) in paginationComponents)
             {
                 WriteCode(directories, fileName, code);
-                ConsoleMessage($"{fileName} generated successfully!");
             }
         }
 
@@ -179,19 +194,15 @@ namespace EntityCore.Tools
             throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
         }
 
-        private static void ConsoleMessage(string message)
-        {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine(message);
-            Console.ResetColor();
-        }
-
         private void WriteCode(string directory, string fileName, string code)
         {
             var directoryPath = Path.Combine(_projectRoot, directory);
             Directory.CreateDirectory(directoryPath);
             string filePath = Path.Combine(directoryPath, fileName);
             File.WriteAllText(filePath, code);
+
+            
+            ConsoleMessage($"{fileName} generated successfully!");
         }
 
         private void WriteCode(string[] directories, string fileName, string code)
@@ -205,7 +216,23 @@ namespace EntityCore.Tools
 
             Directory.CreateDirectory(directoryPath);
             string filePath = Path.Combine(directoryPath, fileName);
+
+            if (File.Exists(filePath))
+            {
+                ConsoleMessage($"!!! {fileName} already exists.", ConsoleColor.Yellow);
+                return;
+            }
+
             File.WriteAllText(filePath, code);
+
+            ConsoleMessage($"{fileName} generated successfully!");
+        }
+
+        private void ConsoleMessage(string message, ConsoleColor consoleColor = ConsoleColor.Green)
+        {
+            Console.ForegroundColor = consoleColor;
+            Console.WriteLine(message);
+            Console.ResetColor();
         }
     }
 }

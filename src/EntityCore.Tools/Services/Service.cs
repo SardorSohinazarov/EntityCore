@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
+using System.Collections;
 using System.Reflection;
 
 namespace EntityCore.Tools.Services
@@ -12,15 +13,17 @@ namespace EntityCore.Tools.Services
     {
         private readonly string _entityName;
         private readonly Type _entityType;
+        private readonly Type _viewModelType;
         private readonly PropertyInfo _primaryKey;
         public Service(Type entityType)
         {
             _entityType = entityType;
             _entityName = _entityType.Name;
             _primaryKey = entityType.FindPrimaryKeyProperty();
+            _viewModelType = GetViewModelType(_entityName) ?? entityType;
         }
 
-        public string Generate(string dbContextName = null)
+        public string Generate(string? dbContextName = null)
         {
             Type? dbContextType = null;
 
@@ -135,9 +138,68 @@ namespace EntityCore.Tools.Services
 
         private MethodDeclarationSyntax GenerateAddMethodImplementation(string dbContextVariableName)
         {
+            List<StatementSyntax> idsPropertiesStatements = new List<StatementSyntax>();
+            List<StatementSyntax> navigationalPropertiesStatements = new List<StatementSyntax>();
             var creationDtoTypeName = GetCreationDtoTypeName(_entityName);
             var parametrName = creationDtoTypeName.GenerateFieldName();
             var returnTypeName = GetReturnTypeName(_entityName);
+
+
+            if(creationDtoTypeName != _entityName)
+            {
+                // id larni listi kelsa shularni map qilish
+                var creationDtoType = GetCreationDtoType(_entityName) ?? _entityType;
+                var collectionPropertiesWithIds = _entityType.GetProperties()
+                    .Where(x => typeof(IEnumerable).IsAssignableFrom(x.PropertyType))
+                    .Select(x => new 
+                    {
+                        Property = x,
+                        IdsProperty = creationDtoType.GetProperty($"{x.Name}Ids")
+                    })
+                    .Where(x => x.IdsProperty != null)
+                    .ToList();
+
+                idsPropertiesStatements = collectionPropertiesWithIds.Select(x =>
+                    SyntaxFactory.ParseStatement(
+                        $"entity.{x.Property.Name} = await {dbContextVariableName}.Set<{GetCollectionElementType(x.Property.PropertyType).Name}>()" +
+                        $"      .Where(x => {parametrName}.{x.IdsProperty.Name}.Contains(x.{GetCollectionElementType(x.Property.PropertyType).FindPrimaryKeyProperty().Name}))" +
+                        $"      .ToListAsync();"))
+                    .ToList();
+
+                // Navigational propertylarni map qilish
+                var properties = _entityType.GetProperties();
+
+                var navigationalIdProperties = properties
+                    .Where(x => !x.PropertyType.IsNavigationProperty())
+                    .Where(x => !x.IsPrimaryKeyProperty())
+                    .Where(x => x.Name.EndsWith("Id"))
+                    .ToList();
+
+                var navigationalProperties = properties
+                    .Where(x => x.PropertyType.IsNavigationProperty())
+                    .Where(x => !x.IsPrimaryKeyProperty())
+                    .Where(x => !navigationalIdProperties.Select(y => y.Name).Contains(x.Name + "Id"))
+                    .ToList();
+
+                navigationalProperties = navigationalProperties
+                    .Where(x => creationDtoType.GetProperties().Select(x => x.Name).Contains(x.Name + "Id"))
+                    .ToList();
+
+                navigationalPropertiesStatements = navigationalProperties.Select(x => 
+                        SyntaxFactory.ParseStatement(
+                        $"entity.{x.Name} = await {dbContextVariableName}.Set<{x.PropertyType.Name}>()" +
+                        $"      .FirstOrDefaultAsync(x => {parametrName}.{x.Name + "Id"} == x.{x.PropertyType.FindPrimaryKeyProperty().Name});"))
+                    .ToList();
+            }
+
+            List<StatementSyntax> statementSyntaxes = [SyntaxFactory.ParseStatement($"var entity = _mapper.Map<{_entityName}>({parametrName});")];
+            if(idsPropertiesStatements.Any())
+                statementSyntaxes.AddRange(idsPropertiesStatements);
+            if(navigationalPropertiesStatements.Any())
+                statementSyntaxes.AddRange(navigationalPropertiesStatements);
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"var entry = await {dbContextVariableName}.Set<{_entityName}>().AddAsync(entity);"));
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"));
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"return {GenerateReturn()};"));
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "AddAsync")
@@ -147,10 +209,7 @@ namespace EntityCore.Tools.Services
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(creationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entity = _mapper.Map<{_entityName}>({parametrName});"),
-                                    SyntaxFactory.ParseStatement($"var entry = await {dbContextVariableName}.Set<{_entityName}>().AddAsync(entity);"),
-                                    SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"),
-                                    SyntaxFactory.ParseStatement($"return {GenerateReturn()};")
+                                    statementSyntaxes
                                 ));
         }
 
@@ -174,7 +233,7 @@ namespace EntityCore.Tools.Services
             var returnTypeName = GetReturnTypeName(_entityName);
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier(nameof(Task)))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"List<{returnTypeName}>")), "FilterAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"ListResult<{returnTypeName}>")), "FilterAsync")
                                 .AddModifiers(
                                     SyntaxFactory.Token(SyntaxKind.PublicKeyword), // public
                                     SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
@@ -182,8 +241,9 @@ namespace EntityCore.Tools.Services
                                     .WithType(SyntaxFactory.ParseTypeName(typeof(PaginationOptions).Name)))
                                 .WithBody(SyntaxFactory.Block(
                                     SyntaxFactory.ParseStatement($"var httpContext = _httpContext.HttpContext;"),
-                                    SyntaxFactory.ParseStatement($"var entities = await {dbContextVariableName}.Set<{_entityName}>().ApplyPagination(filter,httpContext).ToListAsync();"),
-                                    SyntaxFactory.ParseStatement($"return {GenerateRuturnForGetAll()};")
+                                    SyntaxFactory.ParseStatement($"var paginatedResult = await {dbContextVariableName}.Set<{_entityName}>().ApplyPaginationAsync(filter);"),
+                                    SyntaxFactory.ParseStatement($"var {_entityName}s = _mapper.Map<List<{_viewModelType.Name}>>(paginatedResult.paginatedList);"),
+                                    SyntaxFactory.ParseStatement($"return {GenerateRuturnForFilter()};")
                                 ));
         }
 
@@ -207,9 +267,69 @@ namespace EntityCore.Tools.Services
 
         private MethodDeclarationSyntax GenerateUpdateMethodImplementation(string dbContextVariableName)
         {
+            List<StatementSyntax> idsPropertiesStatements = new List<StatementSyntax>();
+            List<StatementSyntax> navigationalPropertiesStatements = new List<StatementSyntax>();
             var modificationDtoTypeName = GetModificationDtoTypeName(_entityName);
             var parametrName = modificationDtoTypeName.GenerateFieldName();
             var returnTypeName = GetReturnTypeName(_entityName);
+
+            if(modificationDtoTypeName != _entityName)
+            {
+                var modificationDto = GetModificationDtoType(_entityName) ?? _entityType;
+
+                // id larni listi kelsa shularni map qilish
+                var collectionPropertiesWithIds = _entityType.GetProperties()
+                    .Where(x => typeof(IEnumerable).IsAssignableFrom(x.PropertyType))
+                    .Select(x => new 
+                    {
+                        Property = x,
+                        IdsProperty = modificationDto.GetProperty($"{x.Name}Ids")
+                    })
+                    .Where(x => x.IdsProperty != null)
+                    .ToList();
+
+                idsPropertiesStatements = collectionPropertiesWithIds.Select(x =>
+                    SyntaxFactory.ParseStatement(
+                        $"entity.{x.Property.Name} = await {dbContextVariableName}.Set<{GetCollectionElementType(x.Property.PropertyType).Name}>()" +
+                        $"      .Where(x => {parametrName}.{x.IdsProperty.Name}.Contains(x.{GetCollectionElementType(x.Property.PropertyType).FindPrimaryKeyProperty().Name}))" +
+                        $"      .ToListAsync();"))
+                    .ToList();
+
+                // Navigational propertylarni map qilish
+                var properties = _entityType.GetProperties();
+
+                var navigationalIdProperties = properties
+                    .Where(x => !x.PropertyType.IsNavigationProperty())
+                    .Where(x => !x.IsPrimaryKeyProperty())
+                    .Where(x => x.Name.EndsWith("Id"))
+                    .ToList();
+
+                var navigationalProperties = properties
+                    .Where(x => x.PropertyType.IsNavigationProperty())
+                    .Where(x => !x.IsPrimaryKeyProperty())
+                    .Where(x => !navigationalIdProperties.Select(y => y.Name).Contains(x.Name + "Id"))
+                    .ToList();
+
+                navigationalProperties = navigationalProperties
+                    .Where(x => modificationDto.GetProperties().Select(x => x.Name).Contains(x.Name + "Id"))
+                    .ToList();
+
+                navigationalPropertiesStatements = navigationalProperties.Select(x => 
+                        SyntaxFactory.ParseStatement(
+                        $"entity.{x.Name} = await {dbContextVariableName}.Set<{x.PropertyType.Name}>()" +
+                        $"      .FirstOrDefaultAsync(x => {parametrName}.{x.Name + "Id"} == x.{x.PropertyType.FindPrimaryKeyProperty().Name});"))
+                    .ToList();
+            }
+
+            List<StatementSyntax> statementSyntaxes = new List<StatementSyntax>();
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{_entityName}>().FirstOrDefaultAsync(x => x.{_primaryKey.Name} == id);"));
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{_entityName} with {{id}} not found.\");"));
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"_mapper.Map({parametrName}, entity);"));
+            if (idsPropertiesStatements.Any())
+                statementSyntaxes.AddRange(idsPropertiesStatements);
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{_entityName}>().Update(entity);"));
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"));
+            statementSyntaxes.Add(SyntaxFactory.ParseStatement($"return {GenerateReturn()};"));
 
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
                                 .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName(returnTypeName)), "UpdateAsync")
@@ -221,12 +341,7 @@ namespace EntityCore.Tools.Services
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier(parametrName))
                                     .WithType(SyntaxFactory.ParseTypeName(modificationDtoTypeName)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"var entity = await {dbContextVariableName}.Set<{_entityName}>().FirstOrDefaultAsync(x => x.{_primaryKey.Name} == id);"),
-                                    SyntaxFactory.ParseStatement($"if (entity == null) throw new InvalidOperationException($\"{_entityName} with {{id}} not found.\");"),
-                                    SyntaxFactory.ParseStatement($"_mapper.Map({parametrName}, entity);"),
-                                    SyntaxFactory.ParseStatement($"var entry = {dbContextVariableName}.Set<{_entityName}>().Update(entity);"),
-                                    SyntaxFactory.ParseStatement($"await {dbContextVariableName}.SaveChangesAsync();"),
-                                    SyntaxFactory.ParseStatement($"return {GenerateReturn()};")
+                                    statementSyntaxes
                                 ));
         }
 
@@ -262,18 +377,19 @@ namespace EntityCore.Tools.Services
                 "Microsoft.AspNetCore.Http",
                 "Common.Paginations.Models",
                 "Common.Paginations.Extensions",
-                "Common.ServiceAttribute"
+                "Common.ServiceAttribute",
+                "Common"
             };
 
-            var viewModelType = GetViewModel(entityType.Name);
+            var viewModelType = GetViewModelType(entityType.Name);
             if (!string.IsNullOrEmpty(viewModelType?.Namespace))
                 usings.Add(viewModelType.Namespace);
 
-            var creationDtoType = GetCreationDto(entityType.Name);
+            var creationDtoType = GetCreationDtoType(entityType.Name);
             if (!string.IsNullOrEmpty(creationDtoType?.Namespace))
                 usings.Add(creationDtoType.Namespace);
 
-            var modificationDtoType = GetModificationDto(entityType.Name);
+            var modificationDtoType = GetModificationDtoType(entityType.Name);
             if (!string.IsNullOrEmpty(modificationDtoType?.Namespace))
                 usings.Add(modificationDtoType.Namespace);
 
@@ -290,9 +406,9 @@ namespace EntityCore.Tools.Services
             return syntaxTree;
         }
 
-        protected string GenerateReturn()
+        private string GenerateReturn()
         {
-            var viewModel = GetViewModel(_entityName);
+            var viewModel = GetViewModelType(_entityName);
 
             if (viewModel is null)
                 return "entry.Entity";
@@ -300,20 +416,44 @@ namespace EntityCore.Tools.Services
             return $"_mapper.Map<{viewModel.Name}>(entry.Entity)";
         }
 
-        protected string GenerateRuturnForGetAll()
+        private string GenerateRuturnForGetAll()
         {
-            var viewModel = GetViewModel(_entityName);
+            var viewModel = GetViewModelType(_entityName);
             if (viewModel is null)
                 return "entities";
             return $"_mapper.Map<List<{viewModel.Name}>>(entities)";
         }
 
-        protected string GenerateReturnForGet()
+        private string GenerateRuturnForFilter()
         {
-            var viewModel = GetViewModel(_entityName);
+            var viewModel = GetViewModelType(_entityName) ?? _entityType;
+            return $"new ListResult<{viewModel.Name}>(paginatedResult.paginationMetadata,{_entityName}s)";
+        }
+
+        private string GenerateReturnForGet()
+        {
+            var viewModel = GetViewModelType(_entityName);
             if (viewModel is null)
                 return "entity";
             return $"_mapper.Map<{viewModel.Name}>(entity)";
+        }
+
+        private Type GetCollectionElementType(Type collectionType)
+        {
+            if (collectionType.IsArray)
+                return collectionType.GetElementType();
+
+            if (collectionType.IsGenericType)
+                return collectionType.GetGenericArguments().First();
+
+            // Fallback: check interfaces
+            var enumerableInterface = collectionType.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+
+            if (enumerableInterface != null)
+                return enumerableInterface.GetGenericArguments().First();
+
+            return null;
         }
     }
 }

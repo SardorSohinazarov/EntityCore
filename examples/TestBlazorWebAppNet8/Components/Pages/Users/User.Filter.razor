@@ -1,0 +1,103 @@
+@page "/users"
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.WebUtilities
+@using Common.Paginations.Models
+@using DataTransferObjects.Users
+@using Services.Users
+@inject IUsersService UserService
+
+<h3>User List</h3>
+
+<NavLink class="btn btn-primary mb-3" href="/users/create">Create New</NavLink>
+
+@if (Users == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Password</th>
+                <th>Id</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Users)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Name</td>
+                    <td>@item.Email</td>
+                    <td>@item.Password</td>
+                    <td>@item.Id</td>
+                    <td>
+                        <NavLink class="btn btn-sm btn-info" href="@($"/users/{item.Id}")">Details</NavLink>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteUser(item.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+<Pagination PaginationMetadata="@PaginationMetadata" PageName="Users"></Pagination>
+}
+
+@code {
+    private List<UserViewModel> Users { get; set; }
+    private PaginationOptions PaginationOptions { get; set; }
+    private PaginationMetadata PaginationMetadata { get; set; }
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+        ReadQueryAndLoadData();
+    }
+
+    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        ReadQueryAndLoadData();
+    }
+
+    private void ReadQueryAndLoadData()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+        PaginationOptions = new PaginationOptions(5, 1);
+
+        if (query.TryGetValue("page", out var pageStr) && int.TryParse(pageStr, out var page))
+            PaginationOptions.PageToken = page;
+
+        if (query.TryGetValue("size", out var sizeStr) && int.TryParse(sizeStr, out var size))
+            PaginationOptions.PageSize = size;
+
+        _ = LoadAsync();
+    }
+
+    async Task LoadAsync()
+    {
+        var filteredData = await UserService.FilterAsync(PaginationOptions);
+        Users = filteredData.Items;
+        PaginationMetadata = filteredData.Pagination;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    async Task DeleteUser(int id)
+    {
+        await UserService.DeleteAsync(id);
+        var filteredData = await UserService.FilterAsync(PaginationOptions);
+        Users = filteredData.Items;
+        PaginationMetadata = filteredData.Pagination;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
