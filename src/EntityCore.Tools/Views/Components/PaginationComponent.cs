@@ -1,6 +1,6 @@
 ﻿namespace EntityCore.Tools.Views.Components
 {
-    public class PaginationComponent
+    public partial class PaginationComponent
     {
         public string Generate()
         {

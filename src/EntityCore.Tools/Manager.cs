@@ -160,6 +160,9 @@ namespace EntityCore.Tools
             var paginationComponent = new PaginationComponent();
             var code = paginationComponent.Generate();
             WriteCode(["Components"], "Pagination.razor", code);
+
+            var style = paginationComponent.Style();
+            WriteCode(["Components"], "Pagination.razor.css", style);
         }
 
         private void GeneratePagination()
