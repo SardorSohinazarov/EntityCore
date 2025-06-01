@@ -7,6 +7,7 @@ using EntityCore.Tools.DataTransferObjects;
 using EntityCore.Tools.Middlewares;
 using EntityCore.Tools.Services;
 using EntityCore.Tools.Views;
+using EntityCore.Tools.Views.Components;
 
 namespace EntityCore.Tools
 {
@@ -26,11 +27,12 @@ namespace EntityCore.Tools
         {
             GenerateDto();
             GenerateService();
-            GenerateView();
             GenerateController();
             GenerateExceptionM();
             GenerateResult();
             GenerateServiceAttribute();
+            
+            GenerateView();
         }
 
         private void GenerateDto()
@@ -119,6 +121,8 @@ namespace EntityCore.Tools
 
             Type? entityType = GetEntityType(entityName);
 
+            GeneratePaginationComponent();
+
             var view = new View(entityType);
             var viewCodes = view.Generate();
 
@@ -139,6 +143,13 @@ namespace EntityCore.Tools
             var controller = new Controller(entityType);
             var code = controller.GenerateControllerCodeWithEntity();
             WriteCode("Controllers", $"{entityName}sController.cs", code);
+        }
+
+        private void GeneratePaginationComponent()
+        {
+            var paginationComponent = new PaginationComponent();
+            var code = paginationComponent.Generate();
+            WriteCode(["Components"], "Pagination.razor", code);
         }
 
         private void GeneratePagination()
