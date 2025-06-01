@@ -1,4 +1,5 @@
 ﻿using EntityCore.Tools.Extensions;
+using System.Collections;
 using System.Reflection;
 using System.Text;
 
@@ -45,6 +46,9 @@ namespace EntityCore.Tools.Views
 
             foreach (var prop in dtoProperties)
             {
+                if (typeof(IEnumerable).IsAssignableFrom(prop.PropertyType) && prop.PropertyType != typeof(string))
+                    continue;
+
                 sb.AppendLine($"    <div class=\"form-group mb-3\">");
                 sb.AppendLine($"        <label for=\"{prop.Name.ToLower()}\">{prop.Name}:</label>");
                 sb.AppendLine(GenerateInputControl(prop, _entityName.GenerateFieldName()));
@@ -82,7 +86,9 @@ namespace EntityCore.Tools.Views
             string bindFormat = ""; // For dates or other specific formats
 
             if (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(long) || prop.PropertyType == typeof(short) ||
-                prop.PropertyType == typeof(decimal) || prop.PropertyType == typeof(double) || prop.PropertyType == typeof(float))
+                prop.PropertyType == typeof(int?) || prop.PropertyType == typeof(long?) || prop.PropertyType == typeof(short?) ||
+                prop.PropertyType == typeof(decimal) || prop.PropertyType == typeof(double) || prop.PropertyType == typeof(float) ||
+                prop.PropertyType == typeof(decimal?) || prop.PropertyType == typeof(double?) || prop.PropertyType == typeof(float?))
             {
                 inputType = "InputNumber";
             }
@@ -99,8 +105,8 @@ namespace EntityCore.Tools.Views
                  return $"        <{inputType} id=\"{prop.Name.ToLower()}\" class=\"form-control\" @bind-Value=\"{modelName}.{prop.Name}\" />\n" +
                         $"        <!-- Enum Type: {prop.PropertyType.Name}. Consider using InputSelect for enums. -->";
             }
-            // List bo'lsa get all qilib shunda tanlanadigan select qilish kerak
 
+            // List bo'lsa get all qilib shunda tanlanadigan select qilish kerak
             return $"        <{inputType} id=\"{prop.Name.ToLower()}\" class=\"form-control\" @bind-Value=\"{modelName}.{prop.Name}\" {bindFormat}/>";
         }
     }

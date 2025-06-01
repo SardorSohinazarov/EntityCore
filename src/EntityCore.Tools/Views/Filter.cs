@@ -1,4 +1,5 @@
 ﻿using EntityCore.Tools.Extensions;
+using System.Collections;
 using System.Reflection;
 using System.Text;
 
@@ -55,7 +56,7 @@ namespace EntityCore.Tools.Views
             sb.AppendLine("                <th>#</th>"); // Index column
             foreach (var prop in properties)
             {
-                sb.AppendLine($"                <th>{prop.Name}</th>");
+                sb.AppendLine(GetPropertyName(prop));
             }
             sb.AppendLine($"                <th>{_primaryKey.Name}</th>"); // Primary key header
             sb.AppendLine("                <th>Actions</th>");
@@ -68,7 +69,7 @@ namespace EntityCore.Tools.Views
             sb.AppendLine($"                    <td>@item.{_primaryKey.Name}</td>"); // Index column
             foreach (var prop in properties)
             {
-                sb.AppendLine($"                    <td>@item.{prop.Name}</td>");
+                sb.AppendLine(GenerateLink(prop));
             }
             sb.AppendLine($"                    <td>@item.{_primaryKey.Name}</td>"); // Primary key value
             sb.AppendLine("                    <td>");
@@ -137,6 +138,37 @@ namespace EntityCore.Tools.Views
             sb.AppendLine("}");
 
             return sb.ToString();
+        }
+
+        private string GetPropertyName(PropertyInfo property)
+        {
+            if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string))
+                return null;
+
+            return $"                <th>{property.Name}</th>";
+        }
+
+        private string GenerateLink(PropertyInfo property)
+        {
+            if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string))
+                return null;
+
+            if (property.PropertyType.IsNavigationProperty())
+            {
+                var idProperty = GetPropertyId(property);
+                if (idProperty is null)
+                    return $"                    <td>null</td>";
+
+                return $"                    <td><a href=\"/{property.PropertyType.Name}s/@item.{idProperty?.Name}\">link</a></td>";
+            }
+            else
+                return $"                    <td>@item.{property.Name}</td>";
+        }
+
+        private PropertyInfo GetPropertyId(PropertyInfo property)
+        {
+            return _entityType.GetProperties()
+                .FirstOrDefault(x => x.Name == $"{property.Name}Id");
         }
     }
 }
