@@ -2,8 +2,8 @@
 @rendermode InteractiveServer
 @using Common.Paginations.Models
 @using DataTransferObjects.Users
+@using Microsoft.AspNetCore.WebUtilities
 @using Services.Users
-@using TestApiNet8.Domain.Entities
 @inject IUsersService UserService
 @inject NavigationManager NavigationManager
 
@@ -60,7 +60,7 @@ else
         ReadQueryAndLoadData();
     }
 
-    private void OnLocationChanged(object sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
     {
         ReadQueryAndLoadData();
     }
@@ -68,7 +68,7 @@ else
     private void ReadQueryAndLoadData()
     {
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
-        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        var query = QueryHelpers.ParseQuery(uri.Query);
         PaginationOptions = new PaginationOptions(5, 1);
 
         if (query.TryGetValue("page", out var pageStr) && int.TryParse(pageStr, out var page))
