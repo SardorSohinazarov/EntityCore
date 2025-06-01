@@ -35,13 +35,13 @@ namespace EntityCore.Tools.Views
                 sb.AppendLine($"@using {_serviceType.Namespace}");
             sb.AppendLine($"@inject I{pluralEntityName}Service {serviceName}");
             sb.AppendLine($"@inject NavigationManager NavigationManager");
-            sb.AppendLine("");
+            sb.AppendLine();
             sb.AppendLine($"<h3>Create New {_entityName}</h3>");
-            sb.AppendLine("");
+            sb.AppendLine();
             sb.AppendLine($"<EditForm FormName=\"{_creationDtoType.Name}\" Model=\"@{_entityName.GenerateFieldName()}\" OnValidSubmit=\"() => HandleValidSubmit()\">");
             sb.AppendLine("    <DataAnnotationsValidator />");
             sb.AppendLine("    <ValidationSummary />");
-            sb.AppendLine("");
+            sb.AppendLine();
 
             foreach (var prop in dtoProperties)
             {
@@ -52,21 +52,21 @@ namespace EntityCore.Tools.Views
                 sb.AppendLine("    </div>");
             }
 
-            sb.AppendLine("");
+            sb.AppendLine();
             sb.AppendLine("    <button type=\"submit\" class=\"btn btn-primary\">Save</button>");
             sb.AppendLine($"    <button type=\"button\" class=\"btn btn-secondary\" @onclick=\"Cancel\">Cancel</button>");
             sb.AppendLine("</EditForm>");
-            sb.AppendLine("");
+            sb.AppendLine();
             sb.AppendLine("@code {");
             sb.AppendLine($"    [SupplyParameterFromForm]");
             sb.AppendLine($"    public {_creationDtoType.Name} {_entityName.GenerateFieldName()} {{ get; set; }} = new {_creationDtoType.Name}();");
-            sb.AppendLine("");
+            sb.AppendLine();
             sb.AppendLine("    private async Task HandleValidSubmit()");
             sb.AppendLine("    {");
             sb.AppendLine($"        await {serviceName}.AddAsync({_entityName.GenerateFieldName()});");
             sb.AppendLine($"        NavigationManager.NavigateTo(\"/{pluralEntityName.ToLower()}\");");
             sb.AppendLine("    }");
-            sb.AppendLine("");
+            sb.AppendLine();
             sb.AppendLine("    private void Cancel()");
             sb.AppendLine("    {");
             sb.AppendLine($"        NavigationManager.NavigateTo(\"/{pluralEntityName.ToLower()}\");");
