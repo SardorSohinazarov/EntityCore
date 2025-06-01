@@ -1,0 +1,53 @@
+@page "/categorys/create"
+@rendermode InteractiveServer
+@using DataTransferObjects.Categorys
+@using Services.Categorys
+@inject ICategorysService CategoryService
+@inject NavigationManager NavigationManager
+
+<h3>Create New Category</h3>
+
+<EditForm FormName="CategoryCreationDto" Model="@category" OnValidSubmit="() => HandleValidSubmit()">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group mb-3">
+        <label for="name">Name:</label>
+        <InputText id="name" class="form-control" @bind-Value="category.Name" />
+        <ValidationMessage For="@(() => category.Name)" />
+    </div>
+    @* <div class="form-group mb-3"> *@
+    @*     <label for="parentcategoryid">ParentCategoryId:</label> *@
+    @*     <InputText id="parentcategoryid" class="form-control" @bind-Value="category.ParentCategoryId" /> *@
+    @*     <ValidationMessage For="@(() => category.ParentCategoryId)" /> *@
+    @* </div> *@
+    @* <div class="form-group mb-3"> *@
+    @*     <label for="childcategoriesids">ChildCategoriesIds:</label> *@
+    @*     <InputText id="childcategoriesids" class="form-control" @bind-Value="category.ChildCategoriesIds" /> *@
+    @*     <ValidationMessage For="@(() => category.ChildCategoriesIds)" /> *@
+    @* </div> *@
+    @* <div class="form-group mb-3"> *@
+    @*     <label for="productsids">ProductsIds:</label> *@
+    @*     <InputText id="productsids" class="form-control" @bind-Value="category.ProductsIds" /> *@
+    @*     <ValidationMessage For="@(() => category.ProductsIds)" /> *@
+    @* </div> *@
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    public CategoryCreationDto category { get; set; } = new CategoryCreationDto();
+
+    private async Task HandleValidSubmit()
+    {
+        await CategoryService.AddAsync(category);
+        NavigationManager.NavigateTo("/categorys");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/categorys");
+    }
+}

@@ -12,7 +12,7 @@ using TestApiWithNet8;
 namespace TestApiNet8.Infrastructure.Migrations
 {
     [DbContext(typeof(TestApiNet8Db))]
-    [Migration("20250525110050_Init")]
+    [Migration("20250601141346_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -40,6 +40,28 @@ namespace TestApiNet8.Infrastructure.Migrations
                     b.ToTable("StudentTeacher");
                 });
 
+            modelBuilder.Entity("TestApiNet8.Domain.Entities.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentCategoryId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentCategoryId");
+
+                    b.ToTable("Categories");
+                });
+
             modelBuilder.Entity("TestApiNet8.Domain.Entities.Product", b =>
                 {
                     b.Property<long>("Id")
@@ -48,12 +70,11 @@ namespace TestApiNet8.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("CreatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("CreatorId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -65,13 +86,11 @@ namespace TestApiNet8.Infrastructure.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("CreatorId");
 
                     b.ToTable("Products");
                 });
@@ -152,6 +171,35 @@ namespace TestApiNet8.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TestApiNet8.Domain.Entities.Category", b =>
+                {
+                    b.HasOne("TestApiNet8.Domain.Entities.Category", "ParentCategory")
+                        .WithMany("ChildCategories")
+                        .HasForeignKey("ParentCategoryId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("ParentCategory");
+                });
+
+            modelBuilder.Entity("TestApiNet8.Domain.Entities.Product", b =>
+                {
+                    b.HasOne("TestApiNet8.Domain.Entities.Category", "Category")
+                        .WithMany("Products")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TestApiNet8.Domain.Entities.User", "Creator")
+                        .WithMany()
+                        .HasForeignKey("CreatorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Creator");
+                });
+
             modelBuilder.Entity("TestApiNet8.Domain.Entities.Student", b =>
                 {
                     b.HasOne("TestApiNet8.Domain.Entities.User", "User")
@@ -172,6 +220,13 @@ namespace TestApiNet8.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TestApiNet8.Domain.Entities.Category", b =>
+                {
+                    b.Navigation("ChildCategories");
+
+                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }

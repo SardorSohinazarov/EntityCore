@@ -1,0 +1,54 @@
+@page "/categorys/{Id:int}"
+@rendermode InteractiveServer
+@using DataTransferObjects.Categorys
+@using Services.Categorys
+@inject ICategorysService CategoryService
+@inject NavigationManager NavigationManager
+
+<h3>Category Details</h3>
+
+@if (category == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-3">Name</dt>
+        <dd class="col-sm-9">@category.Name</dd>
+        <dt class="col-sm-3">ParentCategoryId</dt>
+        <dd class="col-sm-9">@category.ParentCategoryId</dd>
+        <dt class="col-sm-3">ParentCategory</dt>
+        <dd class="col-sm-9">@category.ParentCategory</dd>
+        <dt class="col-sm-3">ChildCategories</dt>
+        <dd class="col-sm-9">@category.ChildCategories</dd>
+        <dt class="col-sm-3">Products</dt>
+        <dd class="col-sm-9">@category.Products</dd>
+    </dl>
+    <div>
+        <button class="btn btn-primary" @onclick="Save">Save</button>
+        <button class="btn btn-secondary" @onclick="BackToList">Back to List</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private CategoryViewModel? category;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        category = await CategoryService.GetByIdAsync(Id);
+    }
+
+    private void Save()
+    {
+        throw new NotImplementedException("Save functionality is not implemented.");
+    }
+
+    private void BackToList()
+    {
+        NavigationManager.NavigateTo("/categorys");
+    }
+}

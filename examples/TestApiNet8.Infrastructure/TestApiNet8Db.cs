@@ -12,6 +12,7 @@ namespace TestApiWithNet8
         public DbSet<Teacher> Teachers { get; set; }
         public DbSet<User> Users { get; set; }
         public DbSet<Product> Products { get; set; }
+        public DbSet<Category> Categories { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -38,6 +39,20 @@ namespace TestApiWithNet8
                         .WithMany()
                         .HasForeignKey("StudentsId")
                         .OnDelete(DeleteBehavior.Restrict)); // Cascade delete o‘rniga restrict
+
+            // Category va Product o‘rtasidagi bog‘lanish
+            modelBuilder.Entity<Category>()
+                .HasMany(c => c.ChildCategories)
+                .WithOne(c => c.ParentCategory)
+                .HasForeignKey(c => c.ParentCategoryId)
+                .OnDelete(DeleteBehavior.NoAction)
+                .IsRequired(false);
+
+            modelBuilder.Entity<Category>()
+                .HasMany(c => c.Products)
+                .WithOne(p => p.Category)
+                .HasForeignKey(p => p.CategoryId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

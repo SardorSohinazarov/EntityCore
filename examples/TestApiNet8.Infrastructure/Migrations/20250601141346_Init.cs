@@ -1,5 +1,4 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -12,22 +11,22 @@ namespace TestApiNet8.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Products",
+                name: "Categories",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Quantity = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    ParentCategoryId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.PrimaryKey("PK_Categories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Categories_Categories_ParentCategoryId",
+                        column: x => x.ParentCategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -43,6 +42,34 @@ namespace TestApiNet8.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Products",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Quantity = table.Column<int>(type: "int", nullable: false),
+                    CreatorId = table.Column<int>(type: "int", nullable: false),
+                    CategoryId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Products_Categories_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Categories",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Products_Users_CreatorId",
+                        column: x => x.CreatorId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -108,6 +135,21 @@ namespace TestApiNet8.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Categories_ParentCategoryId",
+                table: "Categories",
+                column: "ParentCategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_CategoryId",
+                table: "Products",
+                column: "CategoryId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Products_CreatorId",
+                table: "Products",
+                column: "CreatorId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Students_UserId",
                 table: "Students",
                 column: "UserId");
@@ -131,6 +173,9 @@ namespace TestApiNet8.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "StudentTeacher");
+
+            migrationBuilder.DropTable(
+                name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "Students");
