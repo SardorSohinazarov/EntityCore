@@ -1,21 +1,17 @@
-using AutoMapper;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
 using Common.Paginations.Models;
-using Common.Paginations.Extensions;
+using Common;
 using DataTransferObjects.Users;
 using TestApiNet8.Domain.Entities;
-using TestApiNet8.Application.Common;
 
 namespace Services.Users
 {
     public interface IUsersService
     {
-        Task<UserViewModel> AddAsync(UserCreationDto entity);
+        Task<UserViewModel> AddAsync(UserCreationDto userCreationDto);
         Task<List<UserViewModel>> GetAllAsync();
         Task<ListResult<UserViewModel>> FilterAsync(PaginationOptions filter);
         Task<UserViewModel> GetByIdAsync(int id);
-        Task<UserViewModel> UpdateAsync(int id, UserModificationDto entity);
+        Task<UserViewModel> UpdateAsync(int id, UserModificationDto userModificationDto);
         Task<UserViewModel> DeleteAsync(int id);
     }
 }

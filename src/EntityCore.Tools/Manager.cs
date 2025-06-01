@@ -25,13 +25,15 @@ namespace EntityCore.Tools
 
         public void Generate()
         {
+            // Backend generation
             GenerateDto();
             GenerateService();
             GenerateController();
             GenerateExceptionM();
             GenerateResult();
             GenerateServiceAttribute();
-            
+
+            // Frontend generation
             GenerateView();
         }
 
@@ -102,6 +104,7 @@ namespace EntityCore.Tools
             Console.WriteLine("dbContextName:" + dbContextName);
 
             GeneratePagination();
+            GenerateListResult();
 
             var service = new Service(entityType);
             var serviceImplementationCode = service.Generate(dbContextName);
@@ -111,6 +114,13 @@ namespace EntityCore.Tools
 
             WriteCode(["Services", $"{entityName}s"], $"I{entityName}sService.cs", serviceDeclarationCode);
             WriteCode(["Services", $"{entityName}s"], $"{entityName}sService.cs", serviceImplementationCode);
+        }
+
+        private void GenerateListResult()
+        {
+            ListResult listResult = new ListResult();
+            var code = listResult.Generate();
+            WriteCode("Common", "ListResult.cs", code);
         }
 
         private void GenerateView()

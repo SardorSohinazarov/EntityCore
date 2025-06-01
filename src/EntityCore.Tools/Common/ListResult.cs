@@ -1,4 +1,10 @@
-using Common.Paginations.Models;
+﻿namespace EntityCore.Tools.Common
+{
+    public class ListResult
+    {
+        public string Generate()
+        {
+            return @"using Common.Paginations.Models;
 
 namespace Common
 {
@@ -12,5 +18,8 @@ namespace Common
 
         public PaginationMetadata Pagination { get; set; }
         public List<T> Items { get; set; }
+    }
+}
+";      }
     }
 }
