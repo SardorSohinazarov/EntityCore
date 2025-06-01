@@ -24,8 +24,8 @@ else
                 <th>Name</th>
                 <th>ParentCategoryId</th>
                 <th>ParentCategory</th>
-                <th>ChildCategories</th>
-                <th>Products</th>
+
+
                 <th>Id</th>
                 <th>Actions</th>
             </tr>
@@ -37,9 +37,9 @@ else
                     <td>@item.Id</td>
                     <td>@item.Name</td>
                     <td>@item.ParentCategoryId</td>
-                    <td>@item.ParentCategory</td>
-                    <td>@item.ChildCategories</td>
-                    <td>@item.Products</td>
+                    <td><a href="/Categorys/@item.ParentCategoryId">link</a></td>
+
+
                     <td>@item.Id</td>
                     <td>
                         <NavLink class="btn btn-sm btn-info" href="@($"/categorys/{item.Id}")">Details</NavLink>

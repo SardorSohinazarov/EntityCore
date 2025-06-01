@@ -16,21 +16,11 @@
         <InputText id="name" class="form-control" @bind-Value="category.Name" />
         <ValidationMessage For="@(() => category.Name)" />
     </div>
-    @* <div class="form-group mb-3"> *@
-    @*     <label for="parentcategoryid">ParentCategoryId:</label> *@
-    @*     <InputText id="parentcategoryid" class="form-control" @bind-Value="category.ParentCategoryId" /> *@
-    @*     <ValidationMessage For="@(() => category.ParentCategoryId)" /> *@
-    @* </div> *@
-    @* <div class="form-group mb-3"> *@
-    @*     <label for="childcategoriesids">ChildCategoriesIds:</label> *@
-    @*     <InputText id="childcategoriesids" class="form-control" @bind-Value="category.ChildCategoriesIds" /> *@
-    @*     <ValidationMessage For="@(() => category.ChildCategoriesIds)" /> *@
-    @* </div> *@
-    @* <div class="form-group mb-3"> *@
-    @*     <label for="productsids">ProductsIds:</label> *@
-    @*     <InputText id="productsids" class="form-control" @bind-Value="category.ProductsIds" /> *@
-    @*     <ValidationMessage For="@(() => category.ProductsIds)" /> *@
-    @* </div> *@
+    <div class="form-group mb-3">
+        <label for="parentcategoryid">ParentCategoryId:</label>
+        <InputNumber id="parentcategoryid" class="form-control" @bind-Value="category.ParentCategoryId" />
+        <ValidationMessage For="@(() => category.ParentCategoryId)" />
+    </div>
 
     <button type="submit" class="btn btn-primary">Save</button>
     <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
