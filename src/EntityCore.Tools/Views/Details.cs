@@ -51,9 +51,8 @@ namespace EntityCore.Tools.Views
 
             foreach (var prop in properties)
             {
-                sb.AppendLine($"        <dt class=\"col-sm-3\">{prop.Name}</dt>");
+                sb.AppendLine(GetPropertyName(prop));
                 sb.AppendLine(GenerateLink(prop));
-                //sb.AppendLine($"        <dd class=\"col-sm-9\">@{_entityName.GenerateFieldName()}.{prop.Name}</dd>");
             }
 
             sb.AppendLine("    </dl>");
@@ -93,7 +92,7 @@ namespace EntityCore.Tools.Views
             if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string))
                 return null;
 
-            return $"                <th>{property.Name}</th>";
+            return $"        <dt class=\"col-sm-3\">{property.Name}</dt>";
         }
 
         private string GenerateLink(PropertyInfo property)
