@@ -15,15 +15,15 @@ else
 {
     <dl class="row">
         <dt class="col-sm-3">Name</dt>
-        <dd class="col-sm-9">@category.Name</dd>
+                    <dd class="col-sm-9">@category.Name</dd>
         <dt class="col-sm-3">ParentCategoryId</dt>
-        <dd class="col-sm-9">@category.ParentCategoryId</dd>
+                    <dd class="col-sm-9">@category.ParentCategoryId</dd>
         <dt class="col-sm-3">ParentCategory</dt>
-        <dd class="col-sm-9">@category.ParentCategory</dd>
+                    <dd class="col-sm-9"><a href="/Categorys/@category.ParentCategoryId">link</a></dd>
         <dt class="col-sm-3">ChildCategories</dt>
-        <dd class="col-sm-9">@category.ChildCategories</dd>
+
         <dt class="col-sm-3">Products</dt>
-        <dd class="col-sm-9">@category.Products</dd>
+
     </dl>
     <div>
         <button class="btn btn-primary" @onclick="Save">Save</button>

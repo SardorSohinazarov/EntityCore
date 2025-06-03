@@ -1,4 +1,5 @@
 ﻿using EntityCore.Tools.Extensions;
+using System.Collections;
 using System.Reflection;
 using System.Text;
 
@@ -51,7 +52,8 @@ namespace EntityCore.Tools.Views
             foreach (var prop in properties)
             {
                 sb.AppendLine($"        <dt class=\"col-sm-3\">{prop.Name}</dt>");
-                sb.AppendLine($"        <dd class=\"col-sm-9\">@{_entityName.GenerateFieldName()}.{prop.Name}</dd>");
+                sb.AppendLine(GenerateLink(prop));
+                //sb.AppendLine($"        <dd class=\"col-sm-9\">@{_entityName.GenerateFieldName()}.{prop.Name}</dd>");
             }
 
             sb.AppendLine("    </dl>");
@@ -84,6 +86,37 @@ namespace EntityCore.Tools.Views
             sb.AppendLine("}");
 
             return sb.ToString();
+        }
+
+        private string GetPropertyName(PropertyInfo property)
+        {
+            if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string))
+                return null;
+
+            return $"                <th>{property.Name}</th>";
+        }
+
+        private string GenerateLink(PropertyInfo property)
+        {
+            if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string))
+                return null;
+
+            if (property.PropertyType.IsNavigationProperty())
+            {
+                var idProperty = GetPropertyId(property);
+                if (idProperty is null)
+                    return $"                    <dd class=\"col-sm-9\">null</dd>";
+
+                return $"                    <dd class=\"col-sm-9\"><a href=\"/{property.PropertyType.Name}s/@{_entityName.GenerateFieldName()}.{idProperty?.Name}\">link</a></dd>";
+            }
+            else
+                return $"                    <dd class=\"col-sm-9\">@{_entityName.GenerateFieldName()}.{property.Name}</dd>";
+        }
+
+        private PropertyInfo? GetPropertyId(PropertyInfo property)
+        {
+            return _entityType.GetProperties()
+                .FirstOrDefault(x => x.Name == $"{property.Name}Id");
         }
     }
 }
