@@ -1,11 +1,11 @@
 using System;
 using TestApiNet8.Domain.Entities;
 
-namespace DataTransferObjects.Tests;
+namespace DataTransferObjects.Questions;
 
-public class TestViewModel
+public class QuestionViewModel
 {
-    public string Name { get; set; }
+    public string Text { get; set; }
     public User Owner { get; set; }
     public int OwnerId { get; set; }
     public Guid Id { get; set; }

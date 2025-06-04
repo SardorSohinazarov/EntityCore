@@ -1,43 +1,43 @@
-@page "/tests/{id:guid}"
+@page "/answers/{id:guid}"
 @rendermode InteractiveServer
-@using DataTransferObjects.Tests
-@using Services.Tests
-@inject ITestsService TestService
+@using DataTransferObjects.Answers
+@using Services.Answers
+@inject IAnswersService AnswerService
 @inject NavigationManager NavigationManager
 
-<h3>Test Details</h3>
+<h3>Answer Details</h3>
 
-@if (test == null)
+@if (answer == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
     <dl class="row">
+        <dt class="col-sm-3">Text</dt>
+        @if(@answer.Text != null)
+        {
+            <dd class="col-sm-9">@answer.Text</dd>
+        }
+        else
+        {
+            <dd class="col-sm-9">None</dd>
+        }
+
+        <dt class="col-sm-3">IsCorrect</dt>
+        @if(@answer.IsCorrect != null)
+        {
+            <dd class="col-sm-9">@answer.IsCorrect</dd>
+        }
+        else
+        {
+            <dd class="col-sm-9">None</dd>
+        }
+
         <dt class="col-sm-3">Question</dt>
-        @if(@test.Name != null)
+        @if(@answer.Question != null)
         {
-            <dd class="col-sm-9">@test.Name</dd>
-        }
-        else
-        {
-            <dd class="col-sm-9">None</dd>
-        }
-
-        <dt class="col-sm-3">Owner</dt>
-        @if(@test.Owner != null)
-        {
-            <dd class="col-sm-9"><a href="/Users/@test.OwnerId">link</a></dd>
-        }
-        else
-        {
-            <dd class="col-sm-9">None</dd>
-        }
-
-        <dt class="col-sm-3">OwnerId</dt>
-        @if(@test.OwnerId != null)
-        {
-            <dd class="col-sm-9">@test.OwnerId</dd>
+            <dd class="col-sm-9"><a href="/Questions/@answer.QuestionId">link</a></dd>
         }
         else
         {
@@ -55,11 +55,11 @@ else
     [Parameter]
     public Guid Id { get; set; }
 
-    private TestViewModel? test;
+    private AnswerViewModel? answer;
 
     protected override async Task OnParametersSetAsync()
     {
-        test = await TestService.GetByIdAsync(Id);
+        answer = await AnswerService.GetByIdAsync(Id);
     }
 
     private void Save()
@@ -69,6 +69,6 @@ else
 
     private void BackToList()
     {
-        NavigationManager.NavigateTo("/tests");
+        NavigationManager.NavigateTo("/answers");
     }
 }

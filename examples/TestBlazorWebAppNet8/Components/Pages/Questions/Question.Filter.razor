@@ -1,17 +1,17 @@
-@page "/tests"
+@page "/questions"
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.WebUtilities
 @using Common.Paginations.Models
-@using DataTransferObjects.Tests
-@using Services.Tests
-@inject ITestsService TestService
+@using DataTransferObjects.Questions
+@using Services.Questions
+@inject IQuestionsService QuestionService
 
-<h3>Test List</h3>
+<h3>Question List</h3>
 
-<NavLink class="btn btn-primary mb-3" href="/tests/create">Create New</NavLink>
+<NavLink class="btn btn-primary mb-3" href="/questions/create">Create New</NavLink>
 
-@if (Tests == null)
+@if (Questions == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -21,7 +21,7 @@ else
         <thead>
             <tr>
                 <th>#</th>
-                <th>Question</th>
+                <th>Text</th>
                 <th>Owner</th>
                 <th>OwnerId</th>
                 <th>Id</th>
@@ -29,13 +29,13 @@ else
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Tests)
+            @foreach (var item in Questions)
             {
                 <tr>
                     <td>@item.Id</td>
-                    @if(@item.Name != default)
+                    @if(@item.Text != default)
                     {
-                        <td>@item.Name</td>
+                        <td>@item.Text</td>
                     }
                     else
                     {
@@ -62,18 +62,18 @@ else
 
                     <td>@item.Id</td>
                     <td>
-                        <NavLink class="btn btn-sm btn-info" href="@($"/tests/{item.Id}")">Details</NavLink>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteTest(item.Id)">Delete</button>
+                        <NavLink class="btn btn-sm btn-info" href="@($"/questions/{item.Id}")">Details</NavLink>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteQuestion(item.Id)">Delete</button>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
-<Pagination PaginationMetadata="@PaginationMetadata" PageName="Tests"></Pagination>
+<Pagination PaginationMetadata="@PaginationMetadata" PageName="Questions"></Pagination>
 }
 
 @code {
-    private List<TestViewModel> Tests { get; set; }
+    private List<QuestionViewModel> Questions { get; set; }
     private PaginationOptions PaginationOptions { get; set; }
     private PaginationMetadata PaginationMetadata { get; set; }
 
@@ -105,17 +105,17 @@ else
 
     async Task LoadAsync()
     {
-        var filteredData = await TestService.FilterAsync(PaginationOptions);
-        Tests = filteredData.Items;
+        var filteredData = await QuestionService.FilterAsync(PaginationOptions);
+        Questions = filteredData.Items;
         PaginationMetadata = filteredData.Pagination;
         await InvokeAsync(StateHasChanged);
     }
 
-    async Task DeleteTest(Guid id)
+    async Task DeleteQuestion(Guid id)
     {
-        await TestService.DeleteAsync(id);
-        var filteredData = await TestService.FilterAsync(PaginationOptions);
-        Tests = filteredData.Items;
+        await QuestionService.DeleteAsync(id);
+        var filteredData = await QuestionService.FilterAsync(PaginationOptions);
+        Questions = filteredData.Items;
         PaginationMetadata = filteredData.Pagination;
         await InvokeAsync(StateHasChanged);
     }

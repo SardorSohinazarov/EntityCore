@@ -1,23 +1,23 @@
-@page "/tests/{id:guid}"
+@page "/questions/{id:guid}"
 @rendermode InteractiveServer
-@using DataTransferObjects.Tests
-@using Services.Tests
-@inject ITestsService TestService
+@using DataTransferObjects.Questions
+@using Services.Questions
+@inject IQuestionsService QuestionService
 @inject NavigationManager NavigationManager
 
-<h3>Test Details</h3>
+<h3>Question Details</h3>
 
-@if (test == null)
+@if (question == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
     <dl class="row">
-        <dt class="col-sm-3">Question</dt>
-        @if(@test.Name != null)
+        <dt class="col-sm-3">Text</dt>
+        @if(@question.Text != null)
         {
-            <dd class="col-sm-9">@test.Name</dd>
+            <dd class="col-sm-9">@question.Text</dd>
         }
         else
         {
@@ -25,9 +25,9 @@ else
         }
 
         <dt class="col-sm-3">Owner</dt>
-        @if(@test.Owner != null)
+        @if(@question.Owner != null)
         {
-            <dd class="col-sm-9"><a href="/Users/@test.OwnerId">link</a></dd>
+            <dd class="col-sm-9"><a href="/Users/@question.OwnerId">link</a></dd>
         }
         else
         {
@@ -35,9 +35,9 @@ else
         }
 
         <dt class="col-sm-3">OwnerId</dt>
-        @if(@test.OwnerId != null)
+        @if(@question.OwnerId != null)
         {
-            <dd class="col-sm-9">@test.OwnerId</dd>
+            <dd class="col-sm-9">@question.OwnerId</dd>
         }
         else
         {
@@ -55,11 +55,11 @@ else
     [Parameter]
     public Guid Id { get; set; }
 
-    private TestViewModel? test;
+    private QuestionViewModel? question;
 
     protected override async Task OnParametersSetAsync()
     {
-        test = await TestService.GetByIdAsync(Id);
+        question = await QuestionService.GetByIdAsync(Id);
     }
 
     private void Save()
@@ -69,6 +69,6 @@ else
 
     private void BackToList()
     {
-        NavigationManager.NavigateTo("/tests");
+        NavigationManager.NavigateTo("/questions");
     }
 }

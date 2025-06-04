@@ -1,0 +1,48 @@
+@page "/answers/create"
+@rendermode InteractiveServer
+@using DataTransferObjects.Answers
+@using Services.Answers
+@inject IAnswersService AnswerService
+@inject NavigationManager NavigationManager
+
+<h3>Create New Answer</h3>
+
+<EditForm FormName="AnswerCreationDto" Model="@answer" OnValidSubmit="() => HandleValidSubmit()">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group mb-3">
+        <label for="text">Text:</label>
+        <InputText id="text" class="form-control" @bind-Value="answer.Text" />
+        <ValidationMessage For="@(() => answer.Text)" />
+    </div>
+    <div class="form-group mb-3">
+        <label for="iscorrect">IsCorrect:</label>
+        <InputCheckbox id="iscorrect" class="form-control" @bind-Value="answer.IsCorrect" />
+        <ValidationMessage For="@(() => answer.IsCorrect)" />
+    </div>
+    @* <div class="form-group mb-3"> *@
+    @*     <label for="questionid">QuestionId:</label> *@
+    @*     <InputText id="questionid" class="form-control" @bind-Value="answer.QuestionId" /> *@
+    @*     <ValidationMessage For="@(() => answer.QuestionId)" /> *@
+    @* </div> *@
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    public AnswerCreationDto answer { get; set; } = new AnswerCreationDto();
+
+    private async Task HandleValidSubmit()
+    {
+        await AnswerService.AddAsync(answer);
+        NavigationManager.NavigateTo("/answers");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/answers");
+    }
+}

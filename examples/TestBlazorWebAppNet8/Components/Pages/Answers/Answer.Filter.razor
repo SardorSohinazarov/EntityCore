@@ -1,17 +1,17 @@
-@page "/tests"
+@page "/answers"
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.WebUtilities
 @using Common.Paginations.Models
-@using DataTransferObjects.Tests
-@using Services.Tests
-@inject ITestsService TestService
+@using DataTransferObjects.Answers
+@using Services.Answers
+@inject IAnswersService AnswerService
 
-<h3>Test List</h3>
+<h3>Answer List</h3>
 
-<NavLink class="btn btn-primary mb-3" href="/tests/create">Create New</NavLink>
+<NavLink class="btn btn-primary mb-3" href="/answers/create">Create New</NavLink>
 
-@if (Tests == null)
+@if (Answers == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -21,39 +21,39 @@ else
         <thead>
             <tr>
                 <th>#</th>
+                <th>Text</th>
+                <th>IsCorrect</th>
                 <th>Question</th>
-                <th>Owner</th>
-                <th>OwnerId</th>
                 <th>Id</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Tests)
+            @foreach (var item in Answers)
             {
                 <tr>
                     <td>@item.Id</td>
-                    @if(@item.Name != default)
+                    @if(@item.Text != default)
                     {
-                        <td>@item.Name</td>
+                        <td>@item.Text</td>
                     }
                     else
                     {
                         <td>None</td>
                     }
 
-                    @if(@item.OwnerId != default)
+                    @if(@item.IsCorrect != default)
                     {
-                        <td><a href="/Users/@item.OwnerId">link</a></td>
+                        <td>@item.IsCorrect</td>
                     }
                     else
                     {
                         <td>None</td>
                     }
 
-                    @if(@item.OwnerId != default)
+                    @if(@item.QuestionId != default)
                     {
-                        <td>@item.OwnerId</td>
+                        <td><a href="/Questions/@item.QuestionId">link</a></td>
                     }
                     else
                     {
@@ -62,18 +62,18 @@ else
 
                     <td>@item.Id</td>
                     <td>
-                        <NavLink class="btn btn-sm btn-info" href="@($"/tests/{item.Id}")">Details</NavLink>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteTest(item.Id)">Delete</button>
+                        <NavLink class="btn btn-sm btn-info" href="@($"/answers/{item.Id}")">Details</NavLink>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteAnswer(item.Id)">Delete</button>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
-<Pagination PaginationMetadata="@PaginationMetadata" PageName="Tests"></Pagination>
+<Pagination PaginationMetadata="@PaginationMetadata" PageName="Answers"></Pagination>
 }
 
 @code {
-    private List<TestViewModel> Tests { get; set; }
+    private List<AnswerViewModel> Answers { get; set; }
     private PaginationOptions PaginationOptions { get; set; }
     private PaginationMetadata PaginationMetadata { get; set; }
 
@@ -105,17 +105,17 @@ else
 
     async Task LoadAsync()
     {
-        var filteredData = await TestService.FilterAsync(PaginationOptions);
-        Tests = filteredData.Items;
+        var filteredData = await AnswerService.FilterAsync(PaginationOptions);
+        Answers = filteredData.Items;
         PaginationMetadata = filteredData.Pagination;
         await InvokeAsync(StateHasChanged);
     }
 
-    async Task DeleteTest(Guid id)
+    async Task DeleteAnswer(Guid id)
     {
-        await TestService.DeleteAsync(id);
-        var filteredData = await TestService.FilterAsync(PaginationOptions);
-        Tests = filteredData.Items;
+        await AnswerService.DeleteAsync(id);
+        var filteredData = await AnswerService.FilterAsync(PaginationOptions);
+        Answers = filteredData.Items;
         PaginationMetadata = filteredData.Pagination;
         await InvokeAsync(StateHasChanged);
     }
