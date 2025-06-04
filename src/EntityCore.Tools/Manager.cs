@@ -199,6 +199,13 @@ namespace EntityCore.Tools
             var directoryPath = Path.Combine(_projectRoot, directory);
             Directory.CreateDirectory(directoryPath);
             string filePath = Path.Combine(directoryPath, fileName);
+
+            if (File.Exists(filePath))
+            {
+                ConsoleMessage($"!!! {fileName} already exists.", ConsoleColor.Yellow);
+                return;
+            }
+
             File.WriteAllText(filePath, code);
 
             
