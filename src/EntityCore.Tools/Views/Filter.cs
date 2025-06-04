@@ -153,16 +153,38 @@ namespace EntityCore.Tools.Views
             if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string))
                 return null;
 
+            
             if (property.PropertyType.IsNavigationProperty())
             {
                 var idProperty = GetPropertyId(property);
                 if (idProperty is null)
                     return $"                    <td>null</td>";
 
-                return $"                    <td><a href=\"/{property.PropertyType.Name}s/@item.{idProperty?.Name}\">link</a></td>";
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.AppendLine($"                    @if(@item.{idProperty.Name} != default)");
+                stringBuilder.AppendLine("                    {");
+                stringBuilder.AppendLine($"                        <td><a href=\"/{property.PropertyType.Name}s/@item.{idProperty.Name}\">link</a></td>");
+                stringBuilder.AppendLine("                    }");
+                stringBuilder.AppendLine("                    else");
+                stringBuilder.AppendLine("                    {");
+                stringBuilder.AppendLine("                        <td>None</td>");
+                stringBuilder.AppendLine("                    }");
+                return stringBuilder.ToString();
             }
             else
-                return $"                    <td>@item.{property.Name}</td>";
+            {
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.AppendLine($"                    @if(@item.{property.Name} != default)");
+                stringBuilder.AppendLine("                    {");
+                stringBuilder.AppendLine($"                        <td>@item.{property.Name}</td>");
+                stringBuilder.AppendLine("                    }");
+                stringBuilder.AppendLine("                    else");
+                stringBuilder.AppendLine("                    {");
+                stringBuilder.AppendLine("                        <td>None</td>");
+                stringBuilder.AppendLine("                    }");
+                return stringBuilder.ToString();
+            }
+            
         }
 
         private PropertyInfo GetPropertyId(PropertyInfo property)

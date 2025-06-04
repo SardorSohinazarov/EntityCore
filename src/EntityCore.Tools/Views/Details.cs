@@ -30,7 +30,8 @@ namespace EntityCore.Tools.Views
             var properties = _viewModelType.GetProperties().Where(p => (p.PropertyType.Name != _primaryKey.PropertyType.Name && p.Name != _primaryKey.Name)).ToList();
 
             var sb = new StringBuilder();
-            sb.AppendLine($"@page \"/{pluralEntityName.ToLower()}/{{Id:{_primaryKey.PropertyType.ToCSharpTypeName()}}}\"");
+            var route = $"{pluralEntityName}/{{Id:{_primaryKey.PropertyType.ToCSharpTypeName()}}}".ToLower();
+            sb.AppendLine($"@page \"/{route}\"");
             sb.AppendLine("@rendermode InteractiveServer");
             if(!string.IsNullOrEmpty(_viewModelType.Namespace))
                 sb.AppendLine($"@using {_viewModelType.Namespace}");
@@ -106,10 +107,30 @@ namespace EntityCore.Tools.Views
                 if (idProperty is null)
                     return $"                    <dd class=\"col-sm-9\">null</dd>";
 
-                return $"                    <dd class=\"col-sm-9\"><a href=\"/{property.PropertyType.Name}s/@{_entityName.GenerateFieldName()}.{idProperty?.Name}\">link</a></dd>";
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"        @if(@{_entityName.GenerateFieldName()}.{property.Name} != null)");
+                sb.AppendLine("        {");
+                sb.AppendLine($"            <dd class=\"col-sm-9\"><a href=\"/{property.PropertyType.Name}s/@{_entityName.GenerateFieldName()}.{idProperty?.Name}\">link</a></dd>");
+                sb.AppendLine("        }");
+                sb.AppendLine("        else");
+                sb.AppendLine("        {");
+                sb.AppendLine("            <dd class=\"col-sm-9\">None</dd>");
+                sb.AppendLine("        }");
+                return sb.ToString();
             }
             else
-                return $"                    <dd class=\"col-sm-9\">@{_entityName.GenerateFieldName()}.{property.Name}</dd>";
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"        @if(@{_entityName.GenerateFieldName()}.{property.Name} != null)");
+                sb.AppendLine("        {");
+                sb.AppendLine($"            <dd class=\"col-sm-9\">@{_entityName.GenerateFieldName()}.{property.Name}</dd>");
+                sb.AppendLine("        }");
+                sb.AppendLine("        else");
+                sb.AppendLine("        {");
+                sb.AppendLine("            <dd class=\"col-sm-9\">None</dd>");
+                sb.AppendLine("        }");
+                return sb.ToString();
+            }
         }
 
         private PropertyInfo? GetPropertyId(PropertyInfo property)
