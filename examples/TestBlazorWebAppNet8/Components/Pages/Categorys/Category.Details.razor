@@ -15,11 +15,27 @@ else
 {
     <dl class="row">
         <dt class="col-sm-3">Name</dt>
-                    <dd class="col-sm-9">@category.Name</dd>
+        @if(@category.Name is not null){
+            <dd class="col-sm-9">@category.Name</dd>
+        }
+        else
+        {
+            <dd class="col-sm-9">None</dd>
+        }
         <dt class="col-sm-3">ParentCategoryId</dt>
-                    <dd class="col-sm-9">@category.ParentCategoryId</dd>
+        @if(@category.ParentCategoryId is not null)
+        {                    
+            <dd class="col-sm-9">@category.ParentCategoryId</dd>
+        }else{
+            <dd class="col-sm-9">None</dd>
+        }
         <dt class="col-sm-3">ParentCategory</dt>
-                    <dd class="col-sm-9"><a href="/Categorys/@category.ParentCategoryId">link</a></dd>
+        @if(@category.ParentCategoryId is not null)
+        {                    
+            <dd class="col-sm-9"><a href="/Categorys/@category.ParentCategoryId">link</a></dd>
+        }else{
+            <dd class="col-sm-9">None</dd>
+        }
 
 
 

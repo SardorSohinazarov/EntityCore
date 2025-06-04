@@ -35,9 +35,30 @@ else
             {
                 <tr>
                     <td>@item.Id</td>
-                    <td>@item.Name</td>
-                    <td>@item.ParentCategoryId</td>
-                    <td><a href="/Categorys/@item.ParentCategoryId">link</a></td>
+                    @if(@item.Name is not null)
+                    {
+                        <td>@item.Name</td>
+                    }
+                    else
+                    {
+                        <td>None</td>
+                    }
+                    @if(@item.ParentCategoryId is not null)
+                    {                    
+                        <td>@item.ParentCategoryId</td>
+                    }
+                    else
+                    {
+                        <td>None</td>
+                    }
+                    @if(@item.ParentCategoryId is not null)
+                    {
+                        <td><a href="/Categorys/@item.ParentCategoryId">link</a></td>
+                    }
+                    else
+                    {
+                        <td>None</td>
+                    }
 
 
                     <td>@item.Id</td>
