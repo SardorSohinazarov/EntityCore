@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -111,6 +112,25 @@ namespace TestApiNet8.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Tests",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Question = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    OwnerId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tests", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Tests_Users_OwnerId",
+                        column: x => x.OwnerId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "StudentTeacher",
                 columns: table => new
                 {
@@ -163,6 +183,11 @@ namespace TestApiNet8.Infrastructure.Migrations
                 name: "IX_Teachers_UserId",
                 table: "Teachers",
                 column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tests_OwnerId",
+                table: "Tests",
+                column: "OwnerId");
         }
 
         /// <inheritdoc />
@@ -173,6 +198,9 @@ namespace TestApiNet8.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "StudentTeacher");
+
+            migrationBuilder.DropTable(
+                name: "Tests");
 
             migrationBuilder.DropTable(
                 name: "Categories");

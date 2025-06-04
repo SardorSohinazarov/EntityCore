@@ -12,7 +12,7 @@ using TestApiWithNet8;
 namespace TestApiNet8.Infrastructure.Migrations
 {
     [DbContext(typeof(TestApiNet8Db))]
-    [Migration("20250601141346_Init")]
+    [Migration("20250604181532_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -131,6 +131,26 @@ namespace TestApiNet8.Infrastructure.Migrations
                     b.ToTable("Teachers");
                 });
 
+            modelBuilder.Entity("TestApiNet8.Domain.Entities.Test", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Question")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Tests");
+                });
+
             modelBuilder.Entity("TestApiNet8.Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -220,6 +240,17 @@ namespace TestApiNet8.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TestApiNet8.Domain.Entities.Test", b =>
+                {
+                    b.HasOne("TestApiNet8.Domain.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("TestApiNet8.Domain.Entities.Category", b =>

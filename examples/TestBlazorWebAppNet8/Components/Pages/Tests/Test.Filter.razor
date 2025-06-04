@@ -1,0 +1,127 @@
+@page "/tests"
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.WebUtilities
+@using Common.Paginations.Models
+@using DataTransferObjects.Tests
+@using Services.Tests
+@inject ITestsService TestService
+
+<h3>Test List</h3>
+
+<NavLink class="btn btn-primary mb-3" href="/tests/create">Create New</NavLink>
+
+@if (Tests == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Question</th>
+                <th>Owner</th>
+                <th>OwnerId</th>
+                <th>Id</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Tests)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    @if(@item.Question != default)
+                    {
+                        <td>@item.Question</td>
+                    }
+                    else
+                    {
+                        <td>None</td>
+                    }
+
+                    @if(@item.OwnerId != default)
+                    {
+                        <td><a href="/Users/@item.OwnerId">link</a></td>
+                    }
+                    else
+                    {
+                        <td>None</td>
+                    }
+
+                    @if(@item.OwnerId != default)
+                    {
+                        <td>@item.OwnerId</td>
+                    }
+                    else
+                    {
+                        <td>None</td>
+                    }
+
+                    <td>@item.Id</td>
+                    <td>
+                        <NavLink class="btn btn-sm btn-info" href="@($"/tests/{item.Id}")">Details</NavLink>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteTest(item.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+<Pagination PaginationMetadata="@PaginationMetadata" PageName="Tests"></Pagination>
+}
+
+@code {
+    private List<TestViewModel> Tests { get; set; }
+    private PaginationOptions PaginationOptions { get; set; }
+    private PaginationMetadata PaginationMetadata { get; set; }
+
+    protected override void OnInitialized()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+        ReadQueryAndLoadData();
+    }
+
+    private void OnLocationChanged(object sender, LocationChangedEventArgs e)
+    {
+        ReadQueryAndLoadData();
+    }
+
+    private void ReadQueryAndLoadData()
+    {
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var query = QueryHelpers.ParseQuery(uri.Query);
+        PaginationOptions = new PaginationOptions(5, 1);
+
+        if (query.TryGetValue("page", out var pageStr) && int.TryParse(pageStr, out var page))
+            PaginationOptions.PageToken = page;
+
+        if (query.TryGetValue("size", out var sizeStr) && int.TryParse(sizeStr, out var size))
+            PaginationOptions.PageSize = size;
+
+        _ = LoadAsync();
+    }
+
+    async Task LoadAsync()
+    {
+        var filteredData = await TestService.FilterAsync(PaginationOptions);
+        Tests = filteredData.Items;
+        PaginationMetadata = filteredData.Pagination;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    async Task DeleteTest(Guid id)
+    {
+        await TestService.DeleteAsync(id);
+        var filteredData = await TestService.FilterAsync(PaginationOptions);
+        Tests = filteredData.Items;
+        PaginationMetadata = filteredData.Pagination;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}

@@ -1,0 +1,74 @@
+@page "/tests/{id:guid}"
+@rendermode InteractiveServer
+@using DataTransferObjects.Tests
+@using Services.Tests
+@inject ITestsService TestService
+@inject NavigationManager NavigationManager
+
+<h3>Test Details</h3>
+
+@if (test == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-3">Question</dt>
+        @if(@test.Question != null)
+        {
+            <dd class="col-sm-9">@test.Question</dd>
+        }
+        else
+        {
+            <dd class="col-sm-9">None</dd>
+        }
+
+        <dt class="col-sm-3">Owner</dt>
+        @if(@test.Owner != null)
+        {
+            <dd class="col-sm-9"><a href="/Users/@test.OwnerId">link</a></dd>
+        }
+        else
+        {
+            <dd class="col-sm-9">None</dd>
+        }
+
+        <dt class="col-sm-3">OwnerId</dt>
+        @if(@test.OwnerId != null)
+        {
+            <dd class="col-sm-9">@test.OwnerId</dd>
+        }
+        else
+        {
+            <dd class="col-sm-9">None</dd>
+        }
+
+    </dl>
+    <div>
+        <button class="btn btn-primary" @onclick="Save">Save</button>
+        <button class="btn btn-secondary" @onclick="BackToList">Back to List</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private TestViewModel? test;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        test = await TestService.GetByIdAsync(Id);
+    }
+
+    private void Save()
+    {
+        throw new NotImplementedException("Save functionality is not implemented.");
+    }
+
+    private void BackToList()
+    {
+        NavigationManager.NavigateTo("/tests");
+    }
+}

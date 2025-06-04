@@ -1,0 +1,43 @@
+@page "/tests/create"
+@rendermode InteractiveServer
+@using DataTransferObjects.Tests
+@using Services.Tests
+@inject ITestsService TestService
+@inject NavigationManager NavigationManager
+
+<h3>Create New Test</h3>
+
+<EditForm FormName="TestCreationDto" Model="@test" OnValidSubmit="() => HandleValidSubmit()">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group mb-3">
+        <label for="question">Question:</label>
+        <InputText id="question" class="form-control" @bind-Value="test.Question" />
+        <ValidationMessage For="@(() => test.Question)" />
+    </div>
+    <div class="form-group mb-3">
+        <label for="ownerid">OwnerId:</label>
+        <InputNumber id="ownerid" class="form-control" @bind-Value="test.OwnerId" />
+        <ValidationMessage For="@(() => test.OwnerId)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    public TestCreationDto test { get; set; } = new TestCreationDto();
+
+    private async Task HandleValidSubmit()
+    {
+        await TestService.AddAsync(test);
+        NavigationManager.NavigateTo("/tests");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/tests");
+    }
+}
