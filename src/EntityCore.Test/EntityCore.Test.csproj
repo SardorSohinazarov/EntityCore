@@ -25,4 +25,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="Views\ViewTest.cs" />
+  </ItemGroup>
+
 </Project>
