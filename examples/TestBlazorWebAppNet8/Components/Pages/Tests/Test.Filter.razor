@@ -1,17 +1,17 @@
-@page "/categorys"
+@page "/tests"
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.WebUtilities
 @using Common.Paginations.Models
-@using DataTransferObjects.Categorys
-@using Services.Categorys
-@inject ICategorysService CategoryService
+@using DataTransferObjects.Tests
+@using Services.Tests
+@inject ITestsService TestService
 
-<h3>Category List</h3>
+<h3>Test List</h3>
 
-<NavLink class="btn btn-primary mb-3" href="/categorys/create">Create New</NavLink>
+<NavLink class="btn btn-primary mb-3" href="/tests/create">Create New</NavLink>
 
-@if (Categorys == null)
+@if (Tests == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -21,21 +21,19 @@ else
         <thead>
             <tr>
                 <th>#</th>
-                <th>Name</th>
-                <th>ParentCategoryId</th>
-                <th>ParentCategory</th>
-
-
+                <th>Question</th>
+                <th>Owner</th>
+                <th>OwnerId</th>
                 <th>Id</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Categorys)
+            @foreach (var item in Tests)
             {
                 <tr>
                     <td>@item.Id</td>
-                    @if(@item.Name is not null)
+                    @if(@item.Name != default)
                     {
                         <td>@item.Name</td>
                     }
@@ -43,38 +41,39 @@ else
                     {
                         <td>None</td>
                     }
-                    @if(@item.ParentCategoryId is not null)
-                    {                    
-                        <td>@item.ParentCategoryId</td>
-                    }
-                    else
+
+                    @if(@item.OwnerId != default)
                     {
-                        <td>None</td>
-                    }
-                    @if(@item.ParentCategoryId is not null)
-                    {
-                        <td><a href="/Categorys/@item.ParentCategoryId">link</a></td>
+                        <td><a href="/Users/@item.OwnerId">link</a></td>
                     }
                     else
                     {
                         <td>None</td>
                     }
 
+                    @if(@item.OwnerId != default)
+                    {
+                        <td>@item.OwnerId</td>
+                    }
+                    else
+                    {
+                        <td>None</td>
+                    }
 
                     <td>@item.Id</td>
                     <td>
-                        <NavLink class="btn btn-sm btn-info" href="@($"/categorys/{item.Id}")">Details</NavLink>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteCategory(item.Id)">Delete</button>
+                        <NavLink class="btn btn-sm btn-info" href="@($"/tests/{item.Id}")">Details</NavLink>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteTest(item.Id)">Delete</button>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
-<Pagination PaginationMetadata="@PaginationMetadata" PageName="Categorys"></Pagination>
+<Pagination PaginationMetadata="@PaginationMetadata" PageName="Tests"></Pagination>
 }
 
 @code {
-    private List<CategoryViewModel> Categorys { get; set; }
+    private List<TestViewModel> Tests { get; set; }
     private PaginationOptions PaginationOptions { get; set; }
     private PaginationMetadata PaginationMetadata { get; set; }
 
@@ -106,17 +105,17 @@ else
 
     async Task LoadAsync()
     {
-        var filteredData = await CategoryService.FilterAsync(PaginationOptions);
-        Categorys = filteredData.Items;
+        var filteredData = await TestService.FilterAsync(PaginationOptions);
+        Tests = filteredData.Items;
         PaginationMetadata = filteredData.Pagination;
         await InvokeAsync(StateHasChanged);
     }
 
-    async Task DeleteCategory(int id)
+    async Task DeleteTest(Guid id)
     {
-        await CategoryService.DeleteAsync(id);
-        var filteredData = await CategoryService.FilterAsync(PaginationOptions);
-        Categorys = filteredData.Items;
+        await TestService.DeleteAsync(id);
+        var filteredData = await TestService.FilterAsync(PaginationOptions);
+        Tests = filteredData.Items;
         PaginationMetadata = filteredData.Pagination;
         await InvokeAsync(StateHasChanged);
     }

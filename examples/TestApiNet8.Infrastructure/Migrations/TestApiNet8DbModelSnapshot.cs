@@ -37,6 +37,29 @@ namespace TestApiNet8.Infrastructure.Migrations
                     b.ToTable("StudentTeacher");
                 });
 
+            modelBuilder.Entity("TestApiNet8.Domain.Entities.Answer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("Answers");
+                });
+
             modelBuilder.Entity("TestApiNet8.Domain.Entities.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -92,6 +115,26 @@ namespace TestApiNet8.Infrastructure.Migrations
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("TestApiNet8.Domain.Entities.Question", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Questions");
+                });
+
             modelBuilder.Entity("TestApiNet8.Domain.Entities.Student", b =>
                 {
                     b.Property<int>("Id")
@@ -126,6 +169,26 @@ namespace TestApiNet8.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Teachers");
+                });
+
+            modelBuilder.Entity("TestApiNet8.Domain.Entities.Test", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("OwnerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("Tests");
                 });
 
             modelBuilder.Entity("TestApiNet8.Domain.Entities.User", b =>
@@ -168,6 +231,17 @@ namespace TestApiNet8.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TestApiNet8.Domain.Entities.Answer", b =>
+                {
+                    b.HasOne("TestApiNet8.Domain.Entities.Question", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
             modelBuilder.Entity("TestApiNet8.Domain.Entities.Category", b =>
                 {
                     b.HasOne("TestApiNet8.Domain.Entities.Category", "ParentCategory")
@@ -197,6 +271,17 @@ namespace TestApiNet8.Infrastructure.Migrations
                     b.Navigation("Creator");
                 });
 
+            modelBuilder.Entity("TestApiNet8.Domain.Entities.Question", b =>
+                {
+                    b.HasOne("TestApiNet8.Domain.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
+                });
+
             modelBuilder.Entity("TestApiNet8.Domain.Entities.Student", b =>
                 {
                     b.HasOne("TestApiNet8.Domain.Entities.User", "User")
@@ -217,6 +302,17 @@ namespace TestApiNet8.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TestApiNet8.Domain.Entities.Test", b =>
+                {
+                    b.HasOne("TestApiNet8.Domain.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("TestApiNet8.Domain.Entities.Category", b =>

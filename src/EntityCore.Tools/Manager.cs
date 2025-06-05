@@ -132,6 +132,7 @@ namespace EntityCore.Tools
             Type? entityType = GetEntityType(entityName);
 
             GeneratePaginationComponent();
+            GenerateInputGuid();
 
             var view = new View(entityType);
             var viewCodes = view.Generate();
@@ -163,6 +164,13 @@ namespace EntityCore.Tools
 
             var style = paginationComponent.Style();
             WriteCode(["Components"], "Pagination.razor.css", style);
+        }
+
+        private void GenerateInputGuid()
+        {
+            var inputGuid = new InputGuid();
+            var code = inputGuid.Generate();
+            WriteCode(["Components"], "InputGuid.cs", code);
         }
 
         private void GeneratePagination()
@@ -199,6 +207,13 @@ namespace EntityCore.Tools
             var directoryPath = Path.Combine(_projectRoot, directory);
             Directory.CreateDirectory(directoryPath);
             string filePath = Path.Combine(directoryPath, fileName);
+
+            if (File.Exists(filePath))
+            {
+                ConsoleMessage($"!!! {fileName} already exists.", ConsoleColor.Yellow);
+                return;
+            }
+
             File.WriteAllText(filePath, code);
 
             
