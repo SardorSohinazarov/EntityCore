@@ -58,7 +58,6 @@ namespace EntityCore.Tools.Views
             {
                 sb.AppendLine(GetPropertyName(prop));
             }
-            sb.AppendLine($"                <th>{_primaryKey.Name}</th>"); // Primary key header
             sb.AppendLine("                <th>Actions</th>");
             sb.AppendLine("            </tr>");
             sb.AppendLine("        </thead>");
@@ -71,7 +70,6 @@ namespace EntityCore.Tools.Views
             {
                 sb.AppendLine(GenerateLink(prop));
             }
-            sb.AppendLine($"                    <td>@item.{_primaryKey.Name}</td>"); // Primary key value
             sb.AppendLine("                    <td>");
             sb.AppendLine($"                        <NavLink class=\"btn btn-sm btn-info\" href=\"@($\"/{pluralEntityName.ToLower()}/{{item.{_primaryKey.Name}}}\")\">Details</NavLink>");
             sb.AppendLine($"                        <button class=\"btn btn-sm btn-danger\" @onclick=\"() => Delete{_entityName}(item.{_primaryKey.Name})\">Delete</button>");
@@ -80,7 +78,7 @@ namespace EntityCore.Tools.Views
             sb.AppendLine("            }");
             sb.AppendLine("        </tbody>");
             sb.AppendLine("    </table>");
-            sb.AppendLine($"<Pagination PaginationMetadata=\"@PaginationMetadata\" PageName=\"{pluralEntityName}\"></Pagination>");
+            sb.AppendLine($"    <Pagination PaginationMetadata=\"@PaginationMetadata\" PageName=\"{pluralEntityName}\"></Pagination>");
             sb.AppendLine("}");
             sb.AppendLine();
             sb.AppendLine("@code {");
@@ -142,6 +140,9 @@ namespace EntityCore.Tools.Views
 
         private string GetPropertyName(PropertyInfo property)
         {
+            if (property.IsPrimaryKeyProperty())
+                return null;
+
             if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string))
                 return null;
 
@@ -150,9 +151,11 @@ namespace EntityCore.Tools.Views
 
         private string GenerateLink(PropertyInfo property)
         {
-            if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string))
+            if (property.IsPrimaryKeyProperty())
                 return null;
 
+            if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType) && property.PropertyType != typeof(string))
+                return null;
             
             if (property.PropertyType.IsNavigationProperty())
             {

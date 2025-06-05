@@ -84,6 +84,7 @@ namespace EntityCore.Tools.Views
         {
             string inputType = "InputText"; // Default
             string bindFormat = ""; // For dates or other specific formats
+            string @class = "form-control";
 
             if (prop.PropertyType == typeof(int) || prop.PropertyType == typeof(long) || prop.PropertyType == typeof(short) ||
                 prop.PropertyType == typeof(int?) || prop.PropertyType == typeof(long?) || prop.PropertyType == typeof(short?) ||
@@ -91,14 +92,22 @@ namespace EntityCore.Tools.Views
                 prop.PropertyType == typeof(decimal?) || prop.PropertyType == typeof(double?) || prop.PropertyType == typeof(float?))
             {
                 inputType = "InputNumber";
+                @class = "form-control";
             }
-            else if (prop.PropertyType == typeof(DateTime))
+            else if (prop.PropertyType == typeof(DateTime) || prop.PropertyType == typeof(DateTime?))
             {
                 inputType = "InputDate";
+                @class = "form-control";
             }
-            else if (prop.PropertyType == typeof(bool))
+            else if (prop.PropertyType == typeof(bool) || prop.PropertyType == typeof(bool?))
             {
                 inputType = "InputCheckbox";
+                @class = "form-check-input";
+            }
+            else if (prop.PropertyType == typeof(Guid) || prop.PropertyType == typeof(Guid?))
+            {
+                inputType = "InputGuid"; // Custom InputGuid component
+                @class = "form-control";
             }
             else if (prop.PropertyType.IsEnum)
             {
@@ -107,7 +116,7 @@ namespace EntityCore.Tools.Views
             }
 
             // List bo'lsa get all qilib shunda tanlanadigan select qilish kerak
-            return $"        <{inputType} id=\"{prop.Name.ToLower()}\" class=\"form-control\" @bind-Value=\"{modelName}.{prop.Name}\" {bindFormat}/>";
+            return $"        <{inputType} id=\"{prop.Name.ToLower()}\" class=\"{@class}\" @bind-Value=\"{modelName}.{prop.Name}\" {bindFormat}/>";
         }
     }
 }

@@ -24,7 +24,6 @@ else
                 <th>Text</th>
                 <th>Owner</th>
                 <th>OwnerId</th>
-                <th>Id</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -60,7 +59,6 @@ else
                         <td>None</td>
                     }
 
-                    <td>@item.Id</td>
                     <td>
                         <NavLink class="btn btn-sm btn-info" href="@($"/questions/{item.Id}")">Details</NavLink>
                         <button class="btn btn-sm btn-danger" @onclick="() => DeleteQuestion(item.Id)">Delete</button>
@@ -69,7 +67,7 @@ else
             }
         </tbody>
     </table>
-<Pagination PaginationMetadata="@PaginationMetadata" PageName="Questions"></Pagination>
+    <Pagination PaginationMetadata="@PaginationMetadata" PageName="Questions"></Pagination>
 }
 
 @code {
