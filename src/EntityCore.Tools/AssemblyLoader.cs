@@ -9,6 +9,7 @@ namespace EntityCore.Tools
     /// </summary>
     public class AssemblyLoader
     {
+        private static bool _enableLogging = false;
         private readonly string _nugetPath;
 
         public AssemblyLoader()
@@ -29,18 +30,18 @@ namespace EntityCore.Tools
                     if (dllName.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase)
                         || dllName.StartsWith("System.", StringComparison.OrdinalIgnoreCase))
                     {
-                        Console.WriteLine($"Skipping DLL: {dllName}");
+                        if (_enableLogging) Console.WriteLine($"Skipping DLL: {dllName}");
                         continue;
                     }
 
                     try
                     {
                         Assembly.LoadFrom(dll);
-                        Console.WriteLine($"Loaded DLL from bin: {Path.GetFileName(dll)}");
+                        if (_enableLogging) Console.WriteLine($"Loaded DLL from bin: {Path.GetFileName(dll)}");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Failed to load DLL from bin: {Path.GetFileName(dll)} - exception message: {ex.Message}");
+                        if (_enableLogging) Console.WriteLine($"Failed to load DLL from bin: {Path.GetFileName(dll)} - exception message: {ex.Message}");
                     }
                 }
             }
@@ -55,7 +56,7 @@ namespace EntityCore.Tools
         private void LoadReferencedAssemblies(AssemblyName[] references)
         {
             if (references.Length > 0)
-                Console.WriteLine("Referenced assemblies");
+                if (_enableLogging) Console.WriteLine("Referenced assemblies");
 
             foreach (var reference in references)
             {
@@ -71,7 +72,7 @@ namespace EntityCore.Tools
                     }
                     catch
                     {
-                        Console.WriteLine($"Failed to load: {reference.Name}");
+                        if (_enableLogging) Console.WriteLine($"Failed to load: {reference.Name}");
                     }
                 }
             }
@@ -83,35 +84,40 @@ namespace EntityCore.Tools
             if (File.Exists(assemblyPath))
                 AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath);
             else
-                Console.WriteLine($"Assembly not found in NuGet packages: {reference.Name}");
+                if (_enableLogging) Console.WriteLine($"Assembly not found in NuGet packages: {reference.Name}");
         }
 
         private string FindDllPath(string projectRootPath)
         {
             var dllName = Path.GetFileName(projectRootPath.TrimEnd(Path.DirectorySeparatorChar));
-            Console.WriteLine("dllName:" + dllName);
+            if (_enableLogging) Console.WriteLine("dllName:" + dllName);
 
-            var debugPath = Path.Combine(projectRootPath, "bin", "Debug");
-            if (!Directory.Exists(debugPath))
-                throw new InvalidOperationException("Debug folder not found.");
+            var configurationNames = new[] { "Debug", "Release" };
 
-            var versions = Directory.GetDirectories(debugPath)
-                           .Select(Path.GetFileName)
-                           .Where(x => x.StartsWith("net"))
-                           .OrderDescending();
-
-            foreach (var version in versions)
+            foreach (var configName in configurationNames)
             {
-                string path = Path.Combine(debugPath, version, $"{dllName}.dll");
-
-                if (File.Exists(path))
+                var configPath = Path.Combine(projectRootPath, "bin", configName);
+                if (Directory.Exists(configPath))
                 {
-                    Console.WriteLine($"Dll path: {path}");
-                    return path;
+                    var versions = Directory.GetDirectories(configPath)
+                                   .Select(Path.GetFileName)
+                                   .Where(x => x.StartsWith("net"))
+                                   .OrderDescending();
+
+                    foreach (var version in versions)
+                    {
+                        string path = Path.Combine(configPath, version, $"{dllName}.dll");
+
+                        if (File.Exists(path))
+                        {
+                            if (_enableLogging) Console.WriteLine($"Dll path: {path}");
+                            return path;
+                        }
+                    }
                 }
             }
 
-            throw new InvalidOperationException("Dll file not found.");
+            throw new InvalidOperationException($"Dll file not found for project {dllName} in common bin configurations (Debug, Release).");
         }
     }
 }

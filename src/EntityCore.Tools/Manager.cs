@@ -13,6 +13,7 @@ namespace EntityCore.Tools
 {
     public partial class Manager
     {
+        private readonly List<string> _generatedFiles = new List<string>();
         private readonly Dictionary<string, string> _arguments;
         private readonly string _projectRoot;
         public Manager(string projectRoot, Dictionary<string, string> arguments)
@@ -35,13 +36,24 @@ namespace EntityCore.Tools
 
             // Frontend generation
             GenerateView();
+
+            if (_generatedFiles.Any())
+            {
+                ConsoleMessage("\nSuccessfully generated files:", ConsoleColor.Cyan); // Or another distinct color
+                foreach (var filePath in _generatedFiles)
+                {
+                    Console.WriteLine($"- {filePath}"); // Standard color for the list
+                }
+            }
         }
 
         private void GenerateDto()
         {
-            var entityName = _arguments.ContainsKey("dto") ? _arguments["dto"] : null;
-            if (entityName is null)
+            var entityName = _arguments.GetValueOrDefault("_entityName");
+            if (string.IsNullOrEmpty(entityName) || !_arguments.ContainsKey("dto"))
+            {
                 return;
+            }
 
             Type? entityType = GetEntityType(entityName);
 
@@ -94,17 +106,18 @@ namespace EntityCore.Tools
 
         private void GenerateService()
         {
-            var entityName = _arguments.ContainsKey("service") ? _arguments["service"] : null;
-            if (entityName is null)
+            var entityName = _arguments.GetValueOrDefault("_entityName");
+            if (string.IsNullOrEmpty(entityName) || !_arguments.ContainsKey("service"))
+            {
                 return;
+            }
 
             Type? entityType = GetEntityType(entityName);
+            var dbContextName = _arguments.GetValueOrDefault("context");
+            // Console.WriteLine("dbContextName:" + dbContextName); // Removed as per subtask instructions
 
-            var dbContextName = _arguments.ContainsKey("context") ? _arguments["context"] : null;
-            Console.WriteLine("dbContextName:" + dbContextName);
-
-            GeneratePagination();
-            GenerateListResult();
+            GeneratePagination(); // These generate shared files, flags are checked internally
+            GenerateListResult(); // These generate shared files, flags are checked internally
 
             var service = new Service(entityType);
             var serviceImplementationCode = service.Generate(dbContextName);
@@ -125,14 +138,16 @@ namespace EntityCore.Tools
 
         private void GenerateView()
         {
-            var entityName = _arguments.ContainsKey("view") ? _arguments["view"] : null;
-            if (entityName is null)
+            var entityName = _arguments.GetValueOrDefault("_entityName");
+            if (string.IsNullOrEmpty(entityName) || !_arguments.ContainsKey("view"))
+            {
                 return;
+            }
 
             Type? entityType = GetEntityType(entityName);
 
-            GeneratePaginationComponent();
-            GenerateInputGuid();
+            GeneratePaginationComponent(); // These generate shared files, flags are checked internally
+            GenerateInputGuid(); // These generate shared files, flags are checked internally
 
             var view = new View(entityType);
             var viewCodes = view.Generate();
@@ -145,9 +160,11 @@ namespace EntityCore.Tools
 
         private void GenerateController()
         {
-            var entityName = _arguments.ContainsKey("controller") ? _arguments["controller"] : null;
-            if (entityName is null)
+            var entityName = _arguments.GetValueOrDefault("_entityName");
+            if (string.IsNullOrEmpty(entityName) || !_arguments.ContainsKey("controller"))
+            {
                 return;
+            }
 
             Type? entityType = GetEntityType(entityName);
 
@@ -173,8 +190,17 @@ namespace EntityCore.Tools
             WriteCode(["Components"], "InputGuid.cs", code);
         }
 
-        private void GeneratePagination()
+        private void GeneratePagination() // This method generates shared files. Check for its own flag if necessary or assume it's always called if service is.
         {
+            // Assuming GeneratePagination, GenerateListResult, GeneratePaginationComponent, GenerateInputGuid
+            // are either always generated when their parent (like Service or View) is generated,
+            // or they should have their own flags if their generation is optional independent of parent.
+            // For now, their direct call from parent methods (like GenerateService, GenerateView) means they run if parent runs.
+            // If they need independent flags (e.g. --pagination true/false), that would be a different change.
+            // The subtask states "Methods like GenerateResult... their logic for checking _arguments.ContainsKey(...) should remain as is".
+            // This applies to GeneratePagination if it were checking a flag like _arguments.ContainsKey("pagination").
+            // Since it's called directly, it implies it's part of service/view generation.
+
             var paginationComponents = new (string[], string, string)[]
             {
                 (["Common", "Pagination"], "PaginationOptions.cs", new PaginationOptions().GeneratePaginationOptionsClass()),
@@ -215,9 +241,8 @@ namespace EntityCore.Tools
             }
 
             File.WriteAllText(filePath, code);
-
-            
-            ConsoleMessage($"{fileName} generated successfully!");
+            _generatedFiles.Add(Path.GetFullPath(filePath)); // Store full path
+            ConsoleMessage($"Generated: {Path.GetFullPath(filePath)}");
         }
 
         private void WriteCode(string[] directories, string fileName, string code)
@@ -239,8 +264,8 @@ namespace EntityCore.Tools
             }
 
             File.WriteAllText(filePath, code);
-
-            ConsoleMessage($"{fileName} generated successfully!");
+            _generatedFiles.Add(Path.GetFullPath(filePath)); // Store full path
+            ConsoleMessage($"Generated: {Path.GetFullPath(filePath)}");
         }
 
         private void ConsoleMessage(string message, ConsoleColor consoleColor = ConsoleColor.Green)

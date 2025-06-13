@@ -6,33 +6,40 @@ using System.Text.Json;
 namespace EntityCore.Tools;
 public class Program
 {
+    private static bool _enableVerboseLogging = false;
     private static void Main(string[] args)
     {
         try
         {
-            if (args.Length == 0)
-            {
-                DrawLogo();
-                return;
-            }
-
+            // ParseArguments will throw an exception if args are invalid (e.g. args.Length == 0, missing entityName).
             var arguments = ParseArguments(args);
 
-            var currentDirectory = Directory.GetCurrentDirectory();
+            // For debugging: This line will only be reached if ParseArguments succeeds.
+            Console.WriteLine("Arguments:" + JsonSerializer.Serialize(arguments));
 
+            // entityName retrieval and check is implicitly handled by ParseArguments throwing an error if it's not valid.
+            // No need for: var entityName = arguments.GetValueOrDefault("_entityName");
+
+            var currentDirectory = Directory.GetCurrentDirectory();
             EnsureBuild(currentDirectory);
 
-            Manager generator = new Manager(currentDirectory, arguments);
+            Manager generator = new Manager(currentDirectory, arguments); // Manager will use arguments["_entityName"]
             generator.Generate();
         }
         catch (InvalidOperationException ex)
         {
-            Console.WriteLine("Invalid operation exception 400 😁");
-            HandleException(ex);
+            HandleException(ex); // Shows the detailed error message from ParseArguments.
+            // Show usage instructions if the error is about missing/invalid arguments based on ParseArguments's messages.
+            if (ex.Message.StartsWith("Error: Missing <entityName>") ||
+                ex.Message.StartsWith("Error: Missing value for option") ||
+                ex.Message.StartsWith("Error: Unexpected argument"))
+            {
+                DrawLogo(); // Provides general usage information.
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine("Unhandled exception 500 😁");
+            // The "Unhandled exception 500 😁" can be removed as HandleException is called.
             HandleException(ex);
         }
     }
@@ -59,30 +66,35 @@ public class Program
 
     private static void HandleException(Exception ex)
     {
-        Console.WriteLine($"Exception : {ex.Message}");
-        // Todo : Yopib qo'yish kerak menimcha
-        Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        // Construct the message for Telegram first, ensuring it has full details.
+        var telegramMessage = $"❗️ Xatolik yuz berdi\n\n{ex.Message} \n\n{ex.StackTrace}";
 
+        // User-friendly error message to console
         Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine(ex.Message);
+        Console.WriteLine($"Error: {ex.Message}");
         Console.ResetColor();
 
-        string botToken = "7690233025:AAH_cRCVNgGz39Q1d9I1_PcHSIzl8W2Hg6U";
-        string chatId = "-1002670987415";
-
-        var message = $"❗️ Xatolik yuz berdi\n\n{ex.Message} \n\n{ex.StackTrace}";
-
-        if (message.Length > 4096)
+        // Conditional stack trace for console
+        if (_enableVerboseLogging)
         {
-            for (int i = 0; i < message.Length; i += 4096)
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        }
+
+        // Telegram notification logic (uses the full detail message)
+        string botToken = "7690233025:AAH_cRCVNgGz39Q1d9I1_PcHSIzl8W2Hg6U"; // Consider moving to config
+        string chatId = "-1002670987415"; // Consider moving to config
+
+        if (telegramMessage.Length > 4096)
+        {
+            for (int i = 0; i < telegramMessage.Length; i += 4096)
             {
-                string part = message.Substring(i, Math.Min(4096, message.Length - i));
+                string part = telegramMessage.Substring(i, Math.Min(4096, telegramMessage.Length - i));
                 SendToTelegram(botToken, chatId, part);
             }
         }
         else
         {
-            SendToTelegram(botToken, chatId, message);
+            SendToTelegram(botToken, chatId, telegramMessage);
         }
     }
 
@@ -147,26 +159,45 @@ public class Program
     private static Dictionary<string, string> ParseArguments(string[] args)
     {
         var arguments = new Dictionary<string, string>();
+        int startIndex = 0;
 
-        if (args.Length < 1)
-            throw new InvalidOperationException("Usage: dotnet crud <command> [options]");
+        if (args.Length == 0)
+        {
+            // This specific message will be shown by Main calling DrawLogo and exiting.
+            // Throwing here means DrawLogo in Main's initial check might not be reached if ParseArguments is called first.
+            // Let's adjust Main to call ParseArguments and then DrawLogo only if an error specific to no args occurs.
+            // For now, this throw is correct based on requirements.
+            throw new InvalidOperationException("Error: Missing <entityName>. Usage: dotnet crud <entityName> [options]");
+        }
 
-        for (int i = 0; i < args.Length; i++)
+        if (!args[0].StartsWith("--"))
+        {
+            arguments["_entityName"] = args[0];
+            startIndex = 1;
+        }
+        else
+        {
+            throw new InvalidOperationException("Error: Missing <entityName>. <entityName> must be the first argument. Usage: dotnet crud <entityName> [options]");
+        }
+
+        for (int i = startIndex; i < args.Length; i++)
         {
             if (args[i].StartsWith("--"))
             {
-                var key = args[i][2..];
-                var value = (i + 1 < args.Length && !args[i + 1].StartsWith("--")) ? args[i + 1] : null;
-                arguments[key] = value;
-                i++;
+                var key = args[i]; // Keep the full "--key" for error reporting if needed
+                if (i + 1 >= args.Length || args[i + 1].StartsWith("--"))
+                {
+                    throw new InvalidOperationException($"Error: Missing value for option '{key}'.");
+                }
+                arguments[key[2..]] = args[i + 1];
+                i++; // Increment to skip the value part of the option
             }
             else
             {
-                throw new InvalidOperationException($"Unknown argument or missing value: {args[i]}");
+                // This case means an argument that is not the entityName and does not start with --
+                throw new InvalidOperationException($"Error: Unexpected argument '{args[i]}'. Options must start with '--'.");
             }
         }
-
-        Console.WriteLine("Arguments:" + JsonSerializer.Serialize(arguments));
         return arguments;
     }
 }
