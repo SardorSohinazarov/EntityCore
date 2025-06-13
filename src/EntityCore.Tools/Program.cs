@@ -1,100 +1,132 @@
-﻿using System.ComponentModel;
+// Version: System.CommandLine Refactor v1.1
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
+using System.CommandLine;
+using System.CommandLine.Invocation;
+using System.Linq;
+using System.Threading.Tasks; // Required for Task
 
 namespace EntityCore.Tools;
+
 public class Program
 {
     private static bool _enableVerboseLogging = false;
-    private static void Main(string[] args)
+    private static readonly string BotToken = "7690233025:AAH_cRCVNgGz39Q1d9I1_PcHSIzl8W2Hg6U";
+    private static readonly string ChatId = "-1002670987415";
+
+    static async Task<int> Main(string[] args)
     {
-        try
+        var entityArgument = new Argument<string>("entityName", "Name of the entity for CRUD operations.");
+        var contextOption = new Option<string>("--context", "The DbContext class name.");
+        var dtoOption = new Option<bool>("--dto", "Generate Data Transfer Objects.");
+        var serviceOption = new Option<bool>("--service", "Generate Service and Interface.");
+        var controllerOption = new Option<bool>("--controller", "Generate API Controller.");
+        var viewOption = new Option<bool>("--view", "Generate Razor Views (for Blazor).");
+        var resultOption = new Option<bool>("--result", "Generate common Result classes.");
+        var exceptionMOption = new Option<bool>("--exceptionM", "Generate Exception Handling Middleware.");
+        var serviceAttributeOption = new Option<bool>("--serviceAttribute", "Generate common Service Attributes for DI.");
+        var verboseOption = new Option<bool>(["--verbose", "-v"], "Enable verbose output, including stack traces for errors.");
+
+        var rootCommand = new RootCommand("EntityCore.Tools - A .NET CLI tool for generating CRUD operations.")
         {
-            // ParseArguments will throw an exception if args are invalid (e.g. args.Length == 0, missing entityName).
-            var arguments = ParseArguments(args);
+            entityArgument,
+            contextOption,
+            dtoOption,
+            serviceOption,
+            controllerOption,
+            viewOption,
+            resultOption,
+            exceptionMOption,
+            serviceAttributeOption,
+            verboseOption
+        };
 
-            // For debugging: This line will only be reached if ParseArguments succeeds.
-            Console.WriteLine("Arguments:" + JsonSerializer.Serialize(arguments));
-
-            // entityName retrieval and check is implicitly handled by ParseArguments throwing an error if it's not valid.
-            // No need for: var entityName = arguments.GetValueOrDefault("_entityName");
-
-            var currentDirectory = Directory.GetCurrentDirectory();
-            EnsureBuild(currentDirectory);
-
-            Manager generator = new Manager(currentDirectory, arguments); // Manager will use arguments["_entityName"]
-            generator.Generate();
-        }
-        catch (InvalidOperationException ex)
-        {
-            HandleException(ex); // Shows the detailed error message from ParseArguments.
-            // Show usage instructions if the error is about missing/invalid arguments based on ParseArguments's messages.
-            if (ex.Message.StartsWith("Error: Missing <entityName>") ||
-                ex.Message.StartsWith("Error: Missing value for option") ||
-                ex.Message.StartsWith("Error: Unexpected argument"))
-            {
-                DrawLogo(); // Provides general usage information.
-            }
-        }
-        catch (Exception ex)
-        {
-            // The "Unhandled exception 500 😁" can be removed as HandleException is called.
-            HandleException(ex);
-        }
-    }
-
-    private static void DrawLogo()
-    {
-        Console.WriteLine(@"
+        rootCommand.Description = @"
          ███████ ███   ██ ████████ ██ ████████ ██    ██  ██████   ██████  ██████  ███████
          ██      ████  ██    ██    ██    ██    ██    ██ ██       ██    ██ ██   ██ ██
          █████   ██ ██ ██    ██    ██    ██     ██████  ██       ██    ██ █████   █████
          ██      ██  ████    ██    ██    ██       ██    ██       ██    ██ ██   ██ ██
          ███████ ██   ███    ██    ██    ██       ██     ██████   ██████  ██   ██ ███████
-        ");
 
-        Console.WriteLine("EntityCore.Tools - A tool to generate CRUD operations for Entity Framework Core.");
+EntityCore.Tools - A tool to generate CRUD operations for Entity Framework Core.
+Usage: dotnet crud <entityName> [options]";
 
-        Console.WriteLine("Usage: dotnet crud <entityName> [options]");
-        Console.WriteLine("Options:");
-        Console.WriteLine("  --context <context>         The DbContext class name. Default is the first DbContext found in the project.");
-        Console.WriteLine("  --controller <true/false>   Generate a controller for the entity. Default is false.");
-        Console.WriteLine("  --view <true/false>         Generate views for the entity. Default is false.");
-        Console.WriteLine("Use \"dotnet crud\" for more information about a command.");
+
+        rootCommand.SetHandler(async (InvocationContext context) =>
+        {
+            var entityNameValue = context.ParseResult.GetValueForArgument(entityArgument);
+            var contextValue = context.ParseResult.GetValueForOption(contextOption);
+            var dtoValue = context.ParseResult.GetValueForOption(dtoOption);
+            var serviceValue = context.ParseResult.GetValueForOption(serviceOption);
+            var controllerValue = context.ParseResult.GetValueForOption(controllerOption);
+            var viewValue = context.ParseResult.GetValueForOption(viewOption);
+            var resultValue = context.ParseResult.GetValueForOption(resultOption);
+            var exceptionMValue = context.ParseResult.GetValueForOption(exceptionMOption);
+            var serviceAttributeValue = context.ParseResult.GetValueForOption(serviceAttributeOption);
+            var verboseValue = context.ParseResult.GetValueForOption(verboseOption);
+
+            _enableVerboseLogging = verboseValue;
+
+            var arguments = new Dictionary<string, string>();
+            arguments["_entityName"] = entityNameValue;
+
+            if (!string.IsNullOrEmpty(contextValue)) arguments["context"] = contextValue;
+            if (dtoValue) arguments["dto"] = "true";
+            if (serviceValue) arguments["service"] = "true";
+            if (controllerValue) arguments["controller"] = "true";
+            if (viewValue) arguments["view"] = "true";
+            if (resultValue) arguments["result"] = "true";
+            if (exceptionMValue) arguments["exceptionM"] = "true";
+            if (serviceAttributeValue) arguments["serviceAttribute"] = "true";
+
+            if (_enableVerboseLogging)
+            {
+                Console.WriteLine("Arguments constructed for Manager:" + JsonSerializer.Serialize(arguments));
+            }
+
+            try
+            {
+                var currentDirectory = Directory.GetCurrentDirectory();
+                EnsureBuild(currentDirectory);
+                Manager generator = new Manager(currentDirectory, arguments);
+                generator.Generate();
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex);
+                context.ExitCode = 1;
+            }
+        });
+
+        return await rootCommand.InvokeAsync(args);
     }
 
     private static void HandleException(Exception ex)
     {
-        // Construct the message for Telegram first, ensuring it has full details.
         var telegramMessage = $"❗️ Xatolik yuz berdi\n\n{ex.Message} \n\n{ex.StackTrace}";
 
-        // User-friendly error message to console
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine($"Error: {ex.Message}");
         Console.ResetColor();
 
-        // Conditional stack trace for console
         if (_enableVerboseLogging)
         {
             Console.WriteLine($"Stack trace: {ex.StackTrace}");
         }
-
-        // Telegram notification logic (uses the full detail message)
-        string botToken = "7690233025:AAH_cRCVNgGz39Q1d9I1_PcHSIzl8W2Hg6U"; // Consider moving to config
-        string chatId = "-1002670987415"; // Consider moving to config
 
         if (telegramMessage.Length > 4096)
         {
             for (int i = 0; i < telegramMessage.Length; i += 4096)
             {
                 string part = telegramMessage.Substring(i, Math.Min(4096, telegramMessage.Length - i));
-                SendToTelegram(botToken, chatId, part);
+                SendToTelegram(BotToken, ChatId, part);
             }
         }
         else
         {
-            SendToTelegram(botToken, chatId, telegramMessage);
+            SendToTelegram(BotToken, ChatId, telegramMessage);
         }
     }
 
@@ -119,10 +151,10 @@ public class Program
                     Console.ResetColor();
                 }
             }
-            catch
+            catch (Exception telEx)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("An error occurred while sending a message to the Telegram group about this exception.\nIf you want to report this issue to the contributors, you can do so here: [https://t.me/entitycore].");
+                Console.WriteLine("An error occurred while sending a message to the Telegram group about this exception: " + telEx.Message + "\nIf you want to report this issue to the contributors, you can do so here: [https://t.me/entitycore].");
                 Console.ResetColor();
             }
         }
@@ -130,7 +162,10 @@ public class Program
 
     private static void EnsureBuild(string projectPath)
     {
-        Console.WriteLine("Building the project...");
+        if (_enableVerboseLogging)
+        {
+            Console.WriteLine("Building the project...");
+        }
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -145,59 +180,22 @@ public class Program
         };
 
         process.Start();
+        string output = process.StandardOutput.ReadToEnd();
+        string error = process.StandardError.ReadToEnd();
         process.WaitForExit();
 
         if (process.ExitCode != 0)
-            throw new InvalidAsynchronousStateException("Build failed. Please fix the errors and try again.");
-
-        Console.BackgroundColor = ConsoleColor.Green;
-        Console.Write("Build successfully.");
-        Console.ResetColor();
-        Console.WriteLine();
-    }
-
-    private static Dictionary<string, string> ParseArguments(string[] args)
-    {
-        var arguments = new Dictionary<string, string>();
-        int startIndex = 0;
-
-        if (args.Length == 0)
         {
-            // This specific message will be shown by Main calling DrawLogo and exiting.
-            // Throwing here means DrawLogo in Main's initial check might not be reached if ParseArguments is called first.
-            // Let's adjust Main to call ParseArguments and then DrawLogo only if an error specific to no args occurs.
-            // For now, this throw is correct based on requirements.
-            throw new InvalidOperationException("Error: Missing <entityName>. Usage: dotnet crud <entityName> [options]");
+            var errorMessage = $"Build failed with Exit Code: {process.ExitCode}.\nOutput:\n{output}\nError:\n{error}\nPlease fix the errors and try again.";
+            throw new InvalidOperationException(errorMessage);
         }
 
-        if (!args[0].StartsWith("--"))
+        if (_enableVerboseLogging)
         {
-            arguments["_entityName"] = args[0];
-            startIndex = 1;
+            Console.BackgroundColor = ConsoleColor.Green;
+            Console.Write("Build successfully.");
+            Console.ResetColor();
+            Console.WriteLine();
         }
-        else
-        {
-            throw new InvalidOperationException("Error: Missing <entityName>. <entityName> must be the first argument. Usage: dotnet crud <entityName> [options]");
-        }
-
-        for (int i = startIndex; i < args.Length; i++)
-        {
-            if (args[i].StartsWith("--"))
-            {
-                var key = args[i]; // Keep the full "--key" for error reporting if needed
-                if (i + 1 >= args.Length || args[i + 1].StartsWith("--"))
-                {
-                    throw new InvalidOperationException($"Error: Missing value for option '{key}'.");
-                }
-                arguments[key[2..]] = args[i + 1];
-                i++; // Increment to skip the value part of the option
-            }
-            else
-            {
-                // This case means an argument that is not the entityName and does not start with --
-                throw new InvalidOperationException($"Error: Unexpected argument '{args[i]}'. Options must start with '--'.");
-            }
-        }
-        return arguments;
     }
 }
