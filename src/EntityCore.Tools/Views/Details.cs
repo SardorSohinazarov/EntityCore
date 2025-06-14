@@ -108,7 +108,7 @@ namespace EntityCore.Tools.Views
                     return $"                    <dd class=\"col-sm-9\">null</dd>";
 
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"        @if(@{_entityName.GenerateFieldName()}.{property.Name} != null)");
+                sb.AppendLine($"        @if(@{_entityName.GenerateFieldName()}.{property.Name} != default)");
                 sb.AppendLine("        {");
                 sb.AppendLine($"            <dd class=\"col-sm-9\"><a href=\"/{property.PropertyType.Name}s/@{_entityName.GenerateFieldName()}.{idProperty?.Name}\">link</a></dd>");
                 sb.AppendLine("        }");
@@ -121,7 +121,7 @@ namespace EntityCore.Tools.Views
             else
             {
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"        @if(@{_entityName.GenerateFieldName()}.{property.Name} != null)");
+                sb.AppendLine($"        @if(@{_entityName.GenerateFieldName()}.{property.Name} != default)");
                 sb.AppendLine("        {");
                 sb.AppendLine($"            <dd class=\"col-sm-9\">@{_entityName.GenerateFieldName()}.{property.Name}</dd>");
                 sb.AppendLine("        }");
