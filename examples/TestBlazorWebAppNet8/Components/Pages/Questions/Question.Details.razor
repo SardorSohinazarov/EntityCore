@@ -1,0 +1,74 @@
+@page "/questions/{id:guid}"
+@rendermode InteractiveServer
+@using DataTransferObjects.Questions
+@using Services.Questions
+@inject IQuestionsService QuestionService
+@inject NavigationManager NavigationManager
+
+<h3>Question Details</h3>
+
+@if (question == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-3">Text</dt>
+        @if(@question.Text != null)
+        {
+            <dd class="col-sm-9">@question.Text</dd>
+        }
+        else
+        {
+            <dd class="col-sm-9">None</dd>
+        }
+
+        <dt class="col-sm-3">Owner</dt>
+        @if(@question.Owner != null)
+        {
+            <dd class="col-sm-9"><a href="/Users/@question.OwnerId">link</a></dd>
+        }
+        else
+        {
+            <dd class="col-sm-9">None</dd>
+        }
+
+        <dt class="col-sm-3">OwnerId</dt>
+        @if(@question.OwnerId != null)
+        {
+            <dd class="col-sm-9">@question.OwnerId</dd>
+        }
+        else
+        {
+            <dd class="col-sm-9">None</dd>
+        }
+
+    </dl>
+    <div>
+        <button class="btn btn-primary" @onclick="Save">Save</button>
+        <button class="btn btn-secondary" @onclick="BackToList">Back to List</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private QuestionViewModel? question;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        question = await QuestionService.GetByIdAsync(Id);
+    }
+
+    private void Save()
+    {
+        throw new NotImplementedException("Save functionality is not implemented.");
+    }
+
+    private void BackToList()
+    {
+        NavigationManager.NavigateTo("/questions");
+    }
+}

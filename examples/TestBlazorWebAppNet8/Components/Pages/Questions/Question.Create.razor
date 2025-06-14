@@ -1,0 +1,43 @@
+@page "/questions/create"
+@rendermode InteractiveServer
+@using DataTransferObjects.Questions
+@using Services.Questions
+@inject IQuestionsService QuestionService
+@inject NavigationManager NavigationManager
+
+<h3>Create New Question</h3>
+
+<EditForm FormName="QuestionCreationDto" Model="@question" OnValidSubmit="() => HandleValidSubmit()">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group mb-3">
+        <label for="text">Text:</label>
+        <InputText id="text" class="form-control" @bind-Value="question.Text" />
+        <ValidationMessage For="@(() => question.Text)" />
+    </div>
+    <div class="form-group mb-3">
+        <label for="ownerid">OwnerId:</label>
+        <InputNumber id="ownerid" class="form-control" @bind-Value="question.OwnerId" />
+        <ValidationMessage For="@(() => question.OwnerId)" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    public QuestionCreationDto question { get; set; } = new QuestionCreationDto();
+
+    private async Task HandleValidSubmit()
+    {
+        await QuestionService.AddAsync(question);
+        NavigationManager.NavigateTo("/questions");
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/questions");
+    }
+}

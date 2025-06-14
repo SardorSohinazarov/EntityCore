@@ -1,17 +1,17 @@
-@page "/categorys"
+@page "/answers"
 @rendermode InteractiveServer
 @inject NavigationManager NavigationManager
 @using Microsoft.AspNetCore.WebUtilities
 @using Common.Paginations.Models
-@using DataTransferObjects.Categorys
-@using Services.Categorys
-@inject ICategorysService CategoryService
+@using DataTransferObjects.Answers
+@using Services.Answers
+@inject IAnswersService AnswerService
 
-<h3>Category List</h3>
+<h3>Answer List</h3>
 
-<NavLink class="btn btn-primary mb-3" href="/categorys/create">Create New</NavLink>
+<NavLink class="btn btn-primary mb-3" href="/answers/create">Create New</NavLink>
 
-@if (Categorys == null)
+@if (Answers == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -21,60 +21,58 @@ else
         <thead>
             <tr>
                 <th>#</th>
-                <th>Name</th>
-                <th>ParentCategoryId</th>
-                <th>ParentCategory</th>
-
-
-                <th>Id</th>
+                <th>Text</th>
+                <th>IsCorrect</th>
+                <th>Question</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in Categorys)
+            @foreach (var item in Answers)
             {
                 <tr>
                     <td>@item.Id</td>
-                    @if(@item.Name is not null)
+                    @if(@item.Text != default)
                     {
-                        <td>@item.Name</td>
-                    }
-                    else
-                    {
-                        <td>None</td>
-                    }
-                    @if(@item.ParentCategoryId is not null)
-                    {                    
-                        <td>@item.ParentCategoryId</td>
-                    }
-                    else
-                    {
-                        <td>None</td>
-                    }
-                    @if(@item.ParentCategoryId is not null)
-                    {
-                        <td><a href="/Categorys/@item.ParentCategoryId">link</a></td>
+                        <td>@item.Text</td>
                     }
                     else
                     {
                         <td>None</td>
                     }
 
+                    @if(@item.IsCorrect != default)
+                    {
+                        <td>@item.IsCorrect</td>
+                    }
+                    else
+                    {
+                        <td>None</td>
+                    }
 
-                    <td>@item.Id</td>
+                    @if(@item.QuestionId != default)
+                    {
+                        <td><a href="/Questions/@item.QuestionId">link</a></td>
+                    }
+                    else
+                    {
+                        <td>None</td>
+                    }
+
                     <td>
-                        <NavLink class="btn btn-sm btn-info" href="@($"/categorys/{item.Id}")">Details</NavLink>
-                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteCategory(item.Id)">Delete</button>
+                        <NavLink class="btn btn-sm btn-info" href="@($"/answers/{item.Id}")">Details</NavLink>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteAnswer(item.Id)">Delete</button>
                     </td>
                 </tr>
             }
         </tbody>
     </table>
-<Pagination PaginationMetadata="@PaginationMetadata" PageName="Categorys"></Pagination>
+
+    <Pagination PaginationMetadata="@PaginationMetadata" PageName="Answers"></Pagination>
 }
 
 @code {
-    private List<CategoryViewModel> Categorys { get; set; }
+    private List<AnswerViewModel> Answers { get; set; }
     private PaginationOptions PaginationOptions { get; set; }
     private PaginationMetadata PaginationMetadata { get; set; }
 
@@ -106,17 +104,17 @@ else
 
     async Task LoadAsync()
     {
-        var filteredData = await CategoryService.FilterAsync(PaginationOptions);
-        Categorys = filteredData.Items;
+        var filteredData = await AnswerService.FilterAsync(PaginationOptions);
+        Answers = filteredData.Items;
         PaginationMetadata = filteredData.Pagination;
         await InvokeAsync(StateHasChanged);
     }
 
-    async Task DeleteCategory(int id)
+    async Task DeleteAnswer(Guid id)
     {
-        await CategoryService.DeleteAsync(id);
-        var filteredData = await CategoryService.FilterAsync(PaginationOptions);
-        Categorys = filteredData.Items;
+        await AnswerService.DeleteAsync(id);
+        var filteredData = await AnswerService.FilterAsync(PaginationOptions);
+        Answers = filteredData.Items;
         PaginationMetadata = filteredData.Pagination;
         await InvokeAsync(StateHasChanged);
     }

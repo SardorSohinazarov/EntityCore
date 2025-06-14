@@ -1,0 +1,74 @@
+@page "/answers/{id:guid}"
+@rendermode InteractiveServer
+@using DataTransferObjects.Answers
+@using Services.Answers
+@inject IAnswersService AnswerService
+@inject NavigationManager NavigationManager
+
+<h3>Answer Details</h3>
+
+@if (answer == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <dl class="row">
+        <dt class="col-sm-3">Text</dt>
+        @if(@answer.Text != null)
+        {
+            <dd class="col-sm-9">@answer.Text</dd>
+        }
+        else
+        {
+            <dd class="col-sm-9">None</dd>
+        }
+
+        <dt class="col-sm-3">IsCorrect</dt>
+        @if(@answer.IsCorrect != null)
+        {
+            <dd class="col-sm-9">@answer.IsCorrect</dd>
+        }
+        else
+        {
+            <dd class="col-sm-9">None</dd>
+        }
+
+        <dt class="col-sm-3">Question</dt>
+        @if(@answer.Question != null)
+        {
+            <dd class="col-sm-9"><a href="/Questions/@answer.QuestionId">link</a></dd>
+        }
+        else
+        {
+            <dd class="col-sm-9">None</dd>
+        }
+
+    </dl>
+    <div>
+        <button class="btn btn-primary" @onclick="Save">Save</button>
+        <button class="btn btn-secondary" @onclick="BackToList">Back to List</button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private AnswerViewModel? answer;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        answer = await AnswerService.GetByIdAsync(Id);
+    }
+
+    private void Save()
+    {
+        throw new NotImplementedException("Save functionality is not implemented.");
+    }
+
+    private void BackToList()
+    {
+        NavigationManager.NavigateTo("/answers");
+    }
+}
