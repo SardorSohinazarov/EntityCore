@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using EntityCore.Tools.Common;
 
 namespace EntityCore.Tools.DataTransferObjects
 {
@@ -43,7 +44,7 @@ namespace EntityCore.Tools.DataTransferObjects
             }
 
             result.AppendLine("}");
-            return result.ToString();
+            return Common.HeaderGenerator.PrependHeader(result.ToString(), false);
         }
     }
 }
