@@ -1,4 +1,5 @@
-﻿using EntityCore.Tools.Extensions;
+﻿using EntityCore.Tools.Common;
+using EntityCore.Tools.Extensions;
 using System.Collections;
 using System.Reflection;
 using System.Text;
@@ -135,7 +136,7 @@ namespace EntityCore.Tools.Views
             sb.AppendLine("    }");
             sb.AppendLine("}");
 
-            return sb.ToString();
+            return Common.HeaderGenerator.PrependHeader(sb.ToString(), true);
         }
 
         private string GetPropertyName(PropertyInfo property)

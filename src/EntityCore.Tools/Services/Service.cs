@@ -1,4 +1,5 @@
-﻿using EntityCore.Tools.Common.Paginations.Models;
+﻿using EntityCore.Tools.Common;
+using EntityCore.Tools.Common.Paginations.Models;
 using EntityCore.Tools.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -73,9 +74,8 @@ namespace EntityCore.Tools.Services
 
             var syntaxTree = GenerateUsings(namespaceDeclaration, dbContextType, _entityType);
 
-            return syntaxTree
-                .NormalizeWhitespace()
-                .ToFullString();
+            string generatedCode = syntaxTree.NormalizeWhitespace().ToFullString();
+            return Common.HeaderGenerator.PrependHeader(generatedCode, false);
         }
 
         private ClassDeclarationSyntax GetClassDeclaration(Type dbContextType)
