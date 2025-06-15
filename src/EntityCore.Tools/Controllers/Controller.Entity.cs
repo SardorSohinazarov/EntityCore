@@ -110,14 +110,14 @@ namespace EntityCore.Tools.Controllers
         private MethodDeclarationSyntax GenerateFilterActionImplementation(string serviceVariableName)
         {
             return SyntaxFactory.MethodDeclaration(SyntaxFactory.GenericName(SyntaxFactory.Identifier("Task"))
-                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"Result<List<{_returnTypeName}>>")), "FilterAsync")
+                                .AddTypeArgumentListArguments(SyntaxFactory.ParseTypeName($"Result<ListResult<{_returnTypeName}>>")), "FilterAsync")
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.PublicKeyword)) // public
                                 .AddModifiers(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))  // async
                                 .AddAttribute("HttpPost", "filter")
                                 .AddParameterListParameters(SyntaxFactory.Parameter(SyntaxFactory.Identifier("filter"))
                                    .WithType(SyntaxFactory.ParseTypeName(typeof(PaginationOptions).Name)))
                                 .WithBody(SyntaxFactory.Block(
-                                    SyntaxFactory.ParseStatement($"return Result<List<{_returnTypeName}>>.Success(await {serviceVariableName}.FilterAsync(filter));"))
+                                    SyntaxFactory.ParseStatement($"return Result<ListResult<{_returnTypeName}>>.Success(await {serviceVariableName}.FilterAsync(filter));"))
                                 );
         }
 
