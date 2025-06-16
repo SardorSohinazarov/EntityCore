@@ -42,6 +42,12 @@ namespace EntityCore.Tools.Extensions
 
         public static string ToCSharpTypeName(this Type type)
         {
+            var underlyingEnumType = Nullable.GetUnderlyingType(type);
+            if (underlyingEnumType is not null && underlyingEnumType.IsEnum)
+                return $"{underlyingEnumType.Name}?";
+            if (type.IsEnum)
+                return type.Name;
+
             return TypeMap.TryGetValue(type, out var alias) ? alias : type.Name;
         }
 
@@ -53,6 +59,9 @@ namespace EntityCore.Tools.Extensions
 
         public static bool IsNavigationProperty(this Type type)
         {
+            if (type.IsEnum || Nullable.GetUnderlyingType(type)?.IsEnum == true)
+                return false;
+
             foreach (var primitiveType in TypeMap.Keys)
             {
                 if (type == primitiveType || type == Nullable.GetUnderlyingType(primitiveType))

@@ -140,7 +140,7 @@ namespace EntityCore.Tools
 
             foreach(var viewCode in viewCodes)
             {
-                WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.{viewCode.Item1}.razor", viewCode.Item2);
+                WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.{viewCode.name}.razor", viewCode.code);
             }
         }
 
