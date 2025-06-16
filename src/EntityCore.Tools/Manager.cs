@@ -140,7 +140,7 @@ namespace EntityCore.Tools
 
             foreach(var viewCode in viewCodes)
             {
-                WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.{viewCode.Item1}.razor", viewCode.Item2);
+                WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.{viewCode.name}.razor", viewCode.code);
             }
         }
 
@@ -203,23 +203,8 @@ namespace EntityCore.Tools
             throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
         }
 
-        private void WriteCode(string directory, string fileName, string code)
-        {
-            var directoryPath = Path.Combine(_projectRoot, directory);
-            Directory.CreateDirectory(directoryPath);
-            string filePath = Path.Combine(directoryPath, fileName);
-
-            if (File.Exists(filePath))
-            {
-                ConsoleMessage($"!!! {fileName} already exists.", ConsoleColor.Yellow);
-                return;
-            }
-
-            File.WriteAllText(filePath, code);
-
-            
-            ConsoleMessage($"{fileName} generated successfully!");
-        }
+        private void WriteCode(string directory, string fileName, string code) 
+            => WriteCode([directory], fileName, code);
 
         private void WriteCode(string[] directories, string fileName, string code)
         {

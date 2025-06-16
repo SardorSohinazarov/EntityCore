@@ -10,7 +10,7 @@ namespace EntityCore.Tools.Views
             _entityType = entityType;
         }
 
-        public List<(string,string)> Generate(string dbContextName = null)
+        public List<(string name,string code)> Generate(string dbContextName = null)
         {
             Type? dbContextType = null;
 
