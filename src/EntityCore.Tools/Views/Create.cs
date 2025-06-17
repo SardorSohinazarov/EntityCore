@@ -111,8 +111,13 @@ namespace EntityCore.Tools.Views
             }
             else if (prop.PropertyType.IsEnum)
             {
-                 return $"        <{inputType} id=\"{prop.Name.ToLower()}\" class=\"form-control\" @bind-Value=\"{modelName}.{prop.Name}\" />\n" +
-                        $"        <!-- Enum Type: {prop.PropertyType.Name}. Consider using InputSelect for enums. -->";
+                        return
+$@"        <InputSelect id=""{prop.Name.ToLower()}"" class=""{@class}"" @bind-Value=""{modelName}.{prop.Name}"">
+            @foreach (var value in Enum.GetValues(typeof({prop.PropertyType.Name})))
+            {{
+                <option value=""@value"">@value</option>
+            }}
+        </InputSelect>";
             }
 
             // List bo'lsa get all qilib shunda tanlanadigan select qilish kerak
