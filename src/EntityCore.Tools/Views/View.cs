@@ -10,41 +10,8 @@ namespace EntityCore.Tools.Views
             _entityType = entityType;
         }
 
-        public List<(string name,string code)> Generate(string dbContextName = null)
+        public List<(string name,string code)> Generate()
         {
-            Type? dbContextType = null;
-
-            if (dbContextName is not null)
-            {
-                dbContextType = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(assembly => assembly.GetTypes())
-                    .FirstOrDefault(t => typeof(DbContext).IsAssignableFrom(t)
-                        && t.IsClass
-                        && !t.IsAbstract
-                        && t.Name == dbContextName
-                    );
-            }
-            else
-            {
-                var dbContextTypes = AppDomain.CurrentDomain.GetAssemblies()
-                    .SelectMany(assembly => assembly.GetTypes())
-                    .Where(t => typeof(DbContext).IsAssignableFrom(t)
-                        && t != typeof(DbContext)
-                        && t.IsClass
-                        && !t.IsAbstract
-                    );
-
-                if (dbContextTypes.Count() == 1)
-                    dbContextType = dbContextTypes.First();
-                else if (dbContextTypes.Count() > 1)
-                    throw new InvalidOperationException(
-                        $"Multiple DbContexts({string.Join(", ", dbContextTypes.Select(x => x.Name))}) found in the specified assembly." +
-                        $"\nPlease choose DbContext name. ex: --context <DbContextName>");
-            }
-
-            if (dbContextType is null)
-                throw new InvalidOperationException("DbContext not found in the specified assembly.");
-
             var views = new List<(string, string)>();
             var filter = new Filter(_entityType);
             views.Add(("Filter", filter.Generate()));
