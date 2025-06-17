@@ -115,7 +115,7 @@ namespace EntityCore.Tools.Views
 $@"        <InputSelect id=""{prop.Name.ToLower()}"" class=""{@class}"" @bind-Value=""{modelName}.{prop.Name}"">
             @foreach (var value in Enum.GetValues(typeof({prop.PropertyType.Name})))
             {{
-                <option value=""@value"">@value.GetDisplayName()</option>
+                <option value=""@value"">@value</option>
             }}
         </InputSelect>";
             }
