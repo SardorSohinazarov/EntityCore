@@ -22,15 +22,11 @@ namespace EntityCore.Tools.DataTransferObjects
 
             var result = new StringBuilder();
 
-            foreach (var @namespace in _namespaces)
-            {
-                result.AppendLine($"using {@namespace};");
-            }
+            foreach (var @using in _usings)
+                result.AppendLine($"using {@using};");
 
-            if (_namespaces.Count > 0)
-            {
+            if (_usings.Count > 0)
                 result.AppendLine(); // Blank line after usings
-            }
 
             result.AppendLine($"namespace DataTransferObjects.{_entityType.Name}s;");
             result.AppendLine();

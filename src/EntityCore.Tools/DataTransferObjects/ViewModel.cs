@@ -26,15 +26,13 @@ namespace EntityCore.Tools.DataTransferObjects
             }
 
             if (!string.IsNullOrEmpty(_entityType.Namespace))
-            {
-                _namespaces.Add(_entityType.Namespace);
-            }
+                _usings.Add(_entityType.Namespace);
 
             var result = new StringBuilder();
 
-            foreach (var @namespace in _namespaces)
+            foreach (var @using in _usings)
             {
-                result.AppendLine($"using {@namespace};");
+                result.AppendLine($"using {@using};");
             }
 
             result.AppendLine(); // Blank line after usings

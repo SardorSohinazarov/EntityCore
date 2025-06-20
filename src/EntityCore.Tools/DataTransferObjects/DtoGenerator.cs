@@ -6,20 +6,25 @@ namespace EntityCore.Tools.DataTransferObjects
 {
     public class DtoGenerator
     {
-        protected HashSet<string> _namespaces;
+        protected HashSet<string> _usings;
         public DtoGenerator()
         {
-            _namespaces = new HashSet<string>();
+            _usings = new HashSet<string>();
         }
 
         protected string GenerateProperty(PropertyInfo property)
         {
             if (property.IsPrimaryKeyProperty())
             {
-                return null; // Skip primary key
+                return null;
             }
 
             Type type = property.PropertyType;
+
+            if (!string.IsNullOrEmpty(type.Namespace))
+            {
+                _usings.Add(type.Namespace);
+            }
 
             if (!type.IsNavigationProperty())
             {
@@ -55,7 +60,7 @@ namespace EntityCore.Tools.DataTransferObjects
 
             if (!string.IsNullOrEmpty(type.Namespace))
             {
-                _namespaces.Add(type.Namespace);
+                _usings.Add(type.Namespace);
             }
 
             if (!type.IsNavigationProperty())
@@ -68,7 +73,7 @@ namespace EntityCore.Tools.DataTransferObjects
                 {
                     Type elementType = GetCollectionElementType(type);
 
-                    _namespaces.Add(elementType.Namespace);
+                    _usings.Add(elementType.Namespace);
 
                     if (!elementType.IsNavigationProperty())
                     {
@@ -82,7 +87,7 @@ namespace EntityCore.Tools.DataTransferObjects
                 }
                 else
                 {
-                    _namespaces.Add(type.Namespace);
+                    _usings.Add(type.Namespace);
 
                     return $"public {type.Name} {property.Name} {{ get; set; }}";
                 }
