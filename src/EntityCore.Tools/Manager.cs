@@ -168,7 +168,7 @@ namespace EntityCore.Tools
                 return;
             }
 
-            var views = new List<(string[], string, string)>
+            var views = new (string[], string, string)[]
             {
                 (["Components", "Pages", $"{entityName}s"], $"{entityName}.Filter.razor", new Filter(entityType).Generate()),
                 (["Components", "Pages", $"{entityName}s"], $"{entityName}.Create.razor", new Create(entityType).Generate()),
