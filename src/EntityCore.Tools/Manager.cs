@@ -168,13 +168,16 @@ namespace EntityCore.Tools
                 return;
             }
 
-
-            var view = new View(entityType);
-            var viewCodes = view.Generate();
-
-            foreach(var viewCode in viewCodes)
+            var views = new List<(string[], string, string)>
             {
-                WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.{viewCode.name}.razor", viewCode.code);
+                (["Components", "Pages", $"{entityName}s"], $"{entityName}.Filter.razor", new Filter(entityType).Generate()),
+                (["Components", "Pages", $"{entityName}s"], $"{entityName}.Create.razor", new Create(entityType).Generate()),
+                (["Components", "Pages", $"{entityName}s"], $"{entityName}.Details.razor", new Details(entityType).Generate())
+            };
+
+            foreach (var (directories, fileName, code) in views)
+            {
+                WriteCode(directories, fileName, code);
             }
         }
 

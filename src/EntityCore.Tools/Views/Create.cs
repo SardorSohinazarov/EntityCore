@@ -5,14 +5,14 @@ using System.Text;
 
 namespace EntityCore.Tools.Views
 {
-    public class Create : Generator
+    public class Create : ViewGenerator
     {
         private readonly Type _entityType;
         private readonly string _entityName;
         private readonly Type _creationDtoType;
         private readonly Type _serviceType;
 
-        public Create(Type entityType)
+        public Create(Type entityType) : base(entityType)
         {
             _entityType = entityType;
             _entityName = _entityType.Name;
@@ -25,15 +25,24 @@ namespace EntityCore.Tools.Views
             string serviceName = $"{_entityName}Service";
             string pluralEntityName = $"{_entityName}s";
 
-            var dtoProperties = _creationDtoType.GetProperties().Where(p => p.CanWrite).ToList();
+            var properties = _creationDtoType.GetProperties().ToList();
+
+            foreach(var navigationalPropertyType in properties.Select(x => x.PropertyType))
+            {
+                _usings.Add(navigationalPropertyType?.Namespace);
+            }
+            if(!string.IsNullOrEmpty(_creationDtoType.Namespace))
+                _usings.Add(_creationDtoType.Namespace);
+            if(!string.IsNullOrEmpty(_serviceType.Namespace))
+                _usings.Add(_serviceType.Namespace);
 
             var sb = new StringBuilder();
             sb.AppendLine($"@page \"/{pluralEntityName.ToLower()}/create\"");
             sb.AppendLine("@rendermode InteractiveServer");
-            if(!string.IsNullOrEmpty(_creationDtoType.Namespace))
-                sb.AppendLine($"@using {_creationDtoType.Namespace}");
-            if(!string.IsNullOrEmpty(_serviceType.Namespace))
-                sb.AppendLine($"@using {_serviceType.Namespace}");
+            foreach (var @using in _usings)
+            {
+                sb.AppendLine($"@using {@using}");
+            }
             sb.AppendLine($"@inject I{pluralEntityName}Service {serviceName}");
             sb.AppendLine($"@inject NavigationManager NavigationManager");
             sb.AppendLine();
@@ -44,7 +53,7 @@ namespace EntityCore.Tools.Views
             sb.AppendLine("    <ValidationSummary />");
             sb.AppendLine();
 
-            foreach (var prop in dtoProperties)
+            foreach (var prop in properties)
             {
                 if (typeof(IEnumerable).IsAssignableFrom(prop.PropertyType) && prop.PropertyType != typeof(string))
                     continue;
