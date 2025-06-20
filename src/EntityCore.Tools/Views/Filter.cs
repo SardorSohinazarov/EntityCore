@@ -5,14 +5,14 @@ using System.Text;
 
 namespace EntityCore.Tools.Views
 {
-    public class Filter : Generator
+    public class Filter : ViewGenerator
     {
         private readonly Type _entityType;
         private readonly string _entityName;
         private readonly Type _viewModelType;
         private readonly PropertyInfo _primaryKey;
         private readonly Type _serviceType;
-        public Filter(Type entityType)
+        public Filter(Type entityType) : base(entityType)
         {
             _entityType = entityType;
             _entityName = _entityType.Name;
@@ -28,16 +28,25 @@ namespace EntityCore.Tools.Views
 
             var properties = _viewModelType.GetProperties().Where(p => (p.PropertyType.Name != _primaryKey.PropertyType.Name && p.Name != _primaryKey.Name)).ToList();
 
+            foreach (var navigationalPropertyType in properties.Select(x => x.PropertyType))
+            {
+                _usings.Add(navigationalPropertyType.Namespace);
+            }
+            if(!string.IsNullOrEmpty(_viewModelType.Namespace))
+                _usings.Add(_viewModelType.Namespace);
+            if(!string.IsNullOrEmpty(_serviceType.Namespace))
+                _usings.Add(_serviceType.Namespace);
+
             var sb = new StringBuilder();
             sb.AppendLine($"@page \"/{pluralEntityName.ToLower()}\"");
             sb.AppendLine("@rendermode InteractiveServer");
             sb.AppendLine("@inject NavigationManager NavigationManager");
             sb.AppendLine("@using Microsoft.AspNetCore.WebUtilities");
             sb.AppendLine("@using Common.Paginations.Models");
-            if(!string.IsNullOrEmpty(_viewModelType.Namespace))
-                sb.AppendLine($"@using {_viewModelType.Namespace}");
-            if(!string.IsNullOrEmpty(_serviceType.Namespace))
-                sb.AppendLine($"@using {_serviceType.Namespace}");
+            foreach (var @using in _usings)
+            {
+                sb.AppendLine($"@using {@using}");
+            }
             sb.AppendLine($"@inject {_serviceType.Name} {serviceName}");
             sb.AppendLine();
             sb.AppendLine($"<h3>{_entityName} List</h3>");

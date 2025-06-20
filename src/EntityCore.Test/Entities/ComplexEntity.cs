@@ -16,6 +16,7 @@
         // Collection navigation property
         public ICollection<RelatedEntity> RelatedCollection { get; set; } = new List<RelatedEntity>();
         public List<SimpleEntity> SimpleItems { get; set; } = new List<SimpleEntity>();
+        public OrderStatus? Status { get; set; }
 
         public bool IsDeleted { get; set; }
         public DateTime? DeletedAt { get; set; }
@@ -23,6 +24,14 @@
         public string CreatedBy { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string UpdatedBy { get; set; }
+    }
+
+    public enum OrderStatus
+    {
+        Pending,
+        Processing,
+        Completed,
+        Cancelled
     }
 
     public class ComplexEntityCreationDto

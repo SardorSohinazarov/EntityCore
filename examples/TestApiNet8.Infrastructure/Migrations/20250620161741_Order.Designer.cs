@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TestApiWithNet8;
 
@@ -11,9 +12,11 @@ using TestApiWithNet8;
 namespace TestApiNet8.Infrastructure.Migrations
 {
     [DbContext(typeof(TestApiNet8Db))]
-    partial class TestApiNet8DbModelSnapshot : ModelSnapshot
+    [Migration("20250620161741_Order")]
+    partial class Order
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

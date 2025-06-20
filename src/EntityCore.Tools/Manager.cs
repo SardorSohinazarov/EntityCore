@@ -46,12 +46,16 @@ namespace EntityCore.Tools
 
             Type? entityType = GetEntityType(entityName);
 
-            var dtos = new (string[], string, string)[]
-            {
-                (["DataTransferObjects", $"{entityName}s"], $"{entityName}CreationDto.cs", new CreationDto(entityType).Generate()),
-                (["DataTransferObjects", $"{entityName}s"], $"{entityName}ModificationDto.cs", new ModificationDto(entityType).Generate()),
-                (["DataTransferObjects", $"{entityName}s"], $"{entityName}ViewModel.cs", new ViewModel(entityType).Generate()),
-            };
+            var dtos = new List<(string[], string, string)>();
+
+            if (!IsExist(["DataTransferObjects", $"{entityName}s"], $"{entityName}CreationDto.cs"))
+                dtos.Add((["DataTransferObjects", $"{entityName}s"], $"{entityName}CreationDto.cs", new CreationDto(entityType).Generate()));
+
+            if (!IsExist(["DataTransferObjects", $"{entityName}s"], $"{entityName}ModificationDto.cs"))
+                dtos.Add((["DataTransferObjects", $"{entityName}s"], $"{entityName}ModificationDto.cs", new ModificationDto(entityType).Generate()));
+
+            if (!IsExist(["DataTransferObjects", $"{entityName}s"], $"{entityName}ViewModel.cs"))
+                dtos.Add((["DataTransferObjects", $"{entityName}s"], $"{entityName}ViewModel.cs", new ViewModel(entityType).Generate()));
 
             foreach (var (directories, fileName, code) in dtos)
             {
@@ -63,13 +67,19 @@ namespace EntityCore.Tools
         {
             if (_arguments.ContainsKey("serviceAttribute"))
             {
-                var serviceAttribute = new ServiceAttributes();
-                var serviceAttributeCode = serviceAttribute.Generate();
-                WriteCode(new[] { "Common", "ServiceAttributes" }, "ServiceAttributes.cs", serviceAttributeCode);
+                if (!IsExist(["Common", "ServiceAttributes"], "ServiceAttributes.cs"))
+                {
+                    var serviceAttribute = new ServiceAttributes();
+                    var serviceAttributeCode = serviceAttribute.Generate();
+                    WriteCode(["Common", "ServiceAttributes"], "ServiceAttributes.cs", serviceAttributeCode);
+                }
 
-                var serviceAttributeCollectionExtension = new ServiceAttributeCollectionExtensions();
-                var serviceAttributeCollectionExtensionCode = serviceAttributeCollectionExtension.Generate();
-                WriteCode(new[] { "Common", "ServiceAttribute" }, "ServiceAttributeCollectionExtensions.cs", serviceAttributeCollectionExtensionCode);
+                if(!IsExist(["Common", "ServiceAttribute"], "ServiceAttributeCollectionExtensions.cs"))
+                {
+                    var serviceAttributeCollectionExtension = new ServiceAttributeCollectionExtensions();
+                    var serviceAttributeCollectionExtensionCode = serviceAttributeCollectionExtension.Generate();
+                    WriteCode(new[] { "Common", "ServiceAttribute" }, "ServiceAttributeCollectionExtensions.cs", serviceAttributeCollectionExtensionCode);
+                }
             }
         }
 
@@ -77,9 +87,12 @@ namespace EntityCore.Tools
         {
             if (_arguments.ContainsKey("result"))
             {
-                var result = new Result();
-                var resultClassesCode = result.Generate();
-                WriteCode("Common", "Result.cs", resultClassesCode);
+                if(!IsExist("Common", "Result.cs"))
+                {
+                    var result = new Result();
+                    var resultClassesCode = result.Generate();
+                    WriteCode("Common", "Result.cs", resultClassesCode);
+                }
             }
         }
 
@@ -87,9 +100,12 @@ namespace EntityCore.Tools
         {
             if (_arguments.ContainsKey("exceptionM"))
             {
-                var exceptionHandlerMiddlewareCode = new ExceptionHandlerMiddleware();
-                var code = exceptionHandlerMiddlewareCode.Generate();
-                WriteCode("Middlewares", "ExceptionHandlerMiddleware.cs", code);
+                if (IsExist("Middlewares", "ExceptionHandlerMiddleware.cs"))
+                {
+                    var exceptionHandlerMiddlewareCode = new ExceptionHandlerMiddleware();
+                    var code = exceptionHandlerMiddlewareCode.Generate();
+                    WriteCode("Middlewares", "ExceptionHandlerMiddleware.cs", code);
+                }
             }
         }
 
@@ -98,6 +114,12 @@ namespace EntityCore.Tools
             var entityName = _arguments.ContainsKey("service") ? _arguments["service"] : null;
             if (entityName is null)
                 return;
+
+            if(IsExist("Services", $"{entityName}sService.cs") || IsExist("Services", $"I{entityName}sService.cs"))
+            {
+                ConsoleMessage($"!!! {entityName}Service already exists.", ConsoleColor.Yellow);
+                return;
+            }
 
             Type? entityType = GetEntityType(entityName);
 
@@ -119,9 +141,12 @@ namespace EntityCore.Tools
 
         private void GenerateListResult()
         {
-            ListResult listResult = new ListResult();
-            var code = listResult.Generate();
-            WriteCode("Common", "ListResult.cs", code);
+            if (!IsExist("Common", "ListResult.cs"))
+            {
+                ListResult listResult = new ListResult();
+                var code = listResult.Generate();
+                WriteCode("Common", "ListResult.cs", code);
+            }
         }
 
         private void GenerateView()
@@ -135,12 +160,24 @@ namespace EntityCore.Tools
             GeneratePaginationComponent();
             GenerateInputGuid();
 
-            var view = new View(entityType);
-            var viewCodes = view.Generate();
-
-            foreach(var viewCode in viewCodes)
+            if(IsExist(["Components", "Pages", $"{entityName}s"], $"{entityName}.Filter.razor") ||
+                IsExist(["Components", "Pages", $"{entityName}s"], $"{entityName}.Create.razor") ||
+                IsExist(["Components", "Pages", $"{entityName}s"], $"{entityName}.Details.razor"))
             {
-                WriteCode(["Components", "Pages", $"{entityName}s"], $"{entityName}.{viewCode.Item1}.razor", viewCode.Item2);
+                ConsoleMessage($"!!! {entityName} views already exists.", ConsoleColor.Yellow);
+                return;
+            }
+
+            var views = new (string[], string, string)[]
+            {
+                (["Components", "Pages", $"{entityName}s"], $"{entityName}.Filter.razor", new Filter(entityType).Generate()),
+                (["Components", "Pages", $"{entityName}s"], $"{entityName}.Create.razor", new Create(entityType).Generate()),
+                (["Components", "Pages", $"{entityName}s"], $"{entityName}.Details.razor", new Details(entityType).Generate())
+            };
+
+            foreach (var (directories, fileName, code) in views)
+            {
+                WriteCode(directories, fileName, code);
             }
         }
 
@@ -149,6 +186,12 @@ namespace EntityCore.Tools
             var entityName = _arguments.ContainsKey("controller") ? _arguments["controller"] : null;
             if (entityName is null)
                 return;
+
+            if (IsExist("Controllers", $"{entityName}sController.cs"))
+            {
+                ConsoleMessage($"!!! {entityName}sController.cs already exists.", ConsoleColor.Yellow);
+                return;
+            }
 
             Type? entityType = GetEntityType(entityName);
 
@@ -160,6 +203,13 @@ namespace EntityCore.Tools
         private void GeneratePaginationComponent()
         {
             var paginationComponent = new PaginationComponent();
+
+            if (IsExist("Components", "Pagination.razor") || IsExist("Components", "Pagination.razor.css"))
+            {
+                ConsoleMessage($"!!! Pagination component already exists.", ConsoleColor.Yellow);
+                return;
+            }
+
             var code = paginationComponent.Generate();
             WriteCode(["Components"], "Pagination.razor", code);
 
@@ -169,6 +219,12 @@ namespace EntityCore.Tools
 
         private void GenerateInputGuid()
         {
+            if (IsExist("Components", "InputGuid.cs"))
+            {
+                ConsoleMessage($"!!! InputGuid component already exists.", ConsoleColor.Yellow);
+                return;
+            }
+
             var inputGuid = new InputGuid();
             var code = inputGuid.Generate();
             WriteCode(["Components"], "InputGuid.cs", code);
@@ -176,6 +232,12 @@ namespace EntityCore.Tools
 
         private void GeneratePagination()
         {
+            if(IsExist(["Common", "Pagination"], "PaginationOptions.cs") || IsExist(["Common", "Pagination"], "PaginationExtensions.cs") || IsExist(["Common", "Pagination"], "PaginationMetadata.cs"))
+            {
+                ConsoleMessage($"!!! Pagination already exists.", ConsoleColor.Yellow);
+                return;
+            }
+
             var paginationComponents = new (string[], string, string)[]
             {
                 (["Common", "Pagination"], "PaginationOptions.cs", new PaginationOptions().GeneratePaginationOptionsClass()),
@@ -203,23 +265,22 @@ namespace EntityCore.Tools
             throw new InvalidOperationException($"Entity with name '{entityName}' not found in Assembly");
         }
 
-        private void WriteCode(string directory, string fileName, string code)
+        private bool IsExist(string directory, string fileName) 
+            => IsExist([directory], fileName);
+
+        private bool IsExist(string[] directories, string fileName)
         {
-            var directoryPath = Path.Combine(_projectRoot, directory);
-            Directory.CreateDirectory(directoryPath);
-            string filePath = Path.Combine(directoryPath, fileName);
-
-            if (File.Exists(filePath))
+            string directoryPath = _projectRoot;
+            foreach (var directory in directories)
             {
-                ConsoleMessage($"!!! {fileName} already exists.", ConsoleColor.Yellow);
-                return;
+                directoryPath = Path.Combine(directoryPath, directory);
             }
-
-            File.WriteAllText(filePath, code);
-
-            
-            ConsoleMessage($"{fileName} generated successfully!");
+            string filePath = Path.Combine(directoryPath, fileName);
+            return File.Exists(filePath);
         }
+
+        private void WriteCode(string directory, string fileName, string code) 
+            => WriteCode([directory], fileName, code);
 
         private void WriteCode(string[] directories, string fileName, string code)
         {
